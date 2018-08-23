@@ -6,8 +6,6 @@ import * as vscode from 'vscode';
 
 import { Project, FileInfo } from "./models";
 import { DATA_ROOT_PATH, PROJECT_IMAGE_FOLDER, SAVE_PROJECTS_IN_FILE, PROJECTS_FILE } from "./constants";
-import { setFlagsFromString } from 'v8';
-
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~ Projects ~~~~~~~~~~~~~~~~~~~~~~~~~
 export function getProjects(context: vscode.ExtensionContext): Project[] {

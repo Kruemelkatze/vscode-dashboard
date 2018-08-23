@@ -5,7 +5,7 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import { Project, IDashboardConfig, FileInfo } from './models';
 import { PROJECT_IMAGE_FOLDER } from './constants';
-import { getProjects, saveProjects, saveProjectImageFile } from './services';
+import { getProjects, saveProjects, saveProjectImageFile } from './persistingServices';
 import { getDashboardContent } from './webviewContent';
 
 const testProjects: Project[] = [
@@ -84,10 +84,21 @@ function showDashboard(instance: vscode.WebviewPanel, context: vscode.ExtensionC
             instance = null;
         }, null, context.subscriptions);
 
-        panel.webview.onDidReceiveMessage(e => {
+        panel.webview.onDidReceiveMessage(async (e) => {
             switch (e.type) {
                 case 'selected-file':
-                    saveProjectImageFile(e.fileInfo as FileInfo, projects[0]);
+                    let fileInfo = e.fileInfo as FileInfo;
+                    saveProjectImageFile(fileInfo, projects[0]);
+                    break;
+                case 'selected-project':
+                    let projectId = e.projectId as string;
+                    let project = projects.find(p => p.id === projectId);
+                    try {
+                        let uri = vscode.Uri.file(project.path);
+                        await vscode.commands.executeCommand("vscode.openFolder", uri, false);
+                    } catch (error) {
+                        debugger    
+                    }
                     break;
             }
         });

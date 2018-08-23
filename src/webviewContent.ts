@@ -20,6 +20,7 @@ export function getDashboardContent(config: IDashboardConfig): string {
         (function() {
             const vscode = acquireVsCodeApi();
             ${filePickerScript()}
+            ${projectScript()}
         })();
     </script>
 </html>`;
@@ -28,8 +29,12 @@ export function getDashboardContent(config: IDashboardConfig): string {
 function getProjectDiv(project) {
     return `
 <div class="project-col">
-    ${project.name}
-    <input type="file" id="file" accept="image/*" />
+    <div class="project" onclick="onProjectClicked('${project.id}')">
+        <h1>${project.name}</h1>
+        <p>${project.path.replace(/([\\\/])/ig, '$1&#8203;')}</p>
+
+        <input type="file" id="file" accept="image/*" />
+    </div>
 </div>`
 }
 
@@ -37,14 +42,11 @@ function filePickerScript() {
     return `
 function handleFileSelect(evt) {
     var file = evt.target.files[0]; // FileList object
-    debugger
     if (file == null)
         return;
 
     var fileInfo = readFileIntoMemory(file,
         fileInfo => {
-            debugger
-
             vscode.postMessage({
                 type: 'selected-file',
                 fileInfo,
@@ -66,6 +68,19 @@ function readFileIntoMemory (file, callback) {
 }
 
 document.getElementById('file').addEventListener('change', handleFileSelect, false);
+`;
+}
 
+function projectScript(){
+    return `
+function onProjectClicked(projectId) {
+    debugger
+    vscode.postMessage({
+        type: 'selected-project',
+        projectId,
+    });
+}
+
+window.onProjectClicked = onProjectClicked;
 `;
 }
