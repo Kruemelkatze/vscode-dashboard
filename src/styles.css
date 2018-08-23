@@ -1,0 +1,35 @@
+body.vscode-light {
+    color: blue;
+}
+
+body.vscode-dark {
+    color: green;
+}
+
+body.vscode-high-contrast {
+    color: red;
+}
+
+.project-row {
+    width: 100%;
+    display: flex;
+    justify-content: flex-start;
+    align-items: stretch;
+}
+
+.project-col {
+    flex-basis: 25%;
+    flex-grow: 0;
+
+    margin: 0 15px 15px 15px;
+    min-height: 15em;
+    background: orange;
+}
+
+.project-col:first-child {
+    margin-left: 0;
+}
+
+.project-col:last-child {
+    margin-right: 0;
+}

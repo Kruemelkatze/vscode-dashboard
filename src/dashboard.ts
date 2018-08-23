@@ -1,0 +1,100 @@
+'use strict';
+// The module 'vscode' contains the VS Code extensibility API
+// Import the module and reference it with the alias vscode in your code below
+import * as vscode from 'vscode';
+import * as path from 'path';
+import { Project, IDashboardConfig, FileInfo } from './models';
+import { PROJECT_IMAGE_FOLDER } from './constants';
+import { getProjects, saveProjects, saveProjectImageFile } from './services';
+import { getDashboardContent } from './webviewContent';
+
+const testProjects: Project[] = [
+    {
+        id: "foodfelf",
+        name: "AAU Food",
+        imageFilePath: `${PROJECT_IMAGE_FOLDER}/foodfelf.png`,
+        path: "C:\\Users\\Fabian\\WebstormProjects\\AAUFood",
+    }
+];
+
+
+
+// this method is called when your extension is activated
+// your extension is activated the very first time the command is executed
+export function activate(context: vscode.ExtensionContext) {
+    var instance: vscode.WebviewPanel = null;
+
+    // Use the console to output diagnostic information (console.log) and errors (console.error)
+    // This line of code will only be executed once when your extension is activated
+    console.log('Congratulations, your extension "dashboard" is now active!');
+
+    var isOnWelcomePage = (!vscode.workspace.name && vscode.window.visibleTextEditors.length === 0);
+    if (isOnWelcomePage) {
+        showDashboard(instance, context);
+    }
+
+    // The command has been defined in the package.json file
+    // Now provide the implementation of the command with  registerCommand
+    // The commandId parameter must match the command field in package.json
+    const openCommand = vscode.commands.registerCommand('dashboard.open', () => {
+        showDashboard(instance, context);
+    });
+
+    const saveProjectsCommand = vscode.commands.registerCommand('dashboard.testSaveProjects', async () => {
+        await saveProjects(context, testProjects);
+    });
+
+    context.subscriptions.push(openCommand);
+    context.subscriptions.push(saveProjectsCommand);
+}
+
+// this method is called when your extension is deactivated
+export function deactivate() {
+}
+
+function showDashboard(instance: vscode.WebviewPanel, context: vscode.ExtensionContext) {
+    const columnToShowIn = vscode.window.activeTextEditor ? vscode.window.activeTextEditor.viewColumn : null;
+
+    if (instance) {
+        instance.reveal(columnToShowIn);
+    } else {
+        var stylesPath = vscode.Uri.file(path.join(context.extensionPath, 'src', 'styles.css'));
+        stylesPath = stylesPath.with({ scheme: 'vscode-resource' });
+
+        const projects = getProjects(context);
+
+        const dashboardConfig: IDashboardConfig = {
+            stylesPath,
+            projects,
+        };
+
+        const panel = vscode.window.createWebviewPanel(
+            "dashboard",
+            "Dashboard",
+            vscode.ViewColumn.One,
+            {
+                enableScripts: true,
+            }
+        );
+
+        panel.webview.html = getDashboardContent(dashboardConfig);
+
+        // Reset when the current panel is closed
+        panel.onDidDispose(() => {
+            instance = null;
+        }, null, context.subscriptions);
+
+        panel.webview.onDidReceiveMessage(e => {
+            switch (e.type) {
+                case 'selected-file':
+                    saveProjectImageFile(e.fileInfo as FileInfo, projects[0]);
+                    break;
+            }
+        });
+
+        instance = panel;
+    }
+}
+
+
+

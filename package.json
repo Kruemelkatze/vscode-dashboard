@@ -1,0 +1,46 @@
+{
+    "name": "dashboard",
+    "displayName": "dashboard",
+    "description": "",
+    "version": "0.0.1",
+    "publisher": "Kruemelkatze",
+    "engines": {
+        "vscode": "^1.26.0"
+    },
+    "categories": [
+        "Other"
+    ],
+    "activationEvents": [
+        "*"
+    ],
+    "main": "./out/dashboard",
+    "contributes": {
+        "commands": [
+            {
+                "command": "dashboard.open",
+                "title": "Open Dashboard"
+            },
+            {
+                "command": "dashboard.testSaveProjects",
+                "title": "Test Save Projects"
+            }
+        ]
+    },
+    "scripts": {
+        "vscode:prepublish": "npm run compile",
+        "compile": "tsc -p ./",
+        "watch": "tsc -watch -p ./",
+        "postinstall": "node ./node_modules/vscode/bin/install",
+        "test": "npm run compile && node ./node_modules/vscode/bin/test"
+    },
+    "devDependencies": {
+        "typescript": "^2.6.1",
+        "vscode": "^1.1.6",
+        "tslint": "^5.8.0",
+        "@types/node": "^7.0.43",
+        "@types/mocha": "^2.2.42"
+    },
+    "dependencies": {
+        "mkdirp": "^0.5.1"
+    }
+}
