@@ -65,21 +65,6 @@ function readFileIntoMemory (file, callback) {
     reader.readAsArrayBuffer(file);
 }
 
-// function readFileIntoMemory(file) {
-//     return new Promise((resolve, reject) => {
-//         var reader = new FileReader();
-//         reader.onload = () => {
-//             resolve({
-//                 name: file.name,
-//                 size: file.size,
-//                 type: file.type,
-//                 content: new Uint8Array(this.result)
-//              });
-//         };
-//         reader.readAsArrayBuffer(file);
-//     });    
-// }
-
 document.getElementById('file').addEventListener('change', handleFileSelect, false);
 
 `;
