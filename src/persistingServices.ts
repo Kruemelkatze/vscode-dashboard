@@ -9,12 +9,16 @@ import { DATA_ROOT_PATH, PROJECT_IMAGE_FOLDER, SAVE_PROJECTS_IN_FILE, PROJECTS_F
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~ Projects ~~~~~~~~~~~~~~~~~~~~~~~~~
 export function getProjects(context: vscode.ExtensionContext): Project[] {
-    return (context.globalState.get("projects") || []) as Project[];
+    if (SAVE_PROJECTS_IN_FILE) {
+        return getProjectsFromFile();
+    } else {
+        return (context.globalState.get("projects") || []) as Project[];
+    }
 }
 
-export function saveProjects(context: vscode.ExtensionContext, projects: Project[]) {
+export async function saveProjects(context: vscode.ExtensionContext, projects: Project[]) {
     if (SAVE_PROJECTS_IN_FILE) {
-        return saveProjectsToFile(projects);
+        return await saveProjectsToFile(projects);
     } else {
         context.globalState.update("projects", projects);
     }
@@ -28,6 +32,12 @@ export function saveProjectImageFile(fileInfo: FileInfo, project: Project) {
     var filePath = `${DATA_ROOT_PATH}/${PROJECT_IMAGE_FOLDER}/${project.id}.${fileExtension}`;
     var data = new Buffer(fileInfo.content);
     return writeFile(filePath, data);
+}
+
+function getProjectsFromFile(): Project[] {
+    var filePath = `${DATA_ROOT_PATH}/${PROJECTS_FILE}`
+    var str = fs.readFileSync(filePath, 'utf8');
+    return str ? JSON.parse(str) : [];
 }
 
 function saveProjectsToFile(projects: Project[]) {

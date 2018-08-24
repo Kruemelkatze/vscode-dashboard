@@ -3,6 +3,7 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 import * as path from 'path';
+import * as fs from 'fs';
 import { Project, IDashboardConfig, FileInfo } from './models';
 import { PROJECT_IMAGE_FOLDER } from './constants';
 import { getProjects, saveProjects, saveProjectImageFile } from './persistingServices';
@@ -44,8 +45,29 @@ export function activate(context: vscode.ExtensionContext) {
         await saveProjects(context, testProjects);
     });
 
+    const addProjectCommand = vscode.commands.registerCommand('dashboard.addProject', async () => {
+        var projectName = await vscode.window.showInputBox({
+            placeHolder: 'Project Name',
+            validateInput: (val: string) => val ? '' : 'A Project Name must be provided.',
+        });
+
+        var projectPath = await vscode.window.showInputBox({
+            placeHolder: 'Project Directory or File',
+            validateInput: (val: string) => {
+                let exists = fs.existsSync(val)
+                return exists ? '' : 'Directory or File does not exist.';
+            }
+        });
+
+        var project = new Project(projectName, projectPath);
+        var projects = getProjects(context);
+        projects.push(project);
+        await saveProjects(context, projects);
+    });
+
     context.subscriptions.push(openCommand);
     context.subscriptions.push(saveProjectsCommand);
+    context.subscriptions.push(addProjectCommand);
 }
 
 // this method is called when your extension is deactivated
@@ -97,7 +119,7 @@ function showDashboard(instance: vscode.WebviewPanel, context: vscode.ExtensionC
                         let uri = vscode.Uri.file(project.path);
                         await vscode.commands.executeCommand("vscode.openFolder", uri, false);
                     } catch (error) {
-                        debugger    
+                        debugger
                     }
                     break;
             }

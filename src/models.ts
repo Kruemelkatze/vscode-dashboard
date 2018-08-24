@@ -18,4 +18,10 @@ export class Project {
     name: string;
     path: string;
     imageFilePath: string;
+
+    constructor(name: string, path: string) {
+        this.id = name.toLowerCase().replace(/[^a-z0-9]/, '');
+        this.name = name;
+        this.path = path;
+    }
 }
