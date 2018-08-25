@@ -1,10 +1,4 @@
 'use strict';
-import * as vscode from 'vscode';
-
-export interface IDashboardConfig {
-    stylesPath: vscode.Uri;
-    projects: Project[];
-}
 
 export interface FileInfo {
     name: string;

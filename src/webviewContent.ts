@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { IDashboardConfig, Project } from "./models";
+import { Project } from "./models";
 
 export function getDashboardContent(context: vscode.ExtensionContext, projects: Project[]): string {
     var stylesPath = vscode.Uri.file(path.join(context.extensionPath, 'src', 'styles.css'));
