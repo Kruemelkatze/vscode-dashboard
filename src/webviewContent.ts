@@ -1,18 +1,23 @@
-import { IDashboardConfig } from "./models";
+import * as vscode from 'vscode';
+import * as path from 'path';
+import { IDashboardConfig, Project } from "./models";
 
-export function getDashboardContent(config: IDashboardConfig): string {
+export function getDashboardContent(context: vscode.ExtensionContext, projects: Project[]): string {
+    var stylesPath = vscode.Uri.file(path.join(context.extensionPath, 'src', 'styles.css'));
+    stylesPath = stylesPath.with({ scheme: 'vscode-resource' });
+
     return `
 <!DOCTYPE html>
     <html lang="en">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="stylesheet" type="text/css" href="${config.stylesPath}">
+        <link rel="stylesheet" type="text/css" href="${stylesPath}">
         <title>Cat Coding</title>
     </head>
     <body>
         <div class="project-row">
-            ${config.projects.map(getProjectDiv).join('\n')}
+            ${projects.map(getProjectDiv).join('\n')}
         </div>
     </body>
 
@@ -71,7 +76,7 @@ document.getElementById('file').addEventListener('change', handleFileSelect, fal
 `;
 }
 
-function projectScript(){
+function projectScript() {
     return `
 function onProjectClicked(projectId) {
     debugger

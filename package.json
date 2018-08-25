@@ -21,10 +21,6 @@
                 "title": "Open Dashboard"
             },
             {
-                "command": "dashboard.testSaveProjects",
-                "title": "Test Save Projects"
-            },
-            {
                 "command": "dashboard.addProject",
                 "title": "Add Project to Dashboard"
             }
