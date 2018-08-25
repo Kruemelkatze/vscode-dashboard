@@ -27,5 +27,5 @@ function generateRandomId(prepend: string = null) {
         prepend = '';
     }
 
-    return Math.random().toString(36).substr(2, 9) + Date.now().toString(36);
+    return prepend + Math.random().toString(36).substr(2, 9) + Date.now().toString(36);
 }
