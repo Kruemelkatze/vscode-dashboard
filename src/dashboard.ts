@@ -3,9 +3,8 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 import * as fs from 'fs';
-import { Project, IDashboardConfig, FileInfo } from './models';
-import { PROJECT_IMAGE_FOLDER } from './constants';
-import { getProjects, saveProjects, saveProjectImageFile, addProject } from './projectService';
+import { Project, FileInfo } from './models';
+import { loadProjects, saveProjectImageFile, addProject, removeProject } from './projectService';
 import { getDashboardContent } from './webviewContent';
 
 // this method is called when your extension is activated
@@ -30,12 +29,17 @@ export function activate(context: vscode.ExtensionContext) {
         showDashboard();
     });
 
-    const addProjectCommand = vscode.commands.registerCommand('dashboard.addProject', () => {
-        addProjectPerCommand();
+    const addProjectCommand = vscode.commands.registerCommand('dashboard.addProject', async () => {
+        await addProjectPerCommand();
+    });
+
+    const removeProjectCommand = vscode.commands.registerCommand('dashboard.removeProject', async () => {
+        await removeProjectPerCommand();
     });
 
     context.subscriptions.push(openCommand);
     context.subscriptions.push(addProjectCommand);
+    context.subscriptions.push(removeProjectCommand);
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~ Functions ~~~~~~~~~~~~~~~~~~~~~~~~~
     function setProjectsUpdateDashboard(updatedProjects: Project[]) {
@@ -46,34 +50,14 @@ export function activate(context: vscode.ExtensionContext) {
         }
     }
 
-    async function addProjectPerCommand() {
-        var projectName = await vscode.window.showInputBox({
-            placeHolder: 'Project Name',
-            validateInput: (val: string) => val ? '' : 'A Project Name must be provided.',
-        });
-
-        if (!projectName)
-            return;
-
-        var projectPath = await vscode.window.showInputBox({
-            placeHolder: 'Project Directory or File',
-            validateInput: (val: string) => {
-                let exists = fs.existsSync(val)
-                return exists ? '' : 'Directory or File does not exist.';
-            }
-        });
-
-        if (!projectPath)
-            return;
-
-        let project = new Project(projectName, projectPath);
-        let projects = await addProject(context, project);
-        setProjectsUpdateDashboard(projects);
+    function getProjects() {
+        projects = projects != null ? projects : loadProjects(context);
+        return projects;
     }
 
     function showDashboard() {
         var columnToShowIn = vscode.window.activeTextEditor ? vscode.window.activeTextEditor.viewColumn : null;
-        projects = projects != null ? projects : getProjects(context);
+        var projects = getProjects();
 
         if (instance) {
             instance.webview.html = getDashboardContent(context, projects);
@@ -116,6 +100,44 @@ export function activate(context: vscode.ExtensionContext) {
 
             instance = panel;
         }
+    }
+
+    async function addProjectPerCommand() {
+        var projectName = await vscode.window.showInputBox({
+            placeHolder: 'Project Name',
+            validateInput: (val: string) => val ? '' : 'A Project Name must be provided.',
+        });
+
+        if (!projectName)
+            return;
+
+        var projectPath = await vscode.window.showInputBox({
+            placeHolder: 'Project Directory or File',
+            validateInput: (val: string) => {
+                let exists = fs.existsSync(val)
+                return exists ? '' : 'Directory or File does not exist.';
+            }
+        });
+
+        if (!projectPath)
+            return;
+
+        let project = new Project(projectName, projectPath);
+        let projects = await addProject(context, project);
+        setProjectsUpdateDashboard(projects);
+    }
+
+    async function removeProjectPerCommand() {
+        var projects = getProjects();
+        let projectPicks = projects.map(p => ({ id: p.id, label: p.name }));
+
+        let selectedProjectPick = await vscode.window.showQuickPick(projectPicks);
+
+        if (selectedProjectPick == null)
+            return;
+
+        projects = await removeProject(context, selectedProjectPick.id)
+        setProjectsUpdateDashboard(projects);
     }
 }
 

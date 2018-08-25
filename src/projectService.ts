@@ -9,15 +9,15 @@ import { DATA_ROOT_PATH, PROJECT_IMAGE_FOLDER, SAVE_PROJECTS_IN_FILE, PROJECTS_F
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~ GET Projects ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-export function getProjects(context: vscode.ExtensionContext): Project[] {
+export function loadProjects(context: vscode.ExtensionContext): Project[] {
     if (SAVE_PROJECTS_IN_FILE) {
-        return getProjectsFromFile();
+        return loadProjectsFromFile();
     } else {
         return (context.globalState.get("projects") || []) as Project[];
     }
 }
 
-function getProjectsFromFile(): Project[] {
+function loadProjectsFromFile(): Project[] {
     let filePath = `${DATA_ROOT_PATH}/${PROJECTS_FILE}`
     let str = fs.readFileSync(filePath, 'utf8');
     return str ? JSON.parse(str) : [];
@@ -42,7 +42,7 @@ function saveProjectsToFile(projects: Project[]) {
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~ MODIFY Projects ~~~~~~~~~~~~~~~~~~~~~~~~~
 export async function addProject(context: vscode.ExtensionContext, project: Project): Promise<Project[]> {
-    var projects = getProjects(context);
+    var projects = loadProjects(context);
 
     if (ADD_NEW_PROJECT_TO_FRONT) {
         projects.unshift(project);
@@ -50,6 +50,13 @@ export async function addProject(context: vscode.ExtensionContext, project: Proj
         projects.push(project);
     }
 
+    await saveProjects(context, projects);
+    return projects;
+}
+
+export async function removeProject(context: vscode.ExtensionContext, id: string): Promise<Project[]> {
+    let projects = loadProjects(context);
+    projects = projects.filter(p => p.id !== id);
     await saveProjects(context, projects);
     return projects;
 }
