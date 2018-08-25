@@ -38,7 +38,7 @@ function getProjectDiv(project) {
         <h1>${project.name}</h1>
         <p>${project.path.replace(/([\\\/])/ig, '$1&#8203;')}</p>
 
-        <input type="file" id="file" accept="image/*" />
+        <!-- <input type="file" id="file" accept="image/*" /> -->
     </div>
 </div>`
 }
@@ -46,17 +46,15 @@ function getProjectDiv(project) {
 function filePickerScript() {
     return `
 function handleFileSelect(evt) {
+    evt.stopPropagation();
     var file = evt.target.files[0]; // FileList object
-    if (file == null)
+    if (file == null || !file.path)
         return;
 
-    var fileInfo = readFileIntoMemory(file,
-        fileInfo => {
-            vscode.postMessage({
-                type: 'selected-file',
-                fileInfo,
-            });
-        });    
+    vscode.postMessage({
+        type: 'selected-file',
+        filePath: file.path,
+    });
 }
 
 function readFileIntoMemory (file, callback) {
@@ -79,7 +77,6 @@ document.getElementById('file').addEventListener('change', handleFileSelect, fal
 function projectScript() {
     return `
 function onProjectClicked(projectId) {
-    debugger
     vscode.postMessage({
         type: 'selected-project',
         projectId,

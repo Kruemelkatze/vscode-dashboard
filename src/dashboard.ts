@@ -3,7 +3,7 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 import * as fs from 'fs';
-import { Project, FileInfo } from './models';
+import { Project } from './models';
 import { loadProjects, saveProjectImageFile, addProject, removeProject } from './projectService';
 import { getDashboardContent } from './webviewContent';
 
@@ -82,8 +82,8 @@ export function activate(context: vscode.ExtensionContext) {
             panel.webview.onDidReceiveMessage(async (e) => {
                 switch (e.type) {
                     case 'selected-file':
-                        let fileInfo = e.fileInfo as FileInfo;
-                        saveProjectImageFile(fileInfo, projects[0]);
+                        let filePath = e.filePath as string;
+                        saveProjectImageFile(filePath, projects[0]);
                         break;
                     case 'selected-project':
                         let projectId = e.projectId as string;
@@ -105,6 +105,7 @@ export function activate(context: vscode.ExtensionContext) {
     async function addProjectPerCommand() {
         var projectName = await vscode.window.showInputBox({
             placeHolder: 'Project Name',
+            ignoreFocusOut: true,
             validateInput: (val: string) => val ? '' : 'A Project Name must be provided.',
         });
 
@@ -113,6 +114,7 @@ export function activate(context: vscode.ExtensionContext) {
 
         var projectPath = await vscode.window.showInputBox({
             placeHolder: 'Project Directory or File',
+            ignoreFocusOut: true,
             validateInput: (val: string) => {
                 let exists = fs.existsSync(val)
                 return exists ? '' : 'Directory or File does not exist.';
@@ -122,8 +124,31 @@ export function activate(context: vscode.ExtensionContext) {
         if (!projectPath)
             return;
 
+        var selectImage = await vscode.window.showInputBox({
+            placeHolder: 'Select Project Icon? (y/n)',
+            ignoreFocusOut: true,
+            validateInput: (val: string) => {
+                let valid = !val || ['y', 'n', 'yes', 'no'].indexOf(val.toLowerCase()) >= 0;
+                return valid ? '' : 'y/n only';
+            }
+        });
+
+        var imageFile: vscode.Uri = null;
+        if (selectImage && selectImage.startsWith('y')) {
+            let selectedFiles = await vscode.window.showOpenDialog({
+                filters: {
+                    'Images': ['png,', 'jpg', 'jpeg', 'gif'],
+                }
+            });
+            imageFile = selectedFiles ? selectedFiles[0] : null;
+        }
+
         let project = new Project(projectName, projectPath);
         let projects = await addProject(context, project);
+
+        if (imageFile != null) {
+            await saveProjectImageFile(imageFile.fsPath, project);
+        }
         setProjectsUpdateDashboard(projects);
     }
 

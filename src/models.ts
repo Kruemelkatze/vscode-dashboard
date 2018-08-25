@@ -1,12 +1,5 @@
 'use strict';
 
-export interface FileInfo {
-    name: string;
-    type: string;
-    size: number;
-    content: Uint8Array;
-}
-
 export class Project {
     id: string;
     name: string;
