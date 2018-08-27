@@ -17,7 +17,7 @@ export function getDashboardContent(context: vscode.ExtensionContext, projects: 
         <title>Cat Coding</title>
     </head>
     <body>
-        <div class="project-row">
+        <div class="projects-wrapper">
             ${projects.map(getProjectDiv).join('\n')}
         </div>
     </body>
@@ -34,7 +34,7 @@ export function getDashboardContent(context: vscode.ExtensionContext, projects: 
 
 function getProjectDiv(project) {
     return `
-<div class="project-col">
+<div class="project-container">
     <div class="project" onclick="onProjectClicked('${project.id}')">
         <h2 class="project-header">
             ${USE_PROJECT_ICONS && project.imageFileName ? `<img src="${getImagePath(project)}" />` : ''}

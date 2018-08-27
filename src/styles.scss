@@ -5,49 +5,46 @@ $columnWidth: 25em;
 $borderTopSize: 7px;
 $defaultPadding: 20px;
 
-.project-row {
-    width: 100%;
-    // display: flex;
-    // justify-content: flex-start;
-    // align-items: stretch;
+.projects-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
 }
 
-.project-col {
+.project-container {
+    display: inline-block;
     width: $columnWidth;
-    // flex-basis: 25%;
-    // flex-grow: 0;
+}
 
-    margin: $defaultPadding;
-    margin-bottom: 0;
+.project {
+    cursor: pointer;
+    height: 100%;
 
-    &:first-child {
-        margin-left: 0;
-    }
-    
-    &:last-child {
-        margin-right: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+    margin: $defaultPadding $defaultPadding 0 0;
+
+    padding: $defaultPadding;
+
+    .project-header {
+        margin: 0;
+        font-size: 3em;
+        font-weight: lighter;
     }
 }
 
 @mixin themedStyles($foreground, $projectCardBg){
     .project {
-        cursor: pointer;
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
 
         background-color: $fixedProjectCardBg;
-        padding: $defaultPadding;
-        // padding-top: (20px + $defaultPadding - $borderTopSize);
 
         border-top: $borderTopSize solid $projectCardBg;
     
         .project-header {
-            margin: 0;
-            font-size: 3em;
-            font-weight: lighter;
+
         }
 
         .project-path {
