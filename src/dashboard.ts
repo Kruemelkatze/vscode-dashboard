@@ -141,12 +141,16 @@ export function activate(context: vscode.ExtensionContext) {
                 }
             });
             imageFile = selectedFiles ? selectedFiles[0] : null;
+
+            if (!imageFile)
+                return;
         }
 
-        let project = new Project(projectName, projectPath);
+        let hasImage = imageFile != null;
+        let project = new Project(projectName, projectPath, hasImage);
         let projects = await addProject(context, project);
 
-        if (imageFile != null) {
+        if (hasImage) {
             await saveProjectImageFile(imageFile.fsPath, project);
         }
         setProjectsUpdateDashboard(projects);
