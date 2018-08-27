@@ -1,35 +1,62 @@
-body.vscode-light {
-    color: blue;
-}
-
-body.vscode-dark {
-    color: green;
-}
-
-body.vscode-high-contrast {
-    color: red;
-}
-
 .project-row {
-    width: 100%;
-    display: flex;
-    justify-content: flex-start;
-    align-items: stretch;
-}
+  width: 100%; }
 
 .project-col {
-    flex-basis: 25%;
-    flex-grow: 0;
+  width: 25em;
+  margin: 20px;
+  margin-bottom: 0; }
+  .project-col:first-child {
+    margin-left: 0; }
+  .project-col:last-child {
+    margin-right: 0; }
 
-    margin: 0 15px 15px 15px;
-    min-height: 15em;
-    background: orange;
-}
+body.vscode-light .project {
+  cursor: pointer;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background-color: var(--vscode-tab-inactiveBackground);
+  padding: 20px;
+  border-top: 7px solid var(--vscode-tab-inactiveBackground); }
+  body.vscode-light .project .project-header {
+    margin: 0;
+    font-size: 3em;
+    font-weight: lighter; }
+  body.vscode-light .project .project-path {
+    color: var(--vscode-descriptionForeground); }
 
-.project-col:first-child {
-    margin-left: 0;
-}
+body.vscode-dark .project {
+  cursor: pointer;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background-color: var(--vscode-tab-inactiveBackground);
+  padding: 20px;
+  border-top: 7px solid var(--vscode-tab-inactiveBackground); }
+  body.vscode-dark .project .project-header {
+    margin: 0;
+    font-size: 3em;
+    font-weight: lighter; }
+  body.vscode-dark .project .project-path {
+    color: var(--vscode-descriptionForeground); }
 
-.project-col:last-child {
-    margin-right: 0;
-}
+body.vscode-high-contrast .project {
+  cursor: pointer;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background-color: var(--vscode-tab-inactiveBackground);
+  padding: 20px;
+  border-top: 7px solid var(--vscode-tab-inactiveBackground); }
+  body.vscode-high-contrast .project .project-header {
+    margin: 0;
+    font-size: 3em;
+    font-weight: lighter; }
+  body.vscode-high-contrast .project .project-path {
+    color: var(--vscode-descriptionForeground); }

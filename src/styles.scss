@@ -1,0 +1,75 @@
+$fixedProjectCardBg: var(--vscode-tab-inactiveBackground);
+$fixedForeground: var(--vscode-editor-foreground);
+
+$columnWidth: 25em;
+$borderTopSize: 7px;
+$defaultPadding: 20px;
+
+.project-row {
+    width: 100%;
+    // display: flex;
+    // justify-content: flex-start;
+    // align-items: stretch;
+}
+
+.project-col {
+    width: $columnWidth;
+    // flex-basis: 25%;
+    // flex-grow: 0;
+
+    margin: $defaultPadding;
+    margin-bottom: 0;
+
+    &:first-child {
+        margin-left: 0;
+    }
+    
+    &:last-child {
+        margin-right: 0;
+    }
+}
+
+@mixin themedStyles($foreground, $projectCardBg){
+    .project {
+        cursor: pointer;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+
+        background-color: $fixedProjectCardBg;
+        padding: $defaultPadding;
+        // padding-top: (20px + $defaultPadding - $borderTopSize);
+
+        border-top: $borderTopSize solid $projectCardBg;
+    
+        .project-header {
+            margin: 0;
+            font-size: 3em;
+            font-weight: lighter;
+        }
+
+        .project-path {
+            color: var(--vscode-descriptionForeground);
+        }
+    }
+}
+
+body.vscode-light {
+    @include themedStyles($fixedForeground, $fixedProjectCardBg);
+}
+
+body.vscode-dark {
+    @include themedStyles($fixedForeground, $fixedProjectCardBg);
+}
+
+body.vscode-high-contrast {
+    @include themedStyles($fixedForeground, $fixedProjectCardBg);
+} 
+
+
+
+
+
+
