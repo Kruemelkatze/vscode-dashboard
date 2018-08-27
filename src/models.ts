@@ -4,13 +4,13 @@ export class Project {
     id: string;
     name: string;
     path: string;
-    hasImage: boolean;
+    imageFileName: string;
 
-    constructor(name: string, path: string, hasImage: boolean = false) {
+    constructor(name: string, path: string, imageFileName: string = null) {
         this.id = generateRandomId(name);
         this.name = name;
         this.path = path;
-        this.hasImage = hasImage;
+        this.imageFileName = imageFileName;
     }
 }
 

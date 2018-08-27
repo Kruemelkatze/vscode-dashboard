@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { Project } from "./models";
+import { DATA_ROOT_PATH, PROJECT_IMAGE_FOLDER, USE_PROJECT_ICONS } from './constants';
 
 export function getDashboardContent(context: vscode.ExtensionContext, projects: Project[]): string {
     var stylesPath = vscode.Uri.file(path.join(context.extensionPath, 'src', 'styles.css'));
@@ -35,12 +36,19 @@ function getProjectDiv(project) {
     return `
 <div class="project-col">
     <div class="project" onclick="onProjectClicked('${project.id}')">
-        <h1>${project.name}</h1>
-        <p>${project.path.replace(/([\\\/])/ig, '$1&#8203;')}</p>
+        <h2 class="project-header">
+            ${USE_PROJECT_ICONS && project.imageFileName ? `<img src="${getImagePath(project)}" />` : ''}
+            ${project.name}
+        </h2>
+        <p class="project-path">${project.path.replace(/([\\\/])/ig, '$1&#8203;')}</p>
 
         <!-- <input type="file" id="file" accept="image/*" /> -->
     </div>
 </div>`
+}
+
+function getImagePath(project: Project) {
+    return path.normalize(`${DATA_ROOT_PATH}/${PROJECT_IMAGE_FOLDER}/${project.imageFileName}`);
 }
 
 function filePickerScript() {
@@ -70,7 +78,7 @@ function readFileIntoMemory (file, callback) {
     reader.readAsArrayBuffer(file);
 }
 
-document.getElementById('file').addEventListener('change', handleFileSelect, false);
+// document.getElementById('file').addEventListener('change', handleFileSelect, false);
 `;
 }
 

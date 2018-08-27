@@ -3,9 +3,11 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 import * as fs from 'fs';
+import * as path from 'path';
 import { Project } from './models';
 import { loadProjects, saveProjectImageFile, addProject, removeProject } from './projectService';
 import { getDashboardContent } from './webviewContent';
+import { DATA_ROOT_PATH, USE_PROJECT_ICONS } from './constants';
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -69,7 +71,10 @@ export function activate(context: vscode.ExtensionContext) {
                 vscode.ViewColumn.One,
                 {
                     enableScripts: true,
-                }
+                    localResourceRoots: [
+                        vscode.Uri.file(path.join(context.extensionPath, 'src')),
+                    ],
+                },
             );
 
             panel.webview.html = getDashboardContent(context, projects);
@@ -124,34 +129,37 @@ export function activate(context: vscode.ExtensionContext) {
         if (!projectPath)
             return;
 
-        var selectImage = await vscode.window.showInputBox({
-            placeHolder: 'Select Project Icon? (y/n)',
-            ignoreFocusOut: true,
-            validateInput: (val: string) => {
-                let valid = !val || ['y', 'n', 'yes', 'no'].indexOf(val.toLowerCase()) >= 0;
-                return valid ? '' : 'y/n only';
-            }
-        });
-
-        var imageFile: vscode.Uri = null;
-        if (selectImage && selectImage.startsWith('y')) {
-            let selectedFiles = await vscode.window.showOpenDialog({
-                filters: {
-                    'Images': ['png,', 'jpg', 'jpeg', 'gif'],
+        var imageFilePath: string = null;
+        if (USE_PROJECT_ICONS) {
+            var selectImage = await vscode.window.showInputBox({
+                placeHolder: 'Select Project Icon? (y/n)',
+                ignoreFocusOut: true,
+                validateInput: (val: string) => {
+                    let valid = !val || ['y', 'n', 'yes', 'no'].indexOf(val.toLowerCase()) >= 0;
+                    return valid ? '' : 'y/n only';
                 }
             });
-            imageFile = selectedFiles ? selectedFiles[0] : null;
 
-            if (!imageFile)
-                return;
+            var imageFilePath: string = null;
+            if (selectImage && selectImage.startsWith('y')) {
+                let selectedFiles = await vscode.window.showOpenDialog({
+                    filters: {
+                        'Images': ['png,', 'jpg', 'jpeg', 'gif'],
+                    }
+                });
+                imageFilePath = selectedFiles ? selectedFiles[0].fsPath : null;
+
+                if (!imageFilePath)
+                    return;
+            }
         }
 
-        let hasImage = imageFile != null;
-        let project = new Project(projectName, projectPath, hasImage);
+        let imageFileName = imageFilePath ? path.basename(imageFilePath) : null;
+        let project = new Project(projectName, projectPath, imageFileName);
         let projects = await addProject(context, project);
 
-        if (hasImage) {
-            await saveProjectImageFile(imageFile.fsPath, project);
+        if (imageFilePath != null) {
+            await saveProjectImageFile(imageFilePath, project);
         }
         setProjectsUpdateDashboard(projects);
     }
