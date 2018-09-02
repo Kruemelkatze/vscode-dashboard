@@ -1,7 +1,16 @@
 // Should Icons really be included? Apart from technical difficulties (Security Policies, etc.), most projects won't have one.
 export const USE_PROJECT_ICONS = false;
 // Alternative: Colored bar on project card
-export const USE_PROJECT_COLOR = true; 
+export const USE_PROJECT_COLOR = true;
+export const PREDEFINED_COLORS = [
+    { label: 'Green', value: 'var(--vscode-gitDecoration-untrackedResourceForeground)' },
+    { label: 'Brown', value: 'var(--vscode-gitDecoration-modifiedResourceForeground)' },
+    { label: 'Red', value: 'var(--vscode-gitDecoration-deletedResourceForeground)' },
+    { label: 'Grey', value: 'var(--vscode-gitDecoration-ignoredResourceForeground)' },
+    { label: 'Dark Blue', value: 'var(--vscode-gitDecoration-conflictingResourceForeground)' },
+    { label: 'Light Blue', value: 'var(--vscode-gitDecoration-submoduleResourceForeground)' },
+];
+
 
 export const ADD_NEW_PROJECT_TO_FRONT = false;
 export const SAVE_PROJECTS_IN_FILE = false;

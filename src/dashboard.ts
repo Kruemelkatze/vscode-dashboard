@@ -7,7 +7,7 @@ import * as path from 'path';
 import { Project } from './models';
 import { loadProjects, saveProjectImageFile, addProject, removeProject } from './projectService';
 import { getDashboardContent } from './webviewContent';
-import { DATA_ROOT_PATH, USE_PROJECT_ICONS } from './constants';
+import { DATA_ROOT_PATH, USE_PROJECT_ICONS, USE_PROJECT_COLOR, PREDEFINED_COLORS } from './constants';
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -154,8 +154,39 @@ export function activate(context: vscode.ExtensionContext) {
             }
         }
 
+        var color: string = null;
+        if (USE_PROJECT_COLOR) {
+            let colorPicks = PREDEFINED_COLORS.map(c => ({ id: c.label, label: c.label }))
+            colorPicks.push({ id: 'Custom', label: 'Custom Hex' });
+            let selectedColorPick = await vscode.window.showQuickPick(colorPicks, {
+                placeHolder: "Project Color",
+            });
+
+            if (selectedColorPick != null && selectedColorPick.id === 'Custom') {
+                var hex = await vscode.window.showInputBox({
+                    placeHolder: '#cc3344',
+                    ignoreFocusOut: true,
+                    validateInput: (val: string) => {
+                        let valid = val == null || /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(val);
+                        return valid ? '' : 'Prove a valid Hex color code or leave empty.'
+                    }
+                });
+
+                color = hex;
+            } else if (selectedColorPick != null) {
+                let predefinedColor = PREDEFINED_COLORS.find(c => c.label == selectedColorPick.id);
+                if (predefinedColor != null) {
+                    color = predefinedColor.value;
+                }
+            }
+        }
+
+        let project = new Project(projectName, projectPath);
+
         let imageFileName = imageFilePath ? path.basename(imageFilePath) : null;
-        let project = new Project(projectName, projectPath, imageFileName);
+        project.imageFileName = imageFileName;
+        project.color = color;
+
         let projects = await addProject(context, project);
 
         if (imageFilePath != null) {

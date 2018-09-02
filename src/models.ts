@@ -5,12 +5,12 @@ export class Project {
     name: string;
     path: string;
     imageFileName: string;
+    color: string;
 
-    constructor(name: string, path: string, imageFileName: string = null) {
+    constructor(name: string, path: string) {
         this.id = generateRandomId(name);
         this.name = name;
         this.path = path;
-        this.imageFileName = imageFileName;
     }
 }
 

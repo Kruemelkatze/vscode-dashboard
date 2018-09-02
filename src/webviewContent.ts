@@ -35,7 +35,8 @@ export function getDashboardContent(context: vscode.ExtensionContext, projects: 
 function getProjectDiv(project) {
     return `
 <div class="project-container">
-    <div class="project" onclick="onProjectClicked('${project.id}')">
+    <div class="project" onclick="onProjectClicked('${project.id}')" 
+         style="${project.color ? `border-top-color: ${project.color};` : ''}">
         <h2 class="project-header">
             ${USE_PROJECT_ICONS && project.imageFileName ? `<img src="${getImagePath(project)}" />` : ''}
             ${project.name}
