@@ -18,15 +18,19 @@
         "commands": [
             {
                 "command": "dashboard.open",
-                "title": "Open Dashboard"
+                "title": "Dashboard: Open"
             },
             {
                 "command": "dashboard.addProject",
-                "title": "Add Project to Dashboard"
+                "title": "Dashboard: Add Project"
             },
             {
                 "command": "dashboard.removeProject",
-                "title": "Remove Project from Dashboard"
+                "title": "Dashboard: Remove Project"
+            },
+            {
+                "command": "dashboard.editProjects",
+                "title": "Dashboard: Edit Projects"
             }
         ]
     },

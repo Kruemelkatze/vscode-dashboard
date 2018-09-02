@@ -5,7 +5,7 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 import { Project } from './models';
-import { loadProjects, saveProjectImageFile, addProject, removeProject } from './projectService';
+import { loadProjects, saveProjectImageFile, addProject, removeProject, saveProjects, writeTextFile, deleteFile } from './projectService';
 import { getDashboardContent } from './webviewContent';
 import { DATA_ROOT_PATH, USE_PROJECT_ICONS, USE_PROJECT_COLOR, PREDEFINED_COLORS } from './constants';
 
@@ -39,9 +39,14 @@ export function activate(context: vscode.ExtensionContext) {
         await removeProjectPerCommand();
     });
 
+    const editProjectsManuallyCommand = vscode.commands.registerCommand('dashboard.editProjects', async () => {
+        await editProjectsManuallyPerCommand();
+    });
+
     context.subscriptions.push(openCommand);
     context.subscriptions.push(addProjectCommand);
     context.subscriptions.push(removeProjectCommand);
+    context.subscriptions.push(editProjectsManuallyCommand);
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~ Functions ~~~~~~~~~~~~~~~~~~~~~~~~~
     function setProjectsUpdateDashboard(updatedProjects: Project[]) {
@@ -210,6 +215,67 @@ export function activate(context: vscode.ExtensionContext) {
         setProjectsUpdateDashboard(projects);
 
         vscode.window.showInformationMessage(`Project ${selectedProjectPick.label} removed.`);
+    }
+
+    async function editProjectsManuallyPerCommand() {
+        var projects = getProjects();
+        const tempFilePath = `${DATA_ROOT_PATH}/Dashboard Projects.json`;
+        await writeTextFile(tempFilePath, JSON.stringify(projects, null, 4));
+        const tempFileUri = vscode.Uri.file(tempFilePath);
+
+        var editProjectsDocument = await vscode.workspace.openTextDocument(tempFileUri);
+
+        vscode.window.showTextDocument(editProjectsDocument);
+
+        var subscriptions: vscode.Disposable[] = [];
+        var editSubscription = vscode.workspace.onWillSaveTextDocument(async (e) => {
+            if (e.document == editProjectsDocument) {
+                let updatedProjects;
+                try {
+                    updatedProjects = JSON.parse(e.document.getText());
+                } catch (ex) {
+                    vscode.window.showErrorMessage("Edited Projects File can not be parsed.")
+                    return;
+                }
+
+                var jsonIsInvalid = false;
+                if (Array.isArray(updatedProjects)) {
+                    for (let project of updatedProjects) {
+                        if (!project.id || !project.name || !project.path) {
+                            jsonIsInvalid = true;
+                            break;
+                        }
+                    }
+                } else {
+                    jsonIsInvalid = true;
+                }
+
+                if (jsonIsInvalid) {
+                    vscode.window.showErrorMessage("Edited Projects File does not meet the Schema expected by Dashboard.");
+                    return;
+                }
+
+                saveProjects(context, updatedProjects);
+                setProjectsUpdateDashboard(updatedProjects);
+
+                subscriptions.forEach(s => s.dispose());
+                await deleteFile(tempFilePath);
+
+                vscode.window.showInformationMessage("Saved Dashboard Projects.")
+            }
+        });
+        subscriptions.push(editSubscription);
+
+        // onDidCloseTextDocument is not called if a file without any changes is closed
+        // If the projects are not edited, but the file is closed, we cannot remove the temp file.
+        // --> Use a fixed name for the temp file, so that we have at most 1 zombie file lying around
+        // var closeSubscription = vscode.workspace.onDidCloseTextDocument(document => {
+        //     if (document == editProjectsDocument) {
+        //         subscriptions.forEach(s => s.dispose());
+        //         deleteFile(tempFilePath);
+        //     }
+        // });
+        // subscriptions.push(closeSubscription);
     }
 }
 

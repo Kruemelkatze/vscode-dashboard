@@ -92,7 +92,17 @@ export function saveProjectImageFile(filePath: string, project: Project): Promis
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~ Helpers ~~~~~~~~~~~~~~~~~~~~~~~~~
-function writeTextFile(filePath: string, data: string): Promise<void> {
+export function deleteFile(filePath: string) {
+    filePath = path.normalize(filePath);
+    //Promise to keep all file modifications returning a Promise
+    return new Promise((resolve, reject) => {
+        fs.unlink(filePath, err => {
+            err ? reject(err) : resolve();
+        });
+    });
+}
+
+export function writeTextFile(filePath: string, data: string): Promise<void> {
     return writeFile(filePath, data, 'utf8');
 }
 
