@@ -156,6 +156,7 @@ export function activate(context: vscode.ExtensionContext) {
         var color: string = null;
         if (USE_PROJECT_COLOR) {
             let colorPicks = PREDEFINED_COLORS.map(c => ({ id: c.label, label: c.label }))
+            colorPicks.unshift({ id: 'None', label: 'None' });
             colorPicks.push({ id: 'Custom', label: 'Custom Hex' });
             let selectedColorPick = await vscode.window.showQuickPick(colorPicks, {
                 placeHolder: "Project Color",
@@ -172,7 +173,7 @@ export function activate(context: vscode.ExtensionContext) {
                 });
 
                 color = hex;
-            } else if (selectedColorPick != null) {
+            } else if (selectedColorPick != null && selectedColorPick.id !== 'None') {
                 let predefinedColor = PREDEFINED_COLORS.find(c => c.label == selectedColorPick.id);
                 if (predefinedColor != null) {
                     color = predefinedColor.value;
