@@ -259,7 +259,7 @@ export function activate(context: vscode.ExtensionContext) {
                 setProjectsUpdateDashboard(updatedProjects);
 
                 subscriptions.forEach(s => s.dispose());
-                await deleteFile(tempFilePath);
+                // await deleteFile(tempFilePath); // Deleting file does make sense, as the file gets immidiately saved again after this listener
 
                 vscode.window.showInformationMessage("Saved Dashboard Projects.")
             }
