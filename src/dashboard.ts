@@ -117,17 +117,16 @@ export function activate(context: vscode.ExtensionContext) {
         if (!projectName)
             return;
 
-        var projectPath = await vscode.window.showInputBox({
-            placeHolder: 'Project Directory or File',
-            ignoreFocusOut: true,
-            validateInput: (val: string) => {
-                let exists = fs.existsSync(val)
-                return exists ? '' : 'Directory or File does not exist.';
-            }
+        let selectedProjectUris = await vscode.window.showOpenDialog({
+            openLabel: 'Select as Project',
+            canSelectFolders: true,
+            canSelectMany: false,
         });
 
-        if (!projectPath)
+        if (selectedProjectUris == null || selectedProjectUris[0] == null)
             return;
+
+        var projectPath: string = selectedProjectUris[0].fsPath;
 
         var imageFilePath: string = null;
         if (USE_PROJECT_ICONS) {
