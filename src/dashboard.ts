@@ -193,6 +193,8 @@ export function activate(context: vscode.ExtensionContext) {
             await saveProjectImageFile(imageFilePath, project);
         }
         setProjectsUpdateDashboard(projects);
+
+        vscode.window.showInformationMessage(`Project ${project.name} created.`);
     }
 
     async function removeProjectPerCommand() {
@@ -206,6 +208,8 @@ export function activate(context: vscode.ExtensionContext) {
 
         projects = await removeProject(context, selectedProjectPick.id)
         setProjectsUpdateDashboard(projects);
+
+        vscode.window.showInformationMessage(`Project ${selectedProjectPick.label} removed.`);
     }
 }
 
