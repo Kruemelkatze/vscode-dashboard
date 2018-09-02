@@ -128,31 +128,6 @@ export function activate(context: vscode.ExtensionContext) {
 
         var projectPath: string = selectedProjectUris[0].fsPath;
 
-        var imageFilePath: string = null;
-        if (USE_PROJECT_ICONS) {
-            var selectImage = await vscode.window.showInputBox({
-                placeHolder: 'Select Project Icon? (y/n)',
-                ignoreFocusOut: true,
-                validateInput: (val: string) => {
-                    let valid = !val || ['y', 'n', 'yes', 'no'].indexOf(val.toLowerCase()) >= 0;
-                    return valid ? '' : 'y/n only';
-                }
-            });
-
-            var imageFilePath: string = null;
-            if (selectImage && selectImage.startsWith('y')) {
-                let selectedFiles = await vscode.window.showOpenDialog({
-                    filters: {
-                        'Images': ['png,', 'jpg', 'jpeg', 'gif'],
-                    }
-                });
-                imageFilePath = selectedFiles ? selectedFiles[0].fsPath : null;
-
-                if (!imageFilePath)
-                    return;
-            }
-        }
-
         var color: string = null;
         if (USE_PROJECT_COLOR) {
             let colorPicks = PREDEFINED_COLORS.map(c => ({ id: c.label, label: c.label }))
@@ -178,6 +153,31 @@ export function activate(context: vscode.ExtensionContext) {
                 if (predefinedColor != null) {
                     color = predefinedColor.value;
                 }
+            }
+        }
+
+        var imageFilePath: string = null;
+        if (USE_PROJECT_ICONS) {
+            var selectImage = await vscode.window.showInputBox({
+                placeHolder: 'Select Project Icon? (y/n)',
+                ignoreFocusOut: true,
+                validateInput: (val: string) => {
+                    let valid = !val || ['y', 'n', 'yes', 'no'].indexOf(val.toLowerCase()) >= 0;
+                    return valid ? '' : 'y/n only';
+                }
+            });
+
+            var imageFilePath: string = null;
+            if (selectImage && selectImage.startsWith('y')) {
+                let selectedFiles = await vscode.window.showOpenDialog({
+                    filters: {
+                        'Images': ['png,', 'jpg', 'jpeg', 'gif'],
+                    }
+                });
+                imageFilePath = selectedFiles ? selectedFiles[0].fsPath : null;
+
+                if (!imageFilePath)
+                    return;
             }
         }
 
