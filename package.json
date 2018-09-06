@@ -1,9 +1,10 @@
 {
-    "name": "dashboard",
-    "displayName": "dashboard",
-    "description": "",
-    "version": "0.1.1",
+    "name": "vscode-dashboard",
+    "displayName": "Dashboard",
+    "description": "Organize your workspaces in a speed-dial manner.",
+    "version": "0.1.2",
     "publisher": "Kruemelkatze",
+    "icon": "media/extension_icon.png",
     "engines": {
         "vscode": "^1.26.0"
     },
@@ -14,6 +15,10 @@
         "*"
     ],
     "main": "./out/dashboard",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/Kruemelkatze/vscode-dashboard.git"
+    },
     "contributes": {
         "commands": [
             {
