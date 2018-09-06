@@ -2,7 +2,7 @@
     "name": "dashboard",
     "displayName": "dashboard",
     "description": "",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "publisher": "Kruemelkatze",
     "engines": {
         "vscode": "^1.26.0"
@@ -44,7 +44,7 @@
     "devDependencies": {
         "@types/mocha": "^2.2.42",
         "@types/node": "^8.9.5",
-        "gulp": "^3.9.1",
+        "gulp": "^4.0.0",
         "gulp-sass": "^4.0.1",
         "node-sass": "^4.9.3",
         "tslint": "^5.8.0",
