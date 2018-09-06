@@ -4,7 +4,7 @@ import { Project } from "./models";
 import { DATA_ROOT_PATH, PROJECT_IMAGE_FOLDER, USE_PROJECT_ICONS } from './constants';
 
 export function getDashboardContent(context: vscode.ExtensionContext, projects: Project[]): string {
-    var stylesPath = vscode.Uri.file(path.join(context.extensionPath, 'src', 'styles.css'));
+    var stylesPath = vscode.Uri.file(path.join(context.extensionPath, 'media', 'styles.css'));
     stylesPath = stylesPath.with({ scheme: 'vscode-resource' });
 
     return `

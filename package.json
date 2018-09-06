@@ -2,7 +2,7 @@
     "name": "dashboard",
     "displayName": "dashboard",
     "description": "",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "publisher": "Kruemelkatze",
     "engines": {
         "vscode": "^1.26.0"
