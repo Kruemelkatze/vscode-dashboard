@@ -7,7 +7,7 @@
   display: inline-block;
   width: 25em; }
 
-.project {
+body .project {
   cursor: pointer;
   height: 100%;
   display: flex;
@@ -16,25 +16,31 @@
   align-items: center;
   margin: 20px 20px 0 0;
   padding: 20px; }
-  .project .project-header {
+  body .project .project-header {
     margin: 0;
     font-size: 3em;
     font-weight: lighter; }
+  body .project.add-project {
+    min-height: 102px;
+    border-top: 0;
+    background: none;
+    font-size: 1.5em;
+    opacity: 0.6; }
 
-body.vscode-light .project {
+.vscode-light .project {
   background-color: var(--vscode-tab-inactiveBackground);
   border-top: 7px solid var(--vscode-tab-inactiveBackground); }
-  body.vscode-light .project .project-path {
+  .vscode-light .project .project-path {
     color: var(--vscode-descriptionForeground); }
 
-body.vscode-dark .project {
+.vscode-dark .project {
   background-color: var(--vscode-tab-inactiveBackground);
   border-top: 7px solid var(--vscode-tab-inactiveBackground); }
-  body.vscode-dark .project .project-path {
+  .vscode-dark .project .project-path {
     color: var(--vscode-descriptionForeground); }
 
-body.vscode-high-contrast .project {
+.vscode-high-contrast .project {
   background-color: var(--vscode-tab-inactiveBackground);
   border-top: 7px solid var(--vscode-tab-inactiveBackground); }
-  body.vscode-high-contrast .project .project-path {
+  .vscode-high-contrast .project .project-path {
     color: var(--vscode-descriptionForeground); }

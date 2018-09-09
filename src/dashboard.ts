@@ -105,6 +105,9 @@ export function activate(context: vscode.ExtensionContext) {
                             debugger
                         }
                         break;
+                    case 'add-project':
+                        await vscode.commands.executeCommand("dashboard.addProject");
+                        break;
                 }
             });
 

@@ -19,6 +19,7 @@ export function getDashboardContent(context: vscode.ExtensionContext, projects: 
     <body>
         <div class="projects-wrapper">
             ${projects.map(getProjectDiv).join('\n')}
+            ${getAddProjectDiv()}
         </div>
     </body>
 
@@ -42,8 +43,17 @@ function getProjectDiv(project) {
             ${project.name}
         </h2>
         <p class="project-path">${project.path.replace(/([\\\/])/ig, '$1&#8203;')}</p>
+    </div>
+</div>`
+}
 
-        <!-- <input type="file" id="file" accept="image/*" /> -->
+function getAddProjectDiv() {
+    return `
+<div class="project-container">
+    <div class="project add-project" id="addProject">
+        <h2 class="project-header">
+            +
+        </h2>
     </div>
 </div>`
 }
@@ -78,8 +88,6 @@ function readFileIntoMemory (file, callback) {
     };
     reader.readAsArrayBuffer(file);
 }
-
-// document.getElementById('file').addEventListener('change', handleFileSelect, false);
 `;
 }
 
@@ -93,15 +101,26 @@ function onProjectClicked(projectId) {
 }
 
 document.addEventListener('click', function(e) {
-    if (!e.target || !e.target.getAttribute)
+    if (!e.target)
         return;
 
-    var dataId = e.target.getAttribute("data-id");
-
+    var projectDiv = e.target.closest('.project');
+    if (!projectDiv)
+        return;
+    
+    var dataId =projectDiv.getAttribute("data-id");
     if (dataId == null)
         return;
 
     onProjectClicked(dataId);
-})
+});
+
+document
+    .getElementById("addProject")
+    .addEventListener("click", function() {
+        vscode.postMessage({
+            type: 'add-project',
+        });
+    });
 `;
 }

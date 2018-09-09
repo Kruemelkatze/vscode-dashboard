@@ -16,7 +16,7 @@ $defaultPadding: 20px;
     width: $columnWidth;
 }
 
-.project {
+body .project {
     cursor: pointer;
     height: 100%;
 
@@ -33,6 +33,14 @@ $defaultPadding: 20px;
         margin: 0;
         font-size: 3em;
         font-weight: lighter;
+    }
+
+    &.add-project {
+        min-height: 102px;
+        border-top: 0;
+        background: none;
+        font-size: 1.5em;
+        opacity: 0.6;
     }
 }
 
@@ -53,15 +61,15 @@ $defaultPadding: 20px;
     }
 }
 
-body.vscode-light {
+.vscode-light {
     @include themedStyles($fixedForeground, $fixedProjectCardBg);
 }
 
-body.vscode-dark {
+.vscode-dark {
     @include themedStyles($fixedForeground, $fixedProjectCardBg);
 }
 
-body.vscode-high-contrast {
+.vscode-high-contrast {
     @include themedStyles($fixedForeground, $fixedProjectCardBg);
 } 
 
