@@ -2,14 +2,15 @@
 var gulp = require('gulp');
 var sass = require('gulp-sass');
 
-gulp.task('sass', function () {
-    gulp.src('media/*.scss')
+function sassTask() {
+    return gulp.src('media/*.scss')
         .pipe(sass({ outputStyle: 'minified' }))
-        .pipe(gulp.dest(function (f) {
-            return f.base;
-        }))
-});
+        .pipe(gulp.dest(f => f.base));
+};
 
-gulp.task('default', ['sass'], function () {
-    gulp.watch('media/*.scss', ['sass']);
-})
+function watch() {
+    return gulp.watch('media/*.scss', sassTask);
+}
+
+var build = gulp.parallel(sassTask, watch);
+gulp.task('default', build);
