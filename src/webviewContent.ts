@@ -35,7 +35,7 @@ export function getDashboardContent(context: vscode.ExtensionContext, projects: 
 function getProjectDiv(project) {
     return `
 <div class="project-container">
-    <div class="project" onclick="onProjectClicked('${project.id}')" 
+    <div class="project" data-id="${project.id}" 
          style="${project.color ? `border-top-color: ${project.color};` : ''}">
         <h2 class="project-header">
             ${USE_PROJECT_ICONS && project.imageFileName ? `<img src="${getImagePath(project)}" />` : ''}
@@ -92,6 +92,16 @@ function onProjectClicked(projectId) {
     });
 }
 
-window.onProjectClicked = onProjectClicked;
+document.addEventListener('click', function(e) {
+    if (!e.target || !e.target.getAttribute)
+        return;
+
+    var dataId = e.target.getAttribute("data-id");
+
+    if (dataId == null)
+        return;
+
+    onProjectClicked(dataId);
+})
 `;
 }
