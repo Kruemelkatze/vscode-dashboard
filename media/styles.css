@@ -29,18 +29,18 @@ body .project {
     text-align: center; }
   body .project .add-project-header {
     font-size: 60px; }
-  body .project.add-project {
-    min-height: 102px;
-    border-top: 0;
-    background: none;
-    font-size: 1.5em;
-    opacity: 0.6; }
   body .project .project-path {
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
     max-width: 100%;
     direction: rtl; }
+  body .project.add-project, body .project.no-projects {
+    min-height: 102px;
+    border-top: 0;
+    background: none;
+    font-size: 1.5em;
+    opacity: 0.6; }
 
 .vscode-light .project {
   background-color: var(--vscode-tab-inactiveBackground);

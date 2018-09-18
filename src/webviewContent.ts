@@ -21,7 +21,11 @@ export function getDashboardContent(context: vscode.ExtensionContext, projects: 
     </head>
     <body>
         <div class="projects-wrapper">
-            ${projects.map(getProjectDiv).join('\n')}
+            ${projects.length ?
+            projects.map(getProjectDiv).join('\n')
+            :
+            getNoProjectsDiv()
+        }
             ${getAddProjectDiv()}
         </div>
     </body>
@@ -51,6 +55,15 @@ function getProjectDiv(project) {
             </h2>
         </div>
         <p class="project-path" title="${project.path}">${project.path}</p>
+    </div>
+</div>`
+}
+
+function getNoProjectsDiv() {
+    return `
+<div class="project-container">
+    <div class="project no-projects" id="addProject">
+        No projects have been added yet.
     </div>
 </div>`
 }
