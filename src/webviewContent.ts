@@ -1,11 +1,14 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { Project } from "./models";
-import { DATA_ROOT_PATH, PROJECT_IMAGE_FOLDER, USE_PROJECT_ICONS } from './constants';
+import { DATA_ROOT_PATH, PROJECT_IMAGE_FOLDER, USE_PROJECT_ICONS, FITTY_OPTIONS } from './constants';
 
 export function getDashboardContent(context: vscode.ExtensionContext, projects: Project[]): string {
     var stylesPath = vscode.Uri.file(path.join(context.extensionPath, 'media', 'styles.css'));
     stylesPath = stylesPath.with({ scheme: 'vscode-resource' });
+
+    var fittyPath = vscode.Uri.file(path.join(context.extensionPath, 'media', 'fitty.min.js'));
+    fittyPath = fittyPath.with({ scheme: 'vscode-resource' });
 
     return `
 <!DOCTYPE html>
@@ -23,8 +26,11 @@ export function getDashboardContent(context: vscode.ExtensionContext, projects: 
         </div>
     </body>
 
+    <script src="${fittyPath}"></script>
     <script>
         (function() {
+            fitty('.project-header', ${JSON.stringify(FITTY_OPTIONS)});
+
             const vscode = acquireVsCodeApi();
             ${filePickerScript()}
             ${projectScript()}
@@ -38,11 +44,13 @@ function getProjectDiv(project) {
 <div class="project-container">
     <div class="project" data-id="${project.id}" 
          style="${project.color ? `border-top-color: ${project.color};` : ''}">
-        <h2 class="project-header">
-            ${USE_PROJECT_ICONS && project.imageFileName ? `<img src="${getImagePath(project)}" />` : ''}
-            ${project.name}
-        </h2>
-        <p class="project-path">${project.path.replace(/([\\\/])/ig, '$1&#8203;')}</p>
+        <div class="fitty-container">
+            <h2 class="project-header">
+                ${USE_PROJECT_ICONS && project.imageFileName ? `<img src="${getImagePath(project)}" />` : ''}
+                ${project.name}
+            </h2>
+        </div>
+        <p class="project-path" title="${project.path}">${project.path}</p>
     </div>
 </div>`
 }
@@ -51,7 +59,7 @@ function getAddProjectDiv() {
     return `
 <div class="project-container">
     <div class="project add-project" id="addProject">
-        <h2 class="project-header">
+        <h2 class="add-project-header">
             +
         </h2>
     </div>

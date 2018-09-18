@@ -10,7 +10,10 @@ export const PREDEFINED_COLORS = [
     { label: 'Dark Blue', value: 'var(--vscode-gitDecoration-conflictingResourceForeground)' },
     { label: 'Light Blue', value: 'var(--vscode-gitDecoration-submoduleResourceForeground)' },
 ];
-
+export const FITTY_OPTIONS = {
+    maxSize: '40',
+    // minSize: '20', // Apparently, fitty has a problem with our setup and will overflow text if minSize is set...
+}
 
 export const ADD_NEW_PROJECT_TO_FRONT = false;
 export const SAVE_PROJECTS_IN_FILE = false;

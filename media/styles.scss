@@ -1,9 +1,11 @@
 $fixedProjectCardBg: var(--vscode-tab-inactiveBackground);
 $fixedForeground: var(--vscode-editor-foreground);
 
-$columnWidth: 25em;
+$columnWidth: 350px;
 $borderTopSize: 7px;
 $defaultPadding: 20px;
+$projectHeaderSize: 40px; // This has also be adjusted in constants.ts for fitty
+$projectHeaderMinHeight: 53px; // To be constant even with fitted font size
 
 .projects-wrapper {
     display: flex;
@@ -29,10 +31,24 @@ body .project {
 
     padding: $defaultPadding;
 
+    .fitty-container {
+        max-width: 100%;
+        min-height: $projectHeaderMinHeight;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
     .project-header {
         margin: 0;
-        font-size: 3em;
+        font-size: $projectHeaderSize;
         font-weight: lighter;
+        text-align: center;
+    }
+
+    .add-project-header {
+        @extend .project-header;
+        font-size: 60px;
     }
 
     &.add-project {
@@ -42,13 +58,19 @@ body .project {
         font-size: 1.5em;
         opacity: 0.6;
     }
+
+    .project-path {
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        max-width: 100%;
+        direction: rtl;
+    }
 }
 
 @mixin themedStyles($foreground, $projectCardBg){
     .project {
-
         background-color: $fixedProjectCardBg;
-
         border-top: $borderTopSize solid $projectCardBg;
     
         .project-header {

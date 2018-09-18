@@ -57,6 +57,7 @@
         "vscode": "^1.1.6"
     },
     "dependencies": {
+        "fitty": "^2.2.6",
         "mkdirp": "^0.5.1"
     }
 }

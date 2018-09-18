@@ -5,7 +5,7 @@
 
 .project-container {
   display: inline-block;
-  width: 25em; }
+  width: 350px; }
 
 body .project {
   cursor: pointer;
@@ -16,16 +16,31 @@ body .project {
   align-items: center;
   margin: 20px 20px 0 0;
   padding: 20px; }
-  body .project .project-header {
+  body .project .fitty-container {
+    max-width: 100%;
+    min-height: 53px;
+    display: flex;
+    justify-content: center;
+    align-items: center; }
+  body .project .project-header, body .project .add-project-header {
     margin: 0;
-    font-size: 3em;
-    font-weight: lighter; }
+    font-size: 40px;
+    font-weight: lighter;
+    text-align: center; }
+  body .project .add-project-header {
+    font-size: 60px; }
   body .project.add-project {
     min-height: 102px;
     border-top: 0;
     background: none;
     font-size: 1.5em;
     opacity: 0.6; }
+  body .project .project-path {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    max-width: 100%;
+    direction: rtl; }
 
 .vscode-light .project {
   background-color: var(--vscode-tab-inactiveBackground);
