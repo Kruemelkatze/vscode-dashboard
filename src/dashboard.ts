@@ -5,7 +5,7 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 import { Project } from './models';
-import { loadProjects, saveProjectImageFile, addProject, removeProject, saveProjects, writeTextFile, deleteFile } from './projectService';
+import { getProjects, saveProjectImageFile, addProject, removeProject, saveProjects, writeTextFile, } from './projectService';
 import { getDashboardContent } from './webviewContent';
 import { DATA_ROOT_PATH, USE_PROJECT_ICONS, USE_PROJECT_COLOR, PREDEFINED_COLORS } from './constants';
 
@@ -13,7 +13,6 @@ import { DATA_ROOT_PATH, USE_PROJECT_ICONS, USE_PROJECT_COLOR, PREDEFINED_COLORS
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
     var instance: vscode.WebviewPanel = null;
-    var projects: Project[];
 
     // Use the console to output diagnostic information (console.log) and errors (console.error)
     // This line of code will only be executed once when your extension is activated
@@ -49,22 +48,10 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(editProjectsManuallyCommand);
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~ Functions ~~~~~~~~~~~~~~~~~~~~~~~~~
-    function setProjectsUpdateDashboard(updatedProjects: Project[]) {
-        projects = updatedProjects;
-
-        if (instance != null) {
-            instance.webview.html = getDashboardContent(context, projects);
-        }
-    }
-
-    function getProjects() {
-        projects = projects != null ? projects : loadProjects(context);
-        return projects;
-    }
 
     function showDashboard() {
         var columnToShowIn = vscode.window.activeTextEditor ? vscode.window.activeTextEditor.viewColumn : null;
-        var projects = getProjects();
+        var projects = getProjects(context);
 
         if (instance) {
             instance.webview.html = getDashboardContent(context, projects);
@@ -90,6 +77,8 @@ export function activate(context: vscode.ExtensionContext) {
             }, null, context.subscriptions);
 
             panel.webview.onDidReceiveMessage(async (e) => {
+                projects = getProjects(context);
+
                 switch (e.type) {
                     case 'selected-file':
                         let filePath = e.filePath as string;
@@ -192,18 +181,18 @@ export function activate(context: vscode.ExtensionContext) {
         project.imageFileName = imageFileName;
         project.color = color;
 
-        let projects = await addProject(context, project);
+        await addProject(context, project);
 
         if (imageFilePath != null) {
             await saveProjectImageFile(imageFilePath, project);
         }
-        setProjectsUpdateDashboard(projects);
+        showDashboard();
 
         vscode.window.showInformationMessage(`Project ${project.name} created.`);
     }
 
     async function removeProjectPerCommand() {
-        var projects = getProjects();
+        var projects = getProjects(context);
         let projectPicks = projects.map(p => ({ id: p.id, label: p.name }));
 
         let selectedProjectPick = await vscode.window.showQuickPick(projectPicks);
@@ -212,13 +201,13 @@ export function activate(context: vscode.ExtensionContext) {
             return;
 
         projects = await removeProject(context, selectedProjectPick.id)
-        setProjectsUpdateDashboard(projects);
+        showDashboard();
 
         vscode.window.showInformationMessage(`Project ${selectedProjectPick.label} removed.`);
     }
 
     async function editProjectsManuallyPerCommand() {
-        var projects = getProjects();
+        var projects = getProjects(context);
         const tempFilePath = `${DATA_ROOT_PATH}/Dashboard Projects.json`;
         await writeTextFile(tempFilePath, JSON.stringify(projects, null, 4));
         const tempFileUri = vscode.Uri.file(tempFilePath);
@@ -256,7 +245,7 @@ export function activate(context: vscode.ExtensionContext) {
                 }
 
                 saveProjects(context, updatedProjects);
-                setProjectsUpdateDashboard(updatedProjects);
+                showDashboard();
 
                 subscriptions.forEach(s => s.dispose());
                 // await deleteFile(tempFilePath); // Deleting file does not make sense, as the file gets immidiately saved again after this listener

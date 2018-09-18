@@ -5,44 +5,23 @@ import * as mkdirp from 'mkdirp';
 import * as vscode from 'vscode';
 
 import { Project } from "./models";
-import { DATA_ROOT_PATH, PROJECT_IMAGE_FOLDER, SAVE_PROJECTS_IN_FILE, PROJECTS_FILE, ADD_NEW_PROJECT_TO_FRONT } from "./constants";
+import { DATA_ROOT_PATH, PROJECT_IMAGE_FOLDER, PROJECTS_FILE, ADD_NEW_PROJECT_TO_FRONT } from "./constants";
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~ GET Projects ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-export function loadProjects(context: vscode.ExtensionContext): Project[] {
-    if (SAVE_PROJECTS_IN_FILE) {
-        return loadProjectsFromFile();
-    } else {
-        return (context.globalState.get("projects") || []) as Project[];
-    }
-}
-
-function loadProjectsFromFile(): Project[] {
-    let filePath = `${DATA_ROOT_PATH}/${PROJECTS_FILE}`
-    let str = fs.readFileSync(filePath, 'utf8');
-    return str ? JSON.parse(str) : [];
+export function getProjects(context: vscode.ExtensionContext): Project[] {
+    return (context.globalState.get("projects") || []) as Project[];
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~ SAVE Projects ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-export function saveProjects(context: vscode.ExtensionContext, projects: Project[]) {
-    if (SAVE_PROJECTS_IN_FILE) {
-        return saveProjectsToFile(projects);
-    } else {
-        context.globalState.update("projects", projects);
-        return Promise.resolve();
-    }
-}
-
-function saveProjectsToFile(projects: Project[]) {
-    let data = JSON.stringify(projects);
-    let filePath = `${DATA_ROOT_PATH}/${PROJECTS_FILE}`
-    return writeTextFile(filePath, data);
+export function saveProjects(context: vscode.ExtensionContext, projects: Project[]): Thenable<void> {
+    return context.globalState.update("projects", projects);
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~ MODIFY Projects ~~~~~~~~~~~~~~~~~~~~~~~~~
 export async function addProject(context: vscode.ExtensionContext, project: Project): Promise<Project[]> {
-    var projects = loadProjects(context);
+    var projects = getProjects(context);
 
     if (ADD_NEW_PROJECT_TO_FRONT) {
         projects.unshift(project);
@@ -50,14 +29,14 @@ export async function addProject(context: vscode.ExtensionContext, project: Proj
         projects.push(project);
     }
 
-    await saveProjects(context, projects);
+    saveProjects(context, projects);
     return projects;
 }
 
 export async function removeProject(context: vscode.ExtensionContext, id: string): Promise<Project[]> {
-    let projects = loadProjects(context);
+    let projects = getProjects(context);
     projects = projects.filter(p => p.id !== id);
-    await saveProjects(context, projects);
+    saveProjects(context, projects);
     return projects;
 }
 
