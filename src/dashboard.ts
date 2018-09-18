@@ -97,13 +97,10 @@ export function activate(context: vscode.ExtensionContext) {
                         break;
                     case 'selected-project':
                         let projectId = e.projectId as string;
+                        let newWindow = e.newWindow as boolean;
                         let project = projects.find(p => p.id === projectId);
-                        try {
-                            let uri = vscode.Uri.file(project.path);
-                            await vscode.commands.executeCommand("vscode.openFolder", uri, false);
-                        } catch (error) {
-                            debugger
-                        }
+                        let uri = vscode.Uri.file(project.path);
+                        await vscode.commands.executeCommand("vscode.openFolder", uri, newWindow);
                         break;
                     case 'add-project':
                         await vscode.commands.executeCommand("dashboard.addProject");

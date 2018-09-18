@@ -114,10 +114,11 @@ function readFileIntoMemory (file, callback) {
 
 function projectScript() {
     return `
-function onProjectClicked(projectId) {
+function onProjectClicked(projectId, newWindow) {
     vscode.postMessage({
         type: 'selected-project',
         projectId,
+        newWindow,
     });
 }
 
@@ -133,7 +134,9 @@ document.addEventListener('click', function(e) {
     if (dataId == null)
         return;
 
-    onProjectClicked(dataId);
+    var newWindow = !!e.ctrlKey;
+
+    onProjectClicked(dataId, newWindow);
 });
 
 document
