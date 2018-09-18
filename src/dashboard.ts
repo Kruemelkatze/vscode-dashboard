@@ -225,7 +225,7 @@ export function activate(context: vscode.ExtensionContext) {
 
         var editProjectsDocument = await vscode.workspace.openTextDocument(tempFileUri);
 
-        vscode.window.showTextDocument(editProjectsDocument);
+        var textEditor = await vscode.window.showTextDocument(editProjectsDocument);
 
         var subscriptions: vscode.Disposable[] = [];
         var editSubscription = vscode.workspace.onWillSaveTextDocument(async (e) => {
@@ -259,9 +259,13 @@ export function activate(context: vscode.ExtensionContext) {
                 setProjectsUpdateDashboard(updatedProjects);
 
                 subscriptions.forEach(s => s.dispose());
-                // await deleteFile(tempFilePath); // Deleting file does make sense, as the file gets immidiately saved again after this listener
+                // await deleteFile(tempFilePath); // Deleting file does not make sense, as the file gets immidiately saved again after this listener
 
-                vscode.window.showInformationMessage("Saved Dashboard Projects.")
+                vscode.window.showInformationMessage("Saved Dashboard Projects.");
+
+                // Select and close our document editor
+                vscode.window.showTextDocument(e.document);
+                vscode.commands.executeCommand('workbench.action.closeActiveEditor')
             }
         });
         subscriptions.push(editSubscription);
