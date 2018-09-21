@@ -1,31 +1,19 @@
 'use strict';
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
-import * as fs from 'fs';
 import * as path from 'path';
 import { Project } from './models';
 import { getProjects, saveProjectImageFile, addProject, removeProject, saveProjects, writeTextFile, } from './projectService';
 import { getDashboardContent } from './webviewContent';
 import { DATA_ROOT_PATH, USE_PROJECT_ICONS, USE_PROJECT_COLOR, PREDEFINED_COLORS } from './constants';
 
-// this method is called when your extension is activated
-// your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
     var instance: vscode.WebviewPanel = null;
-
-    // Use the console to output diagnostic information (console.log) and errors (console.error)
-    // This line of code will only be executed once when your extension is activated
-    console.log('Congratulations, your extension "dashboard" is now active!');
 
     var isOnWelcomePage = (!vscode.workspace.name && vscode.window.visibleTextEditors.length === 0);
     if (isOnWelcomePage) {
         showDashboard();
     }
 
-    // The command has been defined in the package.json file
-    // Now provide the implementation of the command with  registerCommand
-    // The commandId parameter must match the command field in package.json
     const openCommand = vscode.commands.registerCommand('dashboard.open', () => {
         showDashboard();
     });
@@ -46,6 +34,8 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(addProjectCommand);
     context.subscriptions.push(removeProjectCommand);
     context.subscriptions.push(editProjectsManuallyCommand);
+
+    console.log('vscode-dashboard has been activated');
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~ Functions ~~~~~~~~~~~~~~~~~~~~~~~~~
 
