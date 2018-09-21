@@ -62,7 +62,7 @@ function getProjectDiv(project) {
 function getNoProjectsDiv() {
     return `
 <div class="project-container">
-    <div class="project no-projects" id="addProject">
+    <div class="project no-projects" data-action="add-project">
         No projects have been added yet.
     </div>
 </div>`
@@ -71,7 +71,7 @@ function getNoProjectsDiv() {
 function getAddProjectDiv() {
     return `
 <div class="project-container">
-    <div class="project add-project" id="addProject">
+    <div class="project add-project" data-action="add-project">
         <h2 class="add-project-header">
             +
         </h2>
@@ -122,6 +122,12 @@ function onProjectClicked(projectId, newWindow) {
     });
 }
 
+function onAddProjectClicked() {
+    vscode.postMessage({
+        type: 'add-project',
+    });
+}
+
 document.addEventListener('click', function(e) {
     if (!e.target)
         return;
@@ -140,11 +146,9 @@ document.addEventListener('click', function(e) {
 });
 
 document
-    .getElementById("addProject")
-    .addEventListener("click", function() {
-        vscode.postMessage({
-            type: 'add-project',
-        });
-    });
+    .querySelectorAll('[data-action="add-project"]')
+    .forEach(element => 
+        element.addEventListener("click", onAddProjectClicked)
+    );
 `;
 }
