@@ -37,6 +37,13 @@
                 "command": "dashboard.editProjects",
                 "title": "Dashboard: Edit Projects"
             }
+        ],
+        "keybindings": [
+            {
+                "command": "dashboard.open",
+                "key": "ctrl+f1",
+                "mac": "cmd+f1"
+            }
         ]
     },
     "scripts": {
