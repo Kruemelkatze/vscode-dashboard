@@ -13,7 +13,7 @@ Editing the project list currently has to be done manually by editing a JSON fil
 
 ### Commands
 The commands should speak for themselves. :)
-* Dashboard: Open
+* Dashboard: Open (ctrl + f1)
 * Dashboard: Add Project
 * Dashboard: Edit Projects
 * Dashboard: Remove Projects
