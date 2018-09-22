@@ -16,7 +16,7 @@ The commands should speak for themselves. :)
 * Dashboard: Open (ctrl + f1)
 * Dashboard: Add Project
 * Dashboard: Edit Projects
-* Dashboard: Remove Projects
+* Dashboard: Remove Project
 
 
 

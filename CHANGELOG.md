@@ -1,8 +1,8 @@
 # Change Log
 All notable changes to the "dashboard" extension will be documented in this file. It follows the [Keep a Changelog](http://keepachangelog.com/) recommendations.
 
-## [Unreleased]
-### **First official release**
+## [1.0.0] 2018-09-23
+ **First official release!**
 
 ### Added
 - Ctrl + F1 as default keybinding for Dashboard: Open command
