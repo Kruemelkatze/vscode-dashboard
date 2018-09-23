@@ -3,7 +3,7 @@
     "displayName": "Dashboard",
     "description": "Organize your workspaces in a speed-dial manner.",
     "version": "1.0.0",
-    "publisher": "Kruemelkatze",
+    "publisher": "kruemelkatze",
     "icon": "media/extension_icon.png",
     "engines": {
         "vscode": "^1.26.0"
