@@ -4,7 +4,7 @@ import * as path from 'path';
 import { Project } from './models';
 import { getProjects, saveProjectImageFile, addProject, removeProject, saveProjects, writeTextFile, } from './projectService';
 import { getDashboardContent } from './webviewContent';
-import { DATA_ROOT_PATH, USE_PROJECT_ICONS, USE_PROJECT_COLOR, PREDEFINED_COLORS } from './constants';
+import { USE_PROJECT_ICONS, USE_PROJECT_COLOR, PREDEFINED_COLORS, TEMP_PATH } from './constants';
 
 export function activate(context: vscode.ExtensionContext) {
     var instance: vscode.WebviewPanel = null;
@@ -204,7 +204,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     async function editProjectsManuallyPerCommand() {
         var projects = getProjects(context);
-        const tempFilePath = `${DATA_ROOT_PATH}/Dashboard Projects.json`;
+        const tempFilePath = `${TEMP_PATH}/Dashboard Projects.json`;
         await writeTextFile(tempFilePath, JSON.stringify(projects, null, 4));
         const tempFileUri = vscode.Uri.file(tempFilePath);
 
