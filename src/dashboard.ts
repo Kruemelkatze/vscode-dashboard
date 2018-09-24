@@ -19,7 +19,7 @@ export function activate(context: vscode.ExtensionContext) {
     });
 
     const addProjectCommand = vscode.commands.registerCommand('dashboard.addProject', async () => {
-        await addProjectPerCommand();
+        await addProjectPerCommand(null);
     });
 
     const removeProjectCommand = vscode.commands.registerCommand('dashboard.removeProject', async () => {
@@ -97,7 +97,19 @@ export function activate(context: vscode.ExtensionContext) {
         }
     }
 
-    async function addProjectPerCommand() {
+    async function addProjectPerCommand(folderProject: boolean | null) {
+        if (folderProject === null) {
+            let projectTypePicks = [
+                { id: true, label: 'Folder Project' },
+                { id: false, label: 'File or Multi-Root Project' },
+            ];
+
+            let selectedProjectTypePick = await vscode.window.showQuickPick(projectTypePicks, {
+                placeHolder: "Project Type"
+            });
+            folderProject = selectedProjectTypePick.id;
+        }
+
         var projectName = await vscode.window.showInputBox({
             placeHolder: 'Project Name',
             ignoreFocusOut: true,
@@ -108,8 +120,9 @@ export function activate(context: vscode.ExtensionContext) {
             return;
 
         let selectedProjectUris = await vscode.window.showOpenDialog({
-            openLabel: 'Select as Project',
-            canSelectFolders: true,
+            openLabel: `Select ${folderProject ? 'Folder' : 'File'} as Project`,
+            canSelectFolders: folderProject,
+            canSelectFiles: !folderProject,
             canSelectMany: false,
         });
 
