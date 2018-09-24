@@ -1,6 +1,16 @@
 # Change Log
 All notable changes to the "dashboard" extension will be documented in this file. It follows the [Keep a Changelog](http://keepachangelog.com/) recommendations.
 
+## [1.1] 2018-09-25
+### Added
+- Support for Multi-Root Workspaces
+
+### Changed
+- When adding a project, a project type (folder or file/multi-workspace) has to be selected at first.
+
+### Fixed
+- Editing Projects now works under Linux (moved to another temp path)
+
 ## [1.0.0] 2018-09-23
  **First official release!**
 
