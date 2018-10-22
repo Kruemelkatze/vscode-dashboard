@@ -54,7 +54,7 @@ function getProjectGroupSection(projectGroup: ProjectGroup) {
     </div>
     <div class="projects-group">
         ${projects.map(getProjectDiv).join('\n')}
-        ${getAddProjectDiv()}
+        ${getAddProjectDiv(projectGroup.id)}
     </div>            
     `;
 }
@@ -84,10 +84,10 @@ function getNoProjectsDiv() {
 </div>`
 }
 
-function getAddProjectDiv() {
+function getAddProjectDiv(projectGroupId: string) {
     return `
 <div class="project-container slim">
-    <div class="project add-project" data-action="add-project">
+    <div class="project add-project" data-action="add-project" data-project-group-id="${projectGroupId}">
         <h2 class="add-project-header">
             +
         </h2>
@@ -138,9 +138,19 @@ function onProjectClicked(projectId, newWindow) {
     });
 }
 
-function onAddProjectClicked() {
+function onAddProjectClicked(e) {
+    if (!e.target)
+        return;
+
+    var projectDiv = e.target.closest('.project');
+    if (!projectDiv)
+        return;
+
+    var projectGroupId = projectDiv.getAttribute("data-project-group-id");
+
     vscode.postMessage({
         type: 'add-project',
+        projectGroupId,
     });
 }
 

@@ -24,8 +24,8 @@ export function activate(context: vscode.ExtensionContext) {
         showDashboard();
     });
 
-    const addProjectCommand = vscode.commands.registerCommand('dashboard.addProject', async () => {
-        await addProjectPerCommand(null);
+    const addProjectCommand = vscode.commands.registerCommand('dashboard.addProject', async (projectGroupId: string = null) => {
+        await addProjectPerCommand(projectGroupId);
     });
 
     const removeProjectCommand = vscode.commands.registerCommand('dashboard.removeProject', async () => {
@@ -98,7 +98,8 @@ export function activate(context: vscode.ExtensionContext) {
                         }
                         break;
                     case 'add-project':
-                        await vscode.commands.executeCommand("dashboard.addProject");
+                        let projectGroupId = e.projectGroupId as string;
+                        await vscode.commands.executeCommand("dashboard.addProject", projectGroupId);
                         break;
                 }
             });
@@ -107,19 +108,17 @@ export function activate(context: vscode.ExtensionContext) {
         }
     }
 
-    async function addProjectPerCommand(folderProject: boolean | null) {
+    async function addProjectPerCommand(projectGroupId: string = null) {
         // Project Type
-        if (folderProject === null) {
-            let projectTypePicks = [
-                { id: true, label: 'Folder Project' },
-                { id: false, label: 'File or Multi-Root Project' },
-            ];
+        let projectTypePicks = [
+            { id: true, label: 'Folder Project' },
+            { id: false, label: 'File or Multi-Root Project' },
+        ];
 
-            let selectedProjectTypePick = await vscode.window.showQuickPick(projectTypePicks, {
-                placeHolder: "Project Type"
-            });
-            folderProject = selectedProjectTypePick.id;
-        }
+        let selectedProjectTypePick = await vscode.window.showQuickPick(projectTypePicks, {
+            placeHolder: "Project Type"
+        });
+        let folderProject = selectedProjectTypePick.id;
 
         // Path
         let selectedProjectUris = await vscode.window.showOpenDialog({
@@ -145,39 +144,41 @@ export function activate(context: vscode.ExtensionContext) {
             return;
 
         // Group
-        let projectGroups = getProjects(context);
-        let defaultGroupSet = false;
-        let projectGroupPicks = projectGroups.map(group => {
-            let label = group.groupName;
-            if (!label) {
-                label = defaultGroupSet ? 'Unnamed Group' : 'Default Group';
-                defaultGroupSet = true;
-            }
+        if (projectGroupId == null) {
+            let projectGroups = getProjects(context);
+            let defaultGroupSet = false;
+            let projectGroupPicks = projectGroups.map(group => {
+                let label = group.groupName;
+                if (!label) {
+                    label = defaultGroupSet ? 'Unnamed Group' : 'Default Group';
+                    defaultGroupSet = true;
+                }
 
-            return {
-                id: group.id,
-                label,
-            }
-        });
-        projectGroupPicks.push({
-            id: "Add",
-            label: "Add new Project Group",
-        })
-
-        let selectedProjectGroupPick = await vscode.window.showQuickPick(projectGroupPicks, {
-            placeHolder: "Project Group"
-        });
-        var projectGroupId = selectedProjectGroupPick.id;
-        if (projectGroupId === 'Add') {
-            // If there is no default group, allow name to be empty
-            let validateInput = projectGroups.length === 0 ? undefined : (val: string) => val ? '' : 'A Group Name must be provided.';
-            let newGroupName = await vscode.window.showInputBox({
-                placeHolder: 'New Project Group Name',
-                ignoreFocusOut: true,
-                validateInput,
+                return {
+                    id: group.id,
+                    label,
+                }
             });
+            projectGroupPicks.push({
+                id: "Add",
+                label: "Add new Project Group",
+            })
 
-            projectGroupId = (await addProjectGroup(context, newGroupName)).id;
+            let selectedProjectGroupPick = await vscode.window.showQuickPick(projectGroupPicks, {
+                placeHolder: "Project Group"
+            });
+            projectGroupId = selectedProjectGroupPick.id;
+            if (projectGroupId === 'Add') {
+                // If there is no default group, allow name to be empty
+                let validateInput = projectGroups.length === 0 ? undefined : (val: string) => val ? '' : 'A Group Name must be provided.';
+                let newGroupName = await vscode.window.showInputBox({
+                    placeHolder: 'New Project Group Name',
+                    ignoreFocusOut: true,
+                    validateInput,
+                });
+
+                projectGroupId = (await addProjectGroup(context, newGroupName)).id;
+            }
         }
 
         // Color

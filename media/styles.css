@@ -2,8 +2,9 @@
   display: flex;
   flex-wrap: wrap;
   align-items: flex-start; }
-  .projects-group:not(:hover) .add-project {
-    opacity: 0; }
+
+.projects-group:hover .add-project, .projects-group-title:hover + .projects-group .add-project {
+  opacity: 0.6; }
 
 .project-container {
   display: inline-block;
@@ -54,8 +55,10 @@ body .project {
     border-top: 0;
     background: none;
     font-size: 1.5em;
-    opacity: 0.6;
+    opacity: 0;
     transition: opacity ease-in-out 100ms; }
+    body .project.add-project:hover, body .project.no-projects:hover {
+      opacity: 1; }
 
 .vscode-light .project {
   background-color: var(--vscode-tab-inactiveBackground);

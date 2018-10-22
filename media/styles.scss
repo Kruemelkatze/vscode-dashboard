@@ -12,12 +12,12 @@ $projectHeaderMinHeight: 53px; // To be constant even with fitted font size
 .projects-group {
     display: flex;
     flex-wrap: wrap;
-    align-items: flex-start;
+    align-items: flex-start;    
+}
 
-    @if($useAddProjectOpacity) {
-        &:not(:hover) .add-project{
-            opacity: 0;
-        }
+@if($useAddProjectOpacity) {
+    .projects-group:hover .add-project, .projects-group-title:hover + .projects-group .add-project{
+        opacity: 0.6;
     }
 }
 
@@ -90,8 +90,12 @@ body .project {
         border-top: 0;
         background: none;
         font-size: 1.5em;
-        opacity: 0.6;
+        opacity: if($useAddProjectOpacity, 0, 0.6);
         transition: opacity ease-in-out 100ms;     
+
+        &:hover {
+            opacity: 1;
+        }
     }
 }
 
