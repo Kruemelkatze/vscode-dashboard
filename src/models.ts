@@ -1,5 +1,17 @@
 'use strict';
 
+export class ProjectGroup {
+    id: string;
+    groupName: string;
+    projects: Project[];
+
+    constructor(groupName: string, projects: Project[] = null) {
+        this.id = generateRandomId(groupName);
+        this.groupName = groupName;
+        this.projects = projects || [];
+    }
+}
+
 export class Project {
     id: string;
     name: string;

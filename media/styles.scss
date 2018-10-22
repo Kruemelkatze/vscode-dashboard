@@ -7,7 +7,7 @@ $defaultPadding: 20px;
 $projectHeaderSize: 40px; // This has also be adjusted in constants.ts for fitty
 $projectHeaderMinHeight: 53px; // To be constant even with fitted font size
 
-.projects-wrapper {
+.projects-wrapper, .projects-group {
     display: flex;
     flex-wrap: wrap;
     align-items: flex-start;
@@ -16,6 +16,20 @@ $projectHeaderMinHeight: 53px; // To be constant even with fitted font size
 .project-container {
     display: inline-block;
     width: $columnWidth;
+}
+
+
+.projects-group-title {
+    width: 100%;
+    font-size: $projectHeaderSize / 2;
+    font-weight: 200;
+    margin-top: $defaultPadding * 1.5;
+    margin-left: 0px;
+    margin-bottom: -$defaultPadding / 2;
+
+    &:first-child {
+        margin-top: $defaultPadding / 2;
+    }
 }
 
 body .project {

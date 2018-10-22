@@ -1,4 +1,4 @@
-.projects-wrapper {
+.projects-wrapper, .projects-group {
   display: flex;
   flex-wrap: wrap;
   align-items: flex-start; }
@@ -6,6 +6,16 @@
 .project-container {
   display: inline-block;
   width: 350px; }
+
+.projects-group-title {
+  width: 100%;
+  font-size: 20px;
+  font-weight: 200;
+  margin-top: 30px;
+  margin-left: 0px;
+  margin-bottom: -10px; }
+  .projects-group-title:first-child {
+    margin-top: 10px; }
 
 body .project {
   cursor: pointer;

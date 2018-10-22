@@ -1,9 +1,9 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { Project } from "./models";
+import { Project, ProjectGroup } from "./models";
 import { DATA_ROOT_PATH, PROJECT_IMAGE_FOLDER, USE_PROJECT_ICONS, FITTY_OPTIONS } from './constants';
 
-export function getDashboardContent(context: vscode.ExtensionContext, projects: Project[]): string {
+export function getDashboardContent(context: vscode.ExtensionContext, projectGroups: ProjectGroup[]): string {
     var stylesPath = vscode.Uri.file(path.join(context.extensionPath, 'media', 'styles.css'));
     stylesPath = stylesPath.with({ scheme: 'vscode-resource' });
 
@@ -21,12 +21,11 @@ export function getDashboardContent(context: vscode.ExtensionContext, projects: 
     </head>
     <body>
         <div class="projects-wrapper">
-            ${projects.length ?
-            projects.map(getProjectDiv).join('\n')
+            ${projectGroups.length ?
+            projectGroups.map(getProjectGroupSection).join('\n')
             :
             getNoProjectsDiv()
-        }
-            ${getAddProjectDiv()}
+        }           
         </div>
     </body>
 
@@ -41,6 +40,23 @@ export function getDashboardContent(context: vscode.ExtensionContext, projects: 
         })();
     </script>
 </html>`;
+}
+
+function getProjectGroupSection(projectGroup: ProjectGroup) {
+    var projects = projectGroup.projects;
+    if (projects == null || !projects.length) {
+        return "";
+    }
+
+    return `
+    <div class="projects-group-title">
+        ${projectGroup.groupName}
+    </div>
+    <div class="projects-group">
+        ${projects.map(getProjectDiv).join('\n')}
+        ${getAddProjectDiv()}
+    </div>            
+    `;
 }
 
 function getProjectDiv(project) {

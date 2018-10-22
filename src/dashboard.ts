@@ -2,12 +2,18 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { Project } from './models';
-import { getProjects, saveProjectImageFile, addProject, removeProject, saveProjects, writeTextFile, } from './projectService';
+import { getProjects, saveProjectImageFile, addProject, removeProject, saveProjects, writeTextFile, getProject, addProjectGroup, getProjectsFlat, migrateDataIfNeeded, } from './projectService';
 import { getDashboardContent } from './webviewContent';
 import { USE_PROJECT_ICONS, USE_PROJECT_COLOR, PREDEFINED_COLORS, TEMP_PATH } from './constants';
 
 export function activate(context: vscode.ExtensionContext) {
     var instance: vscode.WebviewPanel = null;
+
+    // In v1.2, the data scheme has changed by introducing project groups.
+    let migrated = migrateDataIfNeeded(context);
+    if (migrated) {
+        vscode.window.showInformationMessage("Migrated Dashboard Projects after Update.");
+    }
 
     var isOnWelcomePage = (!vscode.workspace.name && vscode.window.visibleTextEditors.length === 0);
     if (isOnWelcomePage) {
@@ -67,17 +73,21 @@ export function activate(context: vscode.ExtensionContext) {
             }, null, context.subscriptions);
 
             panel.webview.onDidReceiveMessage(async (e) => {
-                projects = getProjects(context);
 
                 switch (e.type) {
                     case 'selected-file':
                         let filePath = e.filePath as string;
-                        saveProjectImageFile(filePath, projects[0]);
+                        //saveProjectImageFile(filePath, projects[0]);
                         break;
                     case 'selected-project':
                         let projectId = e.projectId as string;
                         let newWindow = e.newWindow as boolean;
-                        let project = projects.find(p => p.id === projectId);
+                        let project = getProject(context, projectId);
+                        if (project == null) {
+                            vscode.window.showWarningMessage("Selected Project not found.");
+                            break;
+                        }
+
                         let uri = vscode.Uri.file(project.path);
 
                         let currentPath = vscode.workspace.rootPath;
@@ -98,6 +108,7 @@ export function activate(context: vscode.ExtensionContext) {
     }
 
     async function addProjectPerCommand(folderProject: boolean | null) {
+        // Project Type
         if (folderProject === null) {
             let projectTypePicks = [
                 { id: true, label: 'Folder Project' },
@@ -110,15 +121,7 @@ export function activate(context: vscode.ExtensionContext) {
             folderProject = selectedProjectTypePick.id;
         }
 
-        var projectName = await vscode.window.showInputBox({
-            placeHolder: 'Project Name',
-            ignoreFocusOut: true,
-            validateInput: (val: string) => val ? '' : 'A Project Name must be provided.',
-        });
-
-        if (!projectName)
-            return;
-
+        // Path
         let selectedProjectUris = await vscode.window.showOpenDialog({
             openLabel: `Select ${folderProject ? 'Folder' : 'File'} as Project`,
             canSelectFolders: folderProject,
@@ -131,6 +134,53 @@ export function activate(context: vscode.ExtensionContext) {
 
         var projectPath: string = selectedProjectUris[0].fsPath;
 
+        // Name
+        var projectName = await vscode.window.showInputBox({
+            placeHolder: 'Project Name',
+            ignoreFocusOut: true,
+            validateInput: (val: string) => val ? '' : 'A Project Name must be provided.',
+        });
+
+        if (!projectName)
+            return;
+
+        // Group
+        let projectGroups = getProjects(context);
+        let defaultGroupSet = false;
+        let projectGroupPicks = projectGroups.map(group => {
+            let label = group.groupName;
+            if (!label) {
+                label = defaultGroupSet ? 'Unnamed Group' : 'Default Group';
+                defaultGroupSet = true;
+            }
+
+            return {
+                id: group.id,
+                label,
+            }
+        });
+        projectGroupPicks.push({
+            id: "Add",
+            label: "Add new Project Group",
+        })
+
+        let selectedProjectGroupPick = await vscode.window.showQuickPick(projectGroupPicks, {
+            placeHolder: "Project Group"
+        });
+        var projectGroupId = selectedProjectGroupPick.id;
+        if (projectGroupId === 'Add') {
+            // If there is no default group, allow name to be empty
+            let validateInput = projectGroups.length === 0 ? undefined : (val: string) => val ? '' : 'A Group Name must be provided.';
+            let newGroupName = await vscode.window.showInputBox({
+                placeHolder: 'New Project Group Name',
+                ignoreFocusOut: true,
+                validateInput,
+            });
+
+            projectGroupId = (await addProjectGroup(context, newGroupName)).id;
+        }
+
+        // Color
         var color: string = null;
         if (USE_PROJECT_COLOR) {
             let colorPicks = PREDEFINED_COLORS.map(c => ({ id: c.label, label: c.label }))
@@ -159,6 +209,7 @@ export function activate(context: vscode.ExtensionContext) {
             }
         }
 
+        // Icon (currently unused)
         var imageFilePath: string = null;
         if (USE_PROJECT_ICONS) {
             var selectImage = await vscode.window.showInputBox({
@@ -184,13 +235,14 @@ export function activate(context: vscode.ExtensionContext) {
             }
         }
 
+        // Save
         let project = new Project(projectName, projectPath);
 
         let imageFileName = imageFilePath ? path.basename(imageFilePath) : null;
         project.imageFileName = imageFileName;
         project.color = color;
 
-        await addProject(context, project);
+        await addProject(context, project, projectGroupId);
 
         if (imageFilePath != null) {
             await saveProjectImageFile(imageFilePath, project);
@@ -201,7 +253,7 @@ export function activate(context: vscode.ExtensionContext) {
     }
 
     async function removeProjectPerCommand() {
-        var projects = getProjects(context);
+        var projects = getProjectsFlat(context);
         let projectPicks = projects.map(p => ({ id: p.id, label: p.name }));
 
         let selectedProjectPick = await vscode.window.showQuickPick(projectPicks);
@@ -209,7 +261,7 @@ export function activate(context: vscode.ExtensionContext) {
         if (selectedProjectPick == null)
             return;
 
-        projects = await removeProject(context, selectedProjectPick.id)
+        await removeProject(context, selectedProjectPick.id)
         showDashboard();
 
         vscode.window.showInformationMessage(`Project ${selectedProjectPick.label} removed.`);
@@ -223,25 +275,33 @@ export function activate(context: vscode.ExtensionContext) {
 
         var editProjectsDocument = await vscode.workspace.openTextDocument(tempFileUri);
 
-        var textEditor = await vscode.window.showTextDocument(editProjectsDocument);
+        await vscode.window.showTextDocument(editProjectsDocument);
 
         var subscriptions: vscode.Disposable[] = [];
         var editSubscription = vscode.workspace.onWillSaveTextDocument(async (e) => {
             if (e.document == editProjectsDocument) {
-                let updatedProjects;
+                let updatedProjectGroups;
                 try {
-                    updatedProjects = JSON.parse(e.document.getText());
+                    updatedProjectGroups = JSON.parse(e.document.getText());
                 } catch (ex) {
                     vscode.window.showErrorMessage("Edited Projects File can not be parsed.")
                     return;
                 }
 
+                // Validate
                 var jsonIsInvalid = false;
-                if (Array.isArray(updatedProjects)) {
-                    for (let project of updatedProjects) {
-                        if (!project.id || !project.name || !project.path) {
+                if (Array.isArray(updatedProjectGroups)) {
+                    for (let group of updatedProjectGroups) {
+                        if (jsonIsInvalid || !group || !group.id || group.groupName == undefined || !group.projects || !Array.isArray(group.projects)) {
                             jsonIsInvalid = true;
                             break;
+                        } else {
+                            for (let project of group.projects) {
+                                if (!project || !project.id || !project.name || !project.path) {
+                                    jsonIsInvalid = true;
+                                    break;
+                                }
+                            }
                         }
                     }
                 } else {
@@ -253,7 +313,7 @@ export function activate(context: vscode.ExtensionContext) {
                     return;
                 }
 
-                saveProjects(context, updatedProjects);
+                saveProjects(context, updatedProjectGroups);
                 showDashboard();
 
                 subscriptions.forEach(s => s.dispose());
