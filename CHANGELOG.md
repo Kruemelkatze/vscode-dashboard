@@ -1,6 +1,13 @@
 # Change Log
 All notable changes to the "dashboard" extension will be documented in this file. It follows the [Keep a Changelog](http://keepachangelog.com/) recommendations.
 
+## [1.2] -being worked on-
+### Added
+- Project Groups
+
+### Changed
+- When adding a project, a project group has to be selected.
+
 ## [1.1] 2018-09-25
 ### Added
 - Support for Multi-Root Workspaces
