@@ -1,21 +1,33 @@
 $fixedProjectCardBg: var(--vscode-tab-inactiveBackground);
 $fixedForeground: var(--vscode-editor-foreground);
 
+$useAddProjectOpacity: true;
+
 $columnWidth: 350px;
 $borderTopSize: 7px;
 $defaultPadding: 20px;
 $projectHeaderSize: 40px; // This has also be adjusted in constants.ts for fitty
 $projectHeaderMinHeight: 53px; // To be constant even with fitted font size
 
-.projects-wrapper, .projects-group {
+.projects-group {
     display: flex;
     flex-wrap: wrap;
     align-items: flex-start;
+
+    @if($useAddProjectOpacity) {
+        &:not(:hover) .add-project{
+            opacity: 0;
+        }
+    }
 }
 
 .project-container {
     display: inline-block;
     width: $columnWidth;
+
+    &.slim {
+        width: $columnWidth / 2;
+    }
 }
 
 
@@ -79,8 +91,8 @@ body .project {
         background: none;
         font-size: 1.5em;
         opacity: 0.6;
+        transition: opacity ease-in-out 100ms;     
     }
-
 }
 
 @mixin themedStyles($foreground, $projectCardBg){

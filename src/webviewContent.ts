@@ -86,7 +86,7 @@ function getNoProjectsDiv() {
 
 function getAddProjectDiv() {
     return `
-<div class="project-container">
+<div class="project-container slim">
     <div class="project add-project" data-action="add-project">
         <h2 class="add-project-header">
             +
