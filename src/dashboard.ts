@@ -147,16 +147,18 @@ export function activate(context: vscode.ExtensionContext) {
         let projectGroups = getProjects(context);
 
         // Reorder array to set given group to front (to quickly select it).
+        let orderedProjectGroups = projectGroups;
         if (projectGroupId != null) {
             let idx = projectGroups.findIndex(g => g.id === projectGroupId);
             if (idx != null) {
-                let group = projectGroups.splice(idx, 1);
-                projectGroups.unshift(...group);
+                orderedProjectGroups = projectGroups.slice();
+                let group = orderedProjectGroups.splice(idx, 1);
+                orderedProjectGroups.unshift(...group);
             }
         }
 
         let defaultGroupSet = false;
-        let projectGroupPicks = projectGroups.map(group => {
+        let projectGroupPicks = orderedProjectGroups.map(group => {
             let label = group.groupName;
             if (!label) {
                 label = defaultGroupSet ? 'Unnamed Group' : 'Default Group';
