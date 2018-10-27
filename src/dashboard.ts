@@ -144,41 +144,50 @@ export function activate(context: vscode.ExtensionContext) {
             return;
 
         // Group
-        if (projectGroupId == null) {
-            let projectGroups = getProjects(context);
-            let defaultGroupSet = false;
-            let projectGroupPicks = projectGroups.map(group => {
-                let label = group.groupName;
-                if (!label) {
-                    label = defaultGroupSet ? 'Unnamed Group' : 'Default Group';
-                    defaultGroupSet = true;
-                }
+        let projectGroups = getProjects(context);
 
-                return {
-                    id: group.id,
-                    label,
-                }
-            });
-            projectGroupPicks.push({
-                id: "Add",
-                label: "Add new Project Group",
-            })
-
-            let selectedProjectGroupPick = await vscode.window.showQuickPick(projectGroupPicks, {
-                placeHolder: "Project Group"
-            });
-            projectGroupId = selectedProjectGroupPick.id;
-            if (projectGroupId === 'Add') {
-                // If there is no default group, allow name to be empty
-                let validateInput = projectGroups.length === 0 ? undefined : (val: string) => val ? '' : 'A Group Name must be provided.';
-                let newGroupName = await vscode.window.showInputBox({
-                    placeHolder: 'New Project Group Name',
-                    ignoreFocusOut: true,
-                    validateInput,
-                });
-
-                projectGroupId = (await addProjectGroup(context, newGroupName)).id;
+        // Reorder array to set given group to front (to quickly select it).
+        if (projectGroupId != null) {
+            let idx = projectGroups.findIndex(g => g.id === projectGroupId);
+            if (idx != null) {
+                let group = projectGroups.splice(idx, 1);
+                projectGroups.unshift(...group);
             }
+        }
+
+        let defaultGroupSet = false;
+        let projectGroupPicks = projectGroups.map(group => {
+            let label = group.groupName;
+            if (!label) {
+                label = defaultGroupSet ? 'Unnamed Group' : 'Default Group';
+                defaultGroupSet = true;
+            }
+
+            return {
+                id: group.id,
+                label,
+            }
+        });
+
+        projectGroupPicks.push({
+            id: "Add",
+            label: "Add new Project Group",
+        })
+
+        let selectedProjectGroupPick = await vscode.window.showQuickPick(projectGroupPicks, {
+            placeHolder: "Project Group"
+        });
+        projectGroupId = selectedProjectGroupPick.id;
+        if (projectGroupId === 'Add') {
+            // If there is no default group, allow name to be empty
+            let validateInput = projectGroups.length === 0 ? undefined : (val: string) => val ? '' : 'A Group Name must be provided.';
+            let newGroupName = await vscode.window.showInputBox({
+                placeHolder: 'New Project Group Name',
+                ignoreFocusOut: true,
+                validateInput,
+            });
+
+            projectGroupId = (await addProjectGroup(context, newGroupName)).id;
         }
 
         // Color
