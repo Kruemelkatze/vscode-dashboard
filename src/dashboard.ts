@@ -109,40 +109,6 @@ export function activate(context: vscode.ExtensionContext) {
     }
 
     async function addProjectPerCommand(projectGroupId: string = null) {
-        // Project Type
-        let projectTypePicks = [
-            { id: true, label: 'Folder Project' },
-            { id: false, label: 'File or Multi-Root Project' },
-        ];
-
-        let selectedProjectTypePick = await vscode.window.showQuickPick(projectTypePicks, {
-            placeHolder: "Project Type"
-        });
-        let folderProject = selectedProjectTypePick.id;
-
-        // Path
-        let selectedProjectUris = await vscode.window.showOpenDialog({
-            openLabel: `Select ${folderProject ? 'Folder' : 'File'} as Project`,
-            canSelectFolders: folderProject,
-            canSelectFiles: !folderProject,
-            canSelectMany: false,
-        });
-
-        if (selectedProjectUris == null || selectedProjectUris[0] == null)
-            return;
-
-        var projectPath: string = selectedProjectUris[0].fsPath;
-
-        // Name
-        var projectName = await vscode.window.showInputBox({
-            placeHolder: 'Project Name',
-            ignoreFocusOut: true,
-            validateInput: (val: string) => val ? '' : 'A Project Name must be provided.',
-        });
-
-        if (!projectName)
-            return;
-
         // Group
         let projectGroups = getProjects(context);
 
@@ -191,6 +157,40 @@ export function activate(context: vscode.ExtensionContext) {
 
             projectGroupId = (await addProjectGroup(context, newGroupName)).id;
         }
+
+        // Project Type
+        let projectTypePicks = [
+            { id: true, label: 'Folder Project' },
+            { id: false, label: 'File or Multi-Root Project' },
+        ];
+
+        let selectedProjectTypePick = await vscode.window.showQuickPick(projectTypePicks, {
+            placeHolder: "Project Type"
+        });
+        let folderProject = selectedProjectTypePick.id;
+
+        // Path
+        let selectedProjectUris = await vscode.window.showOpenDialog({
+            openLabel: `Select ${folderProject ? 'Folder' : 'File'} as Project`,
+            canSelectFolders: folderProject,
+            canSelectFiles: !folderProject,
+            canSelectMany: false,
+        });
+
+        if (selectedProjectUris == null || selectedProjectUris[0] == null)
+            return;
+
+        var projectPath: string = selectedProjectUris[0].fsPath;
+
+        // Name
+        var projectName = await vscode.window.showInputBox({
+            placeHolder: 'Project Name',
+            ignoreFocusOut: true,
+            validateInput: (val: string) => val ? '' : 'A Project Name must be provided.',
+        });
+
+        if (!projectName)
+            return;
 
         // Color
         var color: string = null;
