@@ -18,6 +18,7 @@ export class Project {
     path: string;
     imageFileName: string;
     color: string;
+    isGitRepo = false;
 
     constructor(name: string, path: string) {
         this.id = generateRandomId(name);

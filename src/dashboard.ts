@@ -5,6 +5,7 @@ import { Project } from './models';
 import { getProjects, saveProjectImageFile, addProject, removeProject, saveProjects, writeTextFile, getProject, addProjectGroup, getProjectsFlat, migrateDataIfNeeded, } from './projectService';
 import { getDashboardContent } from './webviewContent';
 import { USE_PROJECT_ICONS, USE_PROJECT_COLOR, PREDEFINED_COLORS, TEMP_PATH } from './constants';
+import { execSync } from 'child_process';
 
 export function activate(context: vscode.ExtensionContext) {
     var instance: vscode.WebviewPanel = null;
@@ -247,12 +248,19 @@ export function activate(context: vscode.ExtensionContext) {
             }
         }
 
+        //Test if Git Repo
+        let isGitRepo = isFolderGitRepo(projectPath);
+        if (isGitRepo) {
+            vscode.window.showInformationMessage(`Detected ${projectName} as Git repository.`);
+        }
+
         // Save
         let project = new Project(projectName, projectPath);
 
         let imageFileName = imageFilePath ? path.basename(imageFilePath) : null;
         project.imageFileName = imageFileName;
         project.color = color;
+        project.isGitRepo = isGitRepo;
 
         await addProject(context, project, projectGroupId);
 
@@ -350,6 +358,15 @@ export function activate(context: vscode.ExtensionContext) {
         //     }
         // });
         // subscriptions.push(closeSubscription);
+    }
+
+    function isFolderGitRepo(path: string) {
+        try {
+            var test = execSync(`cd ${path} && git rev-parse --is-inside-work-tree`, { encoding: 'utf8' });
+            return !!test;
+        } catch (e) {
+            return false;
+        }
     }
 }
 

@@ -52,13 +52,20 @@ body .project {
     text-align: center; }
   body .project .add-project-header {
     font-size: 60px; }
+  body .project .project-path-info {
+    display: flex;
+    max-width: 100%; }
   body .project .project-path {
     color: var(--dashboard-path);
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
-    max-width: 100%;
     direction: rtl; }
+  body .project .git-icon {
+    margin: -2px 6px -4px 0; }
+    body .project .git-icon svg {
+      width: 20px;
+      fill: var(--dashboard-path); }
   body .project.add-project, body .project.no-projects {
     min-height: 102px;
     border-top: 0;
