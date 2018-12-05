@@ -1,3 +1,8 @@
+:root {
+  --dashboard-project-card-bg: var(--vscode-tab-inactiveBackground);
+  --dashboard-foreground: var(--vscode-editor-foreground);
+  --dashboard-path: var(--vscode-descriptionForeground); }
+
 .projects-group {
   display: flex;
   flex-wrap: wrap;
@@ -30,7 +35,9 @@ body .project {
   justify-content: center;
   align-items: center;
   margin: 20px 20px 0 0;
-  padding: 20px; }
+  padding: 20px;
+  background-color: var(--dashboard-project-card-bg);
+  border-top: 7px solid var(--dashboard-project-card-bg); }
   body .project .fitty-container {
     max-width: 100%;
     min-height: 53px;
@@ -38,6 +45,7 @@ body .project {
     justify-content: center;
     align-items: center; }
   body .project .project-header, body .project .add-project-header {
+    color: var(--dashboard-foreground);
     margin: 0;
     font-size: 40px;
     font-weight: lighter;
@@ -45,6 +53,7 @@ body .project {
   body .project .add-project-header {
     font-size: 60px; }
   body .project .project-path {
+    color: var(--dashboard-path);
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
@@ -59,21 +68,3 @@ body .project {
     transition: opacity ease-in-out 100ms; }
     body .project.add-project:hover, body .project.no-projects:hover {
       opacity: 1; }
-
-.vscode-light .project {
-  background-color: var(--vscode-tab-inactiveBackground);
-  border-top: 7px solid var(--vscode-tab-inactiveBackground); }
-  .vscode-light .project .project-path {
-    color: var(--vscode-descriptionForeground); }
-
-.vscode-dark .project {
-  background-color: var(--vscode-tab-inactiveBackground);
-  border-top: 7px solid var(--vscode-tab-inactiveBackground); }
-  .vscode-dark .project .project-path {
-    color: var(--vscode-descriptionForeground); }
-
-.vscode-high-contrast .project {
-  background-color: var(--vscode-tab-inactiveBackground);
-  border-top: 7px solid var(--vscode-tab-inactiveBackground); }
-  .vscode-high-contrast .project .project-path {
-    color: var(--vscode-descriptionForeground); }

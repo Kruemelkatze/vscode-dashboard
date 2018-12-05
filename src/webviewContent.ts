@@ -18,6 +18,7 @@ export function getDashboardContent(context: vscode.ExtensionContext, projectGro
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link rel="stylesheet" type="text/css" href="${stylesPath}">
         <title>Cat Coding</title>
+        ${getCustomStyle(context)}
     </head>
     <body>
         <div class="projects-wrapper">
@@ -126,6 +127,21 @@ function readFileIntoMemory (file, callback) {
     reader.readAsArrayBuffer(file);
 }
 `;
+}
+
+function getCustomStyle(context: vscode.ExtensionContext) {
+    var config = vscode.workspace.getConfiguration('dashboard')
+    var { customProjectCardBackground, customProjectNameColor, customProjectPathColor } = config;
+
+    // Nested Template Strings, hooray! \o/
+    return `
+<style>
+    :root {
+        ${customProjectCardBackground && `--dashboard-project-card-bg: ${customProjectCardBackground};`}
+        ${customProjectNameColor && `--dashboard-foreground: ${customProjectNameColor};`}
+        ${customProjectPathColor && `--dashboard-path: ${customProjectPathColor};`}
+    }
+</style>`;
 }
 
 function projectScript() {

@@ -44,7 +44,25 @@
                 "key": "ctrl+f1",
                 "mac": "cmd+f1"
             }
-        ]
+        ],
+        "configuration": {
+            "type": "object",
+            "title": "Dashboard: UI Customizations",
+            "properties": {
+                "dashboard.customProjectCardBackground": {
+                    "type": "string",
+                    "default": null
+                },
+                "dashboard.customProjectNameColor": {
+                    "type": "string",
+                    "default": null
+                },
+                "dashboard.customProjectPathColor": {
+                    "type": "string",
+                    "default": null
+                }
+            }
+        }
     },
     "scripts": {
         "vscode:prepublish": "npm run compile",

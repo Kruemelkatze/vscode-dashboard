@@ -23,6 +23,14 @@ The commands should speak for themselves. :)
 * Dashboard: Edit Projects
 * Dashboard: Remove Project
 
+### Customization
+
+By default, dashboard uses only colors defined by the theme, which was tested against all default themes. If you use a custom theme and see the dashboard's colors unfit, you can change them in the settings (Settings > Dashboard). Following settings can be changed to any css color (name, hex, rgba, hsl, var) or left empty (for default):
+
+* Project Card Background
+* Project Name Color
+* Project Path Color
+
 ## Changelog
 
 [View Changelog](CHANGELOG.md)
@@ -30,4 +38,4 @@ The commands should speak for themselves. :)
 ## Notes
 
 * Emojis may (or may not, depending on your preference) be good icons for projects. You can add them by pressing WIN + . (under Windows) while naming the project.
-* Only colors defined by the theme were used. So the dashboard should always blend nicely into your VSCode design.
+* Only colors defined by the theme were used. So the dashboard should always blend nicely into your VSCode design. If not, you can customize them in the settings.

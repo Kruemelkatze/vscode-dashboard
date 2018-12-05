@@ -4,6 +4,7 @@ All notable changes to the "dashboard" extension will be documented in this file
 ## [1.2] -being worked on-
 ### Added
 - Project Groups
+- Color Customization Options in Settings
 
 ### Changed
 - When adding a project, a project group has to be selected.

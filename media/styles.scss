@@ -1,5 +1,8 @@
-$fixedProjectCardBg: var(--vscode-tab-inactiveBackground);
-$fixedForeground: var(--vscode-editor-foreground);
+:root {
+    --dashboard-project-card-bg: var(--vscode-tab-inactiveBackground);
+    --dashboard-foreground: var(--vscode-editor-foreground);
+    --dashboard-path: var(--vscode-descriptionForeground);
+}
 
 $useAddProjectOpacity: true;
 
@@ -54,8 +57,10 @@ body .project {
     align-items: center;
 
     margin: $defaultPadding $defaultPadding 0 0;
-
     padding: $defaultPadding;
+
+    background-color: var(--dashboard-project-card-bg);
+    border-top: $borderTopSize solid var(--dashboard-project-card-bg);
 
     .fitty-container {
         max-width: 100%;
@@ -66,6 +71,7 @@ body .project {
     }
 
     .project-header {
+        color: var(--dashboard-foreground);
         margin: 0;
         font-size: $projectHeaderSize;
         font-weight: lighter;
@@ -78,6 +84,8 @@ body .project {
     }
 
     .project-path {
+        color: var(--dashboard-path);
+
         overflow: hidden;
         white-space: nowrap;
         text-overflow: ellipsis;
@@ -98,34 +106,6 @@ body .project {
         }
     }
 }
-
-@mixin themedStyles($foreground, $projectCardBg){
-    .project {
-        background-color: $fixedProjectCardBg;
-        border-top: $borderTopSize solid $projectCardBg;
-    
-        .project-header {
-
-        }
-
-        .project-path {
-            color: var(--vscode-descriptionForeground);
-        }
-    }
-}
-
-.vscode-light {
-    @include themedStyles($fixedForeground, $fixedProjectCardBg);
-}
-
-.vscode-dark {
-    @include themedStyles($fixedForeground, $fixedProjectCardBg);
-}
-
-.vscode-high-contrast {
-    @include themedStyles($fixedForeground, $fixedProjectCardBg);
-} 
-
 
 
 
