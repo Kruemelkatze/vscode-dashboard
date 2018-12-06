@@ -1,10 +1,11 @@
 # Change Log
 All notable changes to the "dashboard" extension will be documented in this file. It follows the [Keep a Changelog](http://keepachangelog.com/) recommendations.
 
-## [1.2] -being worked on-
+## [1.2] 2018-12-06
 ### Added
 - Project Groups
-- Color Customization Options in Settings
+- Color Customization Options in settings
+- Detect if project is a Git repository. If so, display an icon.
 
 ### Changed
 - When adding a project, a project group has to be selected.
