@@ -4,11 +4,9 @@ import { Project, ProjectGroup } from "./models";
 import { DATA_ROOT_PATH, PROJECT_IMAGE_FOLDER, USE_PROJECT_ICONS, FITTY_OPTIONS } from './constants';
 
 export function getDashboardContent(context: vscode.ExtensionContext, projectGroups: ProjectGroup[]): string {
-    var stylesPath = vscode.Uri.file(path.join(context.extensionPath, 'media', 'styles.css'));
-    stylesPath = stylesPath.with({ scheme: 'vscode-resource' });
-
-    var fittyPath = vscode.Uri.file(path.join(context.extensionPath, 'media', 'fitty.min.js'));
-    fittyPath = fittyPath.with({ scheme: 'vscode-resource' });
+    var stylesPath = getMediaResource(context, 'styles.css');
+    var fittyPath = getMediaResource(context, 'fitty.min.js');
+    var dragulaPath = getMediaResource(context, 'dragula.min.js');
 
     return `
 <!DOCTYPE html>
@@ -31,13 +29,16 @@ export function getDashboardContent(context: vscode.ExtensionContext, projectGro
     </body>
 
     <script src="${fittyPath}"></script>
+    <script src="${dragulaPath}"></script>
+
     <script>
         (function() {
             fitty('.project-header', ${JSON.stringify(FITTY_OPTIONS)});
 
             const vscode = acquireVsCodeApi();
             ${filePickerScript()}
-            ${projectScript()}
+            ${/*projectScript()*/1}
+            ${dragAndDropScript('.projects-group')}
         })();
     </script>
 </html>`;
@@ -53,7 +54,7 @@ function getProjectGroupSection(projectGroup: ProjectGroup) {
     <div class="projects-group-title">
         ${projectGroup.groupName}
     </div>
-    <div class="projects-group">
+    <div class="projects-group" data-group-id="${projectGroup.id}">
         ${projects.map(getProjectDiv).join('\n')}
         ${getAddProjectDiv(projectGroup.id)}
     </div>            
@@ -90,7 +91,7 @@ function getNoProjectsDiv() {
 
 function getAddProjectDiv(projectGroupId: string) {
     return `
-<div class="project-container slim">
+<div class="project-container slim last" data-nodrag>
     <div class="project add-project" data-action="add-project" data-project-group-id="${projectGroupId}">
         <h2 class="add-project-header">
             +
@@ -198,6 +199,40 @@ document
 `;
 }
 
+function dragAndDropScript(selector: string) {
+    return `
+window.onload = () => {
+    var containers = document.querySelectorAll('${selector}');
+
+    var drake = dragula([].slice.call(containers), {
+        moves: function (el, source, handle, sibling) {
+            return !el.hasAttribute("data-nodrag");
+        },
+    });
+
+    drake.on('drop', onReordered);
+
+    function onReordered() {
+        // Build reordering object
+        let groupElements = document.querySelectorAll('[data-group-id]');
+        let groupOrders = [];
+        
+        for (let groupElement of groupElements){
+            var groupOrder = {
+                groupId: groupElement.getAttribute("data-group-id"),
+                projectIds: [].slice.call(groupElement.querySelectorAll("[data-id]")).map(p => p.getAttribute("data-id")),
+            };
+            groupOrders.push(groupOrder);	
+        }
+
+        vscode.postMessage({
+            type: 'projects-reordered',
+            groupOrders,
+        });
+    }
+};`;    
+}
+
 // This was way easier to include and style than a file
 // Original Author: Jason Long, Source: https://commons.wikimedia.org/wiki/File:Git_icon.svg
 function getGitSvgIcon() {
@@ -212,4 +247,11 @@ function getGitSvgIcon() {
         C95.021,50.468,95.021,46.719,92.71,44.408z"/>
 </svg>
     `;
+}
+
+function getMediaResource(context: vscode.ExtensionContext, name: string) {
+    let resource = vscode.Uri.file(path.join(context.extensionPath, 'media', name));
+    resource = resource.with({ scheme: 'vscode-resource' });
+
+    return resource;
 }

@@ -27,6 +27,11 @@ export class Project {
     }
 }
 
+export interface GroupOrder {
+    groupId: string;
+    projectIds: string[];
+}
+
 function generateRandomId(prepend: string = null) {
     if (prepend) {
         prepend = prepend.toLowerCase().replace(/[^a-z0-9]/, '').substring(0, 24);

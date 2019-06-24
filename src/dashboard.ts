@@ -1,11 +1,12 @@
 'use strict';
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { Project } from './models';
+import { Project, GroupOrder, ProjectGroup } from './models';
 import { getProjects, saveProjectImageFile, addProject, removeProject, saveProjects, writeTextFile, getProject, addProjectGroup, getProjectsFlat, migrateDataIfNeeded, } from './projectService';
 import { getDashboardContent } from './webviewContent';
 import { USE_PROJECT_ICONS, USE_PROJECT_COLOR, PREDEFINED_COLORS, TEMP_PATH } from './constants';
 import { execSync } from 'child_process';
+import { stringify } from 'querystring';
 
 export function activate(context: vscode.ExtensionContext) {
     var instance: vscode.WebviewPanel = null;
@@ -76,10 +77,6 @@ export function activate(context: vscode.ExtensionContext) {
             panel.webview.onDidReceiveMessage(async (e) => {
 
                 switch (e.type) {
-                    case 'selected-file':
-                        let filePath = e.filePath as string;
-                        //saveProjectImageFile(filePath, projects[0]);
-                        break;
                     case 'selected-project':
                         let projectId = e.projectId as string;
                         let newWindow = e.newWindow as boolean;
@@ -101,6 +98,10 @@ export function activate(context: vscode.ExtensionContext) {
                     case 'add-project':
                         let projectGroupId = e.projectGroupId as string;
                         await vscode.commands.executeCommand("dashboard.addProject", projectGroupId);
+                        break;
+                    case 'projects-reordered':
+                        let groupOrders = e.groupOrders as GroupOrder[];
+                        reorderProjectGroups(groupOrders);
                         break;
                 }
             });
@@ -358,6 +359,38 @@ export function activate(context: vscode.ExtensionContext) {
         //     }
         // });
         // subscriptions.push(closeSubscription);
+    }
+
+    function reorderProjectGroups(groupOrders: GroupOrder[]) {
+        if (groupOrders == null){
+            vscode.window.showInformationMessage('Invalid Argument passed to Reordering Projects.');
+        }
+
+        vscode.window.showInformationMessage('Saved Dashboard Projects.');
+        var projectGroups = getProjects(context);
+
+        // Map projects by id for easier access
+        var projectMap = new Map<string, Project>();
+        for (let group of projectGroups) {
+            for (let project of group.projects) {
+                projectMap.set(project.id, project);
+            }
+        }
+
+        // Build new, reordered projects group array
+        var reorderedProjectGroups: ProjectGroup[] = [];        
+        for (let { groupId, projectIds } of groupOrders) {
+            let group = projectGroups.find(g => g.id === groupId);
+            if (group == null) {
+                continue;
+            }
+
+            group.projects = projectIds.map(pid => projectMap.get(pid)).filter(p => p != null);
+            reorderedProjectGroups.push(group);
+        }
+
+        saveProjects(context, reorderedProjectGroups);
+        vscode.window.showInformationMessage("Saved Dashboard Projects.");
     }
 
     function isFolderGitRepo(path: string) {
