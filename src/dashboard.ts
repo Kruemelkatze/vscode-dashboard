@@ -75,10 +75,10 @@ export function activate(context: vscode.ExtensionContext) {
             }, null, context.subscriptions);
 
             panel.webview.onDidReceiveMessage(async (e) => {
-
+                let projectId: string;
                 switch (e.type) {
                     case 'selected-project':
-                        let projectId = e.projectId as string;
+                        projectId = e.projectId as string;
                         let newWindow = e.newWindow as boolean;
                         let project = getProject(context, projectId);
                         if (project == null) {
@@ -99,10 +99,19 @@ export function activate(context: vscode.ExtensionContext) {
                         let projectGroupId = e.projectGroupId as string;
                         await vscode.commands.executeCommand("dashboard.addProject", projectGroupId);
                         break;
-                    case 'projects-reordered':
+                    case 'reordered-projects':
                         let groupOrders = e.groupOrders as GroupOrder[];
                         reorderProjectGroups(groupOrders);
                         break;
+                    case 'delete-project':
+                        projectId = e.projectId as string;
+                        await deleteProject(projectId);
+                        break;
+                    case 'edit-project':
+                        projectId = e.projectId as string;
+                        await editProject(projectId);
+                        break;
+
                 }
             });
 
@@ -391,6 +400,30 @@ export function activate(context: vscode.ExtensionContext) {
 
         saveProjects(context, reorderedProjectGroups);
         vscode.window.showInformationMessage("Saved Dashboard Projects.");
+    }
+
+    async function deleteProject(projectId: string){
+        var project = getProject(context, projectId);
+        if (project == null) {
+            return;
+        }
+
+        let accepted = await vscode.window.showWarningMessage(`Delete ${project.name}?`, { modal: true }, 'Delete');
+        if (!accepted) {
+            return;
+        }
+
+        await removeProject(context, projectId);
+        showDashboard();
+        vscode.window.showInformationMessage(`Project ${project.name} removed.`);
+    }
+
+    async function editProject(projectId: string) {
+        var project = getProject(context, projectId);
+        if (project == null) {
+            return;
+        }
+        vscode.window.showInformationMessage(`Editing Projects is not yet implemented`);
     }
 
     function isFolderGitRepo(path: string) {
