@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { Project, ProjectGroup } from "./models";
-import { DATA_ROOT_PATH, FITTY_OPTIONS } from './constants';
+import { FITTY_OPTIONS } from './constants';
 
 export function getDashboardContent(context: vscode.ExtensionContext, projectGroups: ProjectGroup[]): string {
     var stylesPath = getMediaResource(context, 'styles.css');
