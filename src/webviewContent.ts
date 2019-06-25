@@ -37,7 +37,7 @@ export function getDashboardContent(context: vscode.ExtensionContext, projectGro
 
             const vscode = acquireVsCodeApi();
             ${filePickerScript()}
-            ${/*projectScript()*/1}
+            ${projectScript()}
             ${dragAndDropScript('.projects-group')}
         })();
     </script>
