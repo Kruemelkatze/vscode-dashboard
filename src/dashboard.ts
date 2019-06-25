@@ -365,7 +365,10 @@ export function activate(context: vscode.ExtensionContext) {
                 var jsonIsInvalid = false;
                 if (Array.isArray(updatedProjectGroups)) {
                     for (let group of updatedProjectGroups) {
-                        if (jsonIsInvalid || !group || !group.id || group.groupName == undefined || !group.projects || !Array.isArray(group.projects)) {
+                        if (group && group.groupName == null && (group.projects == null || !group.projects.length)) {
+                            // Remove empty, unnamed group
+                            group._delete = true;
+                        } else if (!group || !group.id || group.groupName == undefined || !group.projects || !Array.isArray(group.projects)) {
                             jsonIsInvalid = true;
                             break;
                         } else {
@@ -388,6 +391,8 @@ export function activate(context: vscode.ExtensionContext) {
                     vscode.window.showErrorMessage("Edited Projects File does not meet the Schema expected by Dashboard.");
                     return;
                 }
+
+                updatedProjectGroups = updatedProjectGroups.filter(g => !g._delete);
 
                 saveProjects(context, updatedProjectGroups);
                 showDashboard();
