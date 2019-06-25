@@ -24,6 +24,11 @@ export function getProjectsFlat(context: vscode.ExtensionContext): Project[] {
 }
 
 export function getProject(context: vscode.ExtensionContext, projectId: string): Project {
+    var [project, group] = getProjectAndGroup(context, projectId);
+    return project;
+}
+
+export function getProjectAndGroup(context: vscode.ExtensionContext, projectId: string): [Project, ProjectGroup] {
     if (projectId == null) {
         return null;
     }
@@ -32,10 +37,10 @@ export function getProject(context: vscode.ExtensionContext, projectId: string):
     for (let group of projectGroups) {
         let project = group.projects.find(p => p.id === projectId);
         if (project != null) {
-            return project;
+            return [project, group];
         }
     }
-    return null;
+    return [null, null];
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~ SAVE Projects ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -86,6 +91,23 @@ export async function addProject(context: vscode.ExtensionContext, project: Proj
 
     saveProjects(context, projectGroups);
     return projectGroups;
+}
+
+export async function updateProject(context: vscode.ExtensionContext, projectId: string, updatedProject: Project) {
+    if (!projectId || updateProject == null) {
+        return;
+    }
+
+    var projectGroups = getProjects(context);
+    for (let group of projectGroups) {
+        let project = group.projects.find(p => p.id === projectId);
+        if (project != null) {
+            Object.assign(project, updatedProject, { id: projectId });
+            return;
+        }
+    }
+
+    saveProjects(context, projectGroups);
 }
 
 export async function removeProject(context: vscode.ExtensionContext, projectId: string): Promise<ProjectGroup[]> {

@@ -2,11 +2,10 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { Project, GroupOrder, ProjectGroup } from './models';
-import { getProjects, addProject, removeProject, saveProjects, writeTextFile, getProject, addProjectGroup, getProjectsFlat, migrateDataIfNeeded, } from './projectService';
+import { getProjects, addProject, removeProject, saveProjects, writeTextFile, getProject, addProjectGroup, getProjectsFlat, migrateDataIfNeeded, getProjectAndGroup, updateProject, } from './projectService';
 import { getDashboardContent } from './webviewContent';
 import { USE_PROJECT_COLOR, PREDEFINED_COLORS, TEMP_PATH } from './constants';
 import { execSync } from 'child_process';
-import { stringify } from 'querystring';
 
 export function activate(context: vscode.ExtensionContext) {
     var instance: vscode.WebviewPanel = null;
@@ -120,8 +119,71 @@ export function activate(context: vscode.ExtensionContext) {
     }
 
     async function addProjectPerCommand(projectGroupId: string = null) {
-        // Group
-        let projectGroups = getProjects(context);
+        var [project, selectedGroupId] = await queryProjectFields(projectGroupId);
+        await addProject(context, project, selectedGroupId);
+        
+        showDashboard();
+        vscode.window.showInformationMessage(`Project ${project.name} created.`);
+    }
+
+    async function editProject(projectId: string) {
+        var [project, group] = getProjectAndGroup(context, projectId);
+        if (project == null || group == null) {
+            return;
+        }
+
+        var [editedProject, selectedGroupId] = await queryProjectFields(group.id, project);
+        await updateProject(context, projectId, editedProject);
+        //await addProject(context, editedProject, selectedGroupId); // Add edited
+        //await removeProject(context, projectId); // Delete old
+
+        showDashboard();
+
+        vscode.window.showInformationMessage(`Project ${project.name} updated.`);
+    }
+
+    async function queryProjectFields(projectGroupId: string = null, projectTemplate: Project = null) : Promise<[Project, string]> {       
+        // For editing a project: Ignore Group and Path selection and take both from template
+        var selectedGroupId: string, projectPath: string;
+        if (projectTemplate != null && projectGroupId != null) {
+            selectedGroupId = projectGroupId;
+            projectPath = projectTemplate.path;
+        } else {
+            selectedGroupId = await queryProjectGroup(projectGroupId);
+            projectPath = await queryProjectPath();
+        }
+    
+        // Name
+        var projectName = await vscode.window.showInputBox({
+            value: projectTemplate ? projectTemplate.name : undefined,
+            valueSelection: projectTemplate ? [0, projectTemplate.name.length] : undefined,
+            placeHolder: 'Project Name',
+            ignoreFocusOut: true,
+            validateInput: (val: string) => val ? '' : 'A Project Name must be provided.',
+        });
+
+        if (!projectName)
+            return;
+
+        // Color
+        var color = await queryProjectColor(projectTemplate);        
+
+        //Test if Git Repo
+        let isGitRepo = isFolderGitRepo(projectPath);
+        if (isGitRepo) {
+            vscode.window.showInformationMessage(`Detected ${projectName} as Git repository.`);
+        }
+
+        // Save
+        let project = new Project(projectName, projectPath);
+        project.color = color;
+        project.isGitRepo = isGitRepo;
+
+        return [project, selectedGroupId];
+    }
+
+    async function queryProjectGroup(projectGroupId: string): Promise<string> {
+        var projectGroups = getProjects(context);
 
         // Reorder array to set given group to front (to quickly select it).
         let orderedProjectGroups = projectGroups;
@@ -169,14 +231,17 @@ export function activate(context: vscode.ExtensionContext) {
             projectGroupId = (await addProjectGroup(context, newGroupName)).id;
         }
 
-        // Project Type
+        return projectGroupId;
+    }
+
+    async function queryProjectPath(): Promise<string> {
         let projectTypePicks = [
             { id: true, label: 'Folder Project' },
             { id: false, label: 'File or Multi-Root Project' },
         ];
 
         let selectedProjectTypePick = await vscode.window.showQuickPick(projectTypePicks, {
-            placeHolder: "Project Type"
+            placeHolder: "Project Type",
         });
         let folderProject = selectedProjectTypePick.id;
 
@@ -191,62 +256,66 @@ export function activate(context: vscode.ExtensionContext) {
         if (selectedProjectUris == null || selectedProjectUris[0] == null)
             return;
 
-        var projectPath: string = selectedProjectUris[0].fsPath;
+        return selectedProjectUris[0].fsPath;
+    }
 
-        // Name
-        var projectName = await vscode.window.showInputBox({
-            placeHolder: 'Project Name',
-            ignoreFocusOut: true,
-            validateInput: (val: string) => val ? '' : 'A Project Name must be provided.',
-        });
-
-        if (!projectName)
-            return;
-
-        // Color
+    async function queryProjectColor(projectTemplate: Project = null): Promise<string> {
         var color: string = null;
-        if (USE_PROJECT_COLOR) {
-            let colorPicks = PREDEFINED_COLORS.map(c => ({ id: c.label, label: c.label }))
-            colorPicks.unshift({ id: 'None', label: 'None' });
-            colorPicks.push({ id: 'Custom', label: 'Custom Hex' });
-            let selectedColorPick = await vscode.window.showQuickPick(colorPicks, {
-                placeHolder: "Project Color",
-            });
+        if (!USE_PROJECT_COLOR) {
+            return null;
+        }
+        
+        // Colors are keyed by label, not by value
+        // I tried to key them by their value, but the selected QuickPick was always undefined,
+        // even when sanitizing the values (to alphanumeric only)
+        let colorPicks = PREDEFINED_COLORS.map(c => ({
+            id: c.label,
+            label: c.label,
+        }));
+        colorPicks.unshift({ id: 'None', label: 'None' });
+        colorPicks.push({ id: 'Custom', label: 'Custom Hex' });
 
-            if (selectedColorPick != null && selectedColorPick.id === 'Custom') {
-                var hex = await vscode.window.showInputBox({
-                    placeHolder: '#cc3344',
-                    ignoreFocusOut: true,
-                    validateInput: (val: string) => {
-                        let valid = val == null || /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(val);
-                        return valid ? '' : 'Prove a valid Hex color code or leave empty.'
-                    }
+        if (projectTemplate && projectTemplate.color) {
+            // Get existing color name by value
+            let color = PREDEFINED_COLORS.find(c => c.value === projectTemplate.color);
+            let existingEntryIdx = !color ? -1 : colorPicks.findIndex(p => p.id === color.label);
+            // If color is already in quicklist
+            if (existingEntryIdx !== -1) {
+                // Push to top
+                let entry = colorPicks.splice(existingEntryIdx, 1)[0];
+                colorPicks.unshift(entry);
+            } else {
+                // Insert new
+                colorPicks.unshift({
+                    id: color.label,
+                    label: projectTemplate.color,
                 });
-
-                color = hex;
-            } else if (selectedColorPick != null && selectedColorPick.id !== 'None') {
-                let predefinedColor = PREDEFINED_COLORS.find(c => c.label == selectedColorPick.id);
-                if (predefinedColor != null) {
-                    color = predefinedColor.value;
-                }
             }
         }
 
-        //Test if Git Repo
-        let isGitRepo = isFolderGitRepo(projectPath);
-        if (isGitRepo) {
-            vscode.window.showInformationMessage(`Detected ${projectName} as Git repository.`);
+        let selectedColorPick = await vscode.window.showQuickPick(colorPicks, {
+            placeHolder: 'Project Color',
+        });
+
+        if (selectedColorPick != null && selectedColorPick.id === 'Custom') {
+            var hex = await vscode.window.showInputBox({
+                placeHolder: '#cc3344',
+                ignoreFocusOut: true,
+                validateInput: (val: string) => {
+                    let valid = val == null || /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(val);
+                    return valid ? '' : 'Prove a valid Hex color code or leave empty.';
+                },
+            });
+
+            color = hex;
+        } else if (selectedColorPick != null && selectedColorPick.id !== 'None') {
+            let predefinedColor = PREDEFINED_COLORS.find(c => c.label == selectedColorPick.id);
+            if (predefinedColor != null) {
+                color = predefinedColor.value;
+            }
         }
 
-        // Save
-        let project = new Project(projectName, projectPath);
-        project.color = color;
-        project.isGitRepo = isGitRepo;
-
-        await addProject(context, project, projectGroupId);
-        
-        showDashboard();
-        vscode.window.showInformationMessage(`Project ${project.name} created.`);
+        return color;
     }
 
     async function removeProjectPerCommand() {
@@ -386,14 +455,6 @@ export function activate(context: vscode.ExtensionContext) {
         await removeProject(context, projectId);
         showDashboard();
         vscode.window.showInformationMessage(`Project ${project.name} removed.`);
-    }
-
-    async function editProject(projectId: string) {
-        var project = getProject(context, projectId);
-        if (project == null) {
-            return;
-        }
-        vscode.window.showInformationMessage(`Editing Projects is not yet implemented`);
     }
 
     function isFolderGitRepo(path: string) {
