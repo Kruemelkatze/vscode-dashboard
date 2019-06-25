@@ -1,6 +1,18 @@
 # Change Log
 All notable changes to the "dashboard" extension will be documented in this file. It follows the [Keep a Changelog](http://keepachangelog.com/) recommendations.
 
+## [1.3] 2019-06-
+### Added
+- Editing functionality directly on Dashboard
+    - Reordering by drag & drop 
+    - Edit button
+    - Delete button
+- Setting for editing project temp file location
+- Prefill project name from selected path
+
+### Changed
+- When editing the dashboard manually, empty unnamed groups are removed after saving.
+
 ## [1.2] 2018-12-06
 ### Added
 - Project Groups
