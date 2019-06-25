@@ -152,11 +152,14 @@ export function activate(context: vscode.ExtensionContext) {
             selectedGroupId = await queryProjectGroup(projectGroupId);
             projectPath = await queryProjectPath();
         }
+
+        var defaultProjectName = projectTemplate ? projectTemplate.name : null;
+        defaultProjectName = defaultProjectName || getLastPartOfPath(projectPath).replace(/\.code-workspace$/g, '');
     
         // Name
         var projectName = await vscode.window.showInputBox({
-            value: projectTemplate ? projectTemplate.name : undefined,
-            valueSelection: projectTemplate ? [0, projectTemplate.name.length] : undefined,
+            value: defaultProjectName || undefined,
+            valueSelection: defaultProjectName ? [0, defaultProjectName.length] : undefined,
             placeHolder: 'Project Name',
             ignoreFocusOut: true,
             validateInput: (val: string) => val ? '' : 'A Project Name must be provided.',
@@ -482,6 +485,11 @@ export function activate(context: vscode.ExtensionContext) {
         var config = vscode.workspace.getConfiguration('dashboard')
         var { customProjectsTempFileLocation } = config;        
         return customProjectsTempFileLocation || `${TEMP_PATH}/Dashboard Projects.json`;
+    }
+
+    function getLastPartOfPath(path: string): string {
+        // get last folder of filename of path
+        return path ? path.replace(/^[\\\/]|[\\\/]$/g, '').replace(/^.*[\\\/]/, '') : "";
     }
 }
 
