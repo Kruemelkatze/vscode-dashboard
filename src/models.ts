@@ -33,7 +33,7 @@ export interface GroupOrder {
 
 function generateRandomId(prepend: string = null) {
     if (prepend) {
-        prepend = prepend.toLowerCase().replace(/[^a-z0-9]/, '').substring(0, 24);
+        prepend = prepend.replace(/\W/ig, "").toLowerCase().substring(0, 24);
     } else {
         prepend = '';
     }
