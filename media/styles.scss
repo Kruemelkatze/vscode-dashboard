@@ -57,6 +57,7 @@ body {
 body .project {
     cursor: pointer;
 
+    position: relative;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -124,12 +125,44 @@ body .project {
             opacity: 1;
         }
     }
+
+    .project-actions-wrapper {
+        position: absolute;
+        right: 0;
+        top: 0;
+        padding-top: 0.6em;
+        overflow-y: hidden;
+    }
+
+    .project-actions {
+        margin-top: -2em;
+        transition: margin-top linear 0.2s;
+        transition-delay: 0.5s;
+
+        svg {
+            width: 1.2em;
+            fill: var(--dashboard-foreground);
+            margin-right: 0.3em;
+        }
+
+        span:hover > svg {
+            filter: brightness(150%);
+        }
+    }
+
+    &:hover .project-actions {
+        margin-top: 0;
+    }
 }
 
 // DRAG & DROP
 .gu-mirror.project-container {
     .project {
         height: auto;
+    }
+
+    .project-actions-wrapper {
+        display: none;
     }
 }
 
