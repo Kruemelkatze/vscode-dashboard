@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { Project, ProjectGroup } from "./models";
-import { DATA_ROOT_PATH, PROJECT_IMAGE_FOLDER, USE_PROJECT_ICONS, FITTY_OPTIONS } from './constants';
+import { DATA_ROOT_PATH, FITTY_OPTIONS } from './constants';
 
 export function getDashboardContent(context: vscode.ExtensionContext, projectGroups: ProjectGroup[]): string {
     var stylesPath = getMediaResource(context, 'styles.css');
@@ -74,7 +74,6 @@ function getProjectDiv(project: Project) {
         </div>
         <div class="fitty-container">
             <h2 class="project-header">
-                ${USE_PROJECT_ICONS && project.imageFileName ? `<img src="${getImagePath(project)}" />` : ''}
                 ${project.name}
             </h2>
         </div>
@@ -104,10 +103,6 @@ function getAddProjectDiv(projectGroupId: string) {
         </h2>
     </div>
 </div>`
-}
-
-function getImagePath(project: Project) {
-    return path.normalize(`${DATA_ROOT_PATH}/${PROJECT_IMAGE_FOLDER}/${project.imageFileName}`);
 }
 
 function filePickerScript() {

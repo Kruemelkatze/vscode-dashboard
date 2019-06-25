@@ -5,7 +5,7 @@ import * as mkdirp from 'mkdirp';
 import * as vscode from 'vscode';
 
 import { Project, ProjectGroup } from "./models";
-import { DATA_ROOT_PATH, PROJECT_IMAGE_FOLDER, PROJECTS_FILE, ADD_NEW_PROJECT_TO_FRONT } from "./constants";
+import { DATA_ROOT_PATH, ADD_NEW_PROJECT_TO_FRONT } from "./constants";
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~ GET Projects ~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -104,36 +104,6 @@ export async function removeProject(context: vscode.ExtensionContext, projectId:
     }
     await saveProjects(context, projectGroups);
     return projectGroups;
-}
-
-// ~~~~~~~~~~~~~~~~~~~~~~~~~ Project IMAGES ~~~~~~~~~~~~~~~~~~~~~~~~~
-
-export function saveProjectImageFile(filePath: string, project: Project): Promise<void> {
-    if (!filePath || project == null)
-        return;
-
-    var sourcePath = path.normalize(filePath);
-
-    var fileExtension = path.extname(sourcePath);
-    var targetPath = path.normalize(`${DATA_ROOT_PATH}/${PROJECT_IMAGE_FOLDER}/${project.id}${fileExtension}`);
-    var targetFolder = path.dirname(targetPath);
-
-    return new Promise((resolve, reject) => {
-        mkdirp(targetFolder, (err) => {
-            if (err) {
-                console.error(err);
-                reject(err);
-            } else {
-                try {
-                    fs.copyFileSync(sourcePath, targetPath);
-                    resolve();
-                } catch (error) {
-                    console.error(error);
-                    reject(error);
-                }
-            }
-        })
-    });
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~ Helpers ~~~~~~~~~~~~~~~~~~~~~~~~~

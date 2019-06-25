@@ -16,7 +16,6 @@ export class Project {
     id: string;
     name: string;
     path: string;
-    imageFileName: string;
     color: string;
     isGitRepo = false;
 

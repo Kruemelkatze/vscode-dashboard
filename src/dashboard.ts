@@ -2,9 +2,9 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { Project, GroupOrder, ProjectGroup } from './models';
-import { getProjects, saveProjectImageFile, addProject, removeProject, saveProjects, writeTextFile, getProject, addProjectGroup, getProjectsFlat, migrateDataIfNeeded, } from './projectService';
+import { getProjects, addProject, removeProject, saveProjects, writeTextFile, getProject, addProjectGroup, getProjectsFlat, migrateDataIfNeeded, } from './projectService';
 import { getDashboardContent } from './webviewContent';
-import { USE_PROJECT_ICONS, USE_PROJECT_COLOR, PREDEFINED_COLORS, TEMP_PATH } from './constants';
+import { USE_PROJECT_COLOR, PREDEFINED_COLORS, TEMP_PATH } from './constants';
 import { execSync } from 'child_process';
 import { stringify } from 'querystring';
 
@@ -232,32 +232,6 @@ export function activate(context: vscode.ExtensionContext) {
             }
         }
 
-        // Icon (currently unused)
-        var imageFilePath: string = null;
-        if (USE_PROJECT_ICONS) {
-            var selectImage = await vscode.window.showInputBox({
-                placeHolder: 'Select Project Icon? (y/n)',
-                ignoreFocusOut: true,
-                validateInput: (val: string) => {
-                    let valid = !val || ['y', 'n', 'yes', 'no'].indexOf(val.toLowerCase()) >= 0;
-                    return valid ? '' : 'y/n only';
-                }
-            });
-
-            var imageFilePath: string = null;
-            if (selectImage && selectImage.startsWith('y')) {
-                let selectedFiles = await vscode.window.showOpenDialog({
-                    filters: {
-                        'Images': ['png,', 'jpg', 'jpeg', 'gif'],
-                    }
-                });
-                imageFilePath = selectedFiles ? selectedFiles[0].fsPath : null;
-
-                if (!imageFilePath)
-                    return;
-            }
-        }
-
         //Test if Git Repo
         let isGitRepo = isFolderGitRepo(projectPath);
         if (isGitRepo) {
@@ -266,19 +240,12 @@ export function activate(context: vscode.ExtensionContext) {
 
         // Save
         let project = new Project(projectName, projectPath);
-
-        let imageFileName = imageFilePath ? path.basename(imageFilePath) : null;
-        project.imageFileName = imageFileName;
         project.color = color;
         project.isGitRepo = isGitRepo;
 
         await addProject(context, project, projectGroupId);
-
-        if (imageFilePath != null) {
-            await saveProjectImageFile(imageFilePath, project);
-        }
+        
         showDashboard();
-
         vscode.window.showInformationMessage(`Project ${project.name} created.`);
     }
 
@@ -318,7 +285,7 @@ export function activate(context: vscode.ExtensionContext) {
                     return;
                 }
 
-                // Validate
+                // Validate and Cleanup
                 var jsonIsInvalid = false;
                 if (Array.isArray(updatedProjectGroups)) {
                     for (let group of updatedProjectGroups) {
@@ -331,6 +298,9 @@ export function activate(context: vscode.ExtensionContext) {
                                     jsonIsInvalid = true;
                                     break;
                                 }
+
+                                // Remove obsolete properties
+                                delete project.imageFileName;
                             }
                         }
                     }
