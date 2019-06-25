@@ -60,6 +60,11 @@
                 "dashboard.customProjectPathColor": {
                     "type": "string",
                     "default": null
+                },
+                "dashboard.customProjectsTempFileLocation": {
+                    "type": "string",
+                    "default": null,
+                    "description": "Absolute path of temporary file for editing the dashboard manually."
                 }
             }
         }

@@ -335,8 +335,15 @@ export function activate(context: vscode.ExtensionContext) {
 
     async function editProjectsManuallyPerCommand() {
         var projects = getProjects(context);
-        const tempFilePath = `${TEMP_PATH}/Dashboard Projects.json`;
-        await writeTextFile(tempFilePath, JSON.stringify(projects, null, 4));
+        const tempFilePath = getProjectsTempFilePath();
+        try {
+            await writeTextFile(tempFilePath, JSON.stringify(projects, null, 4));
+        } catch(e) {
+            vscode.window.showErrorMessage(`Can not write temporary project file under ${tempFilePath}
+            ${e.message ? ': ' + e.message : '.' }`);
+            return;
+        }
+
         const tempFileUri = vscode.Uri.file(tempFilePath);
 
         var editProjectsDocument = await vscode.workspace.openTextDocument(tempFileUri);
@@ -464,6 +471,12 @@ export function activate(context: vscode.ExtensionContext) {
         } catch (e) {
             return false;
         }
+    }
+
+    function getProjectsTempFilePath(): string {
+        var config = vscode.workspace.getConfiguration('dashboard')
+        var { customProjectsTempFileLocation } = config;        
+        return customProjectsTempFileLocation || `${TEMP_PATH}/Dashboard Projects.json`;
     }
 }
 
