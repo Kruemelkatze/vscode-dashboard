@@ -40,3 +40,6 @@ Displaying the project path can also be toggled in the settings.
 * Emojis may (or may not, depending on your preference) be good icons for projects. You can add them by pressing WIN + . (under Windows) while naming the project.
 * Only colors defined by the theme were used. So the dashboard should always blend nicely into your VSCode design. If not, you can customize them in the settings.
 * vscode-dashboard automatically detects if a project is a Git repository. If so, this is indicated by an icon.
+
+## Acknowledgements
+Special thanks to [Font Awesome](http://fontawesome.io) [(License)](https://fontawesome.com/license) for the icons used in the dashboard.

@@ -65,6 +65,7 @@ export function activate(context: vscode.ExtensionContext) {
                     ],
                 },
             );
+            panel.iconPath = vscode.Uri.file("");
 
             panel.webview.html = getDashboardContent(context, projects);
 
