@@ -1,7 +1,7 @@
 # Change Log
 All notable changes to the "dashboard" extension will be documented in this file. It follows the [Keep a Changelog](http://keepachangelog.com/) recommendations.
 
-## [1.3] 2019-06-
+## [1.3] 2019-06-27
 ### Added
 - Editing functionality directly on Dashboard
     - Reordering by drag & drop 
