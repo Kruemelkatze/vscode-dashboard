@@ -49,6 +49,10 @@
             "type": "object",
             "title": "Dashboard: UI Customizations",
             "properties": {
+                "dashboard.displayProjectPath": {
+                    "type": "boolean",
+                    "default": true
+                },
                 "dashboard.customProjectCardBackground": {
                     "type": "string",
                     "default": null

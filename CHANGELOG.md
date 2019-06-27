@@ -9,6 +9,7 @@ All notable changes to the "dashboard" extension will be documented in this file
     - Delete button
 - Setting for editing project temp file location
 - Prefill project name from selected path
+- ```displayProjectPath``` setting
 
 ### Changed
 - When editing the dashboard manually, empty unnamed groups are removed after saving.

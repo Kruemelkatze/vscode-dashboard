@@ -29,6 +29,8 @@ By default, dashboard uses only colors defined by the theme, which was tested ag
 * Project Name Color
 * Project Path Color
 
+Displaying the project path can also be toggled in the settings.
+
 ## Changelog
 
 [View Changelog](CHANGELOG.md)

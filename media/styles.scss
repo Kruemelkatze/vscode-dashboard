@@ -155,6 +155,15 @@ body .project {
     }
 }
 
+// CUSTOM CONFIGURATION
+.hide-project-path .project {
+    padding: (1.5 * $defaultPadding) $defaultPadding;
+
+    .project-path-info {
+        display: none;
+    }
+}
+
 // DRAG & DROP
 .gu-mirror.project-container {
     .project {

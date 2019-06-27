@@ -4,6 +4,8 @@ import { Project, ProjectGroup } from "./models";
 import { FITTY_OPTIONS } from './constants';
 
 export function getDashboardContent(context: vscode.ExtensionContext, projectGroups: ProjectGroup[]): string {
+    var config = vscode.workspace.getConfiguration('dashboard')
+    
     var stylesPath = getMediaResource(context, 'styles.css');
     var fittyPath = getMediaResource(context, 'fitty.min.js');
     var dragulaPath = getMediaResource(context, 'dragula.min.js');
@@ -16,10 +18,10 @@ export function getDashboardContent(context: vscode.ExtensionContext, projectGro
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link rel="stylesheet" type="text/css" href="${stylesPath}">
         <title>Cat Coding</title>
-        ${getCustomStyle(context)}
+        ${getCustomStyle(config)}
     </head>
     <body>
-        <div class="projects-wrapper">
+        <div class="projects-wrapper ${!config.displayProjectPath ? 'hide-project-path' : ''}">
             ${projectGroups.length ?
             projectGroups.map(getProjectGroupSection).join('\n')
             :
@@ -134,8 +136,7 @@ function readFileIntoMemory (file, callback) {
 `;
 }
 
-function getCustomStyle(context: vscode.ExtensionContext) {
-    var config = vscode.workspace.getConfiguration('dashboard')
+function getCustomStyle(config: vscode.WorkspaceConfiguration) {
     var { customProjectCardBackground, customProjectNameColor, customProjectPathColor } = config;
 
     // Nested Template Strings, hooray! \o/
