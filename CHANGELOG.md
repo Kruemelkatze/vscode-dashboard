@@ -13,6 +13,7 @@ All notable changes to the "dashboard" extension will be documented in this file
 
 ### Changed
 - When editing the dashboard manually, empty unnamed groups are removed after saving.
+- Removed "Blank Page" icon of dashboard.
 
 ## [1.2] 2018-12-06
 ### Added
