@@ -103,7 +103,7 @@ export async function updateProject(context: vscode.ExtensionContext, projectId:
         let project = group.projects.find(p => p.id === projectId);
         if (project != null) {
             Object.assign(project, updatedProject, { id: projectId });
-            return;
+            break;
         }
     }
 
