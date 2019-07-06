@@ -277,7 +277,7 @@ export function activate(context: vscode.ExtensionContext) {
             label: c.label,
         }));
         colorPicks.unshift({ id: 'None', label: 'None' });
-        colorPicks.push({ id: 'Custom', label: 'Custom Hex' });
+        colorPicks.push({ id: 'Custom', label: 'Custom Color' });
 
         if (projectTemplate && projectTemplate.color) {
             // Get existing color name by value
@@ -291,8 +291,8 @@ export function activate(context: vscode.ExtensionContext) {
             } else {
                 // Insert new
                 colorPicks.unshift({
-                    id: color.label,
-                    label: projectTemplate.color,
+                    id: projectTemplate.color,
+                    label: `${projectTemplate.color} (previous value)`,
                 });
             }
         }
@@ -303,19 +303,18 @@ export function activate(context: vscode.ExtensionContext) {
 
         if (selectedColorPick != null && selectedColorPick.id === 'Custom') {
             var hex = await vscode.window.showInputBox({
-                placeHolder: '#cc3344',
+                placeHolder: '#cc3344   crimson   rgb(68, 145, 203)',
                 ignoreFocusOut: true,
-                validateInput: (val: string) => {
-                    let valid = val == null || /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(val);
-                    return valid ? '' : 'Prove a valid Hex color code or leave empty.';
-                },
+                prompt: "Any color name, hex, rgb(a), hsl, var.",
             });
 
-            color = hex;
+            color = (hex || "").replace(/[ ;]/i, "");
         } else if (selectedColorPick != null && selectedColorPick.id !== 'None') {
             let predefinedColor = PREDEFINED_COLORS.find(c => c.label == selectedColorPick.id);
             if (predefinedColor != null) {
                 color = predefinedColor.value;
+            } else {
+                color = selectedColorPick.id;
             }
         }
 
