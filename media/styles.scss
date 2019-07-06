@@ -126,6 +126,11 @@ body .project {
         }
     }
 
+    &.no-projects {
+        opacity: 1;
+        text-align: center;
+    }
+
     .project-actions-wrapper {
         position: absolute;
         right: 0;

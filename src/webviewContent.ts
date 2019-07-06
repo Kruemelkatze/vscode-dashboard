@@ -92,6 +92,8 @@ function getNoProjectsDiv() {
 <div class="project-container">
     <div class="project no-projects" data-action="add-project">
         No projects have been added yet.
+        <br/>
+        Click here to add one.
     </div>
 </div>`
 }
