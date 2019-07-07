@@ -1,6 +1,16 @@
 # Change Log
 All notable changes to the "dashboard" extension will be documented in this file. It follows the [Keep a Changelog](http://keepachangelog.com/) recommendations.
 
+## [1.4] 2019-07-07
+### Added
+- Support for gradient borders.
+
+### Changed
+- Removed color input validation in order to support any color definition.
+
+### Fixed
+- Editing projects now correctly sets color.
+
 ## [1.3] 2019-06-27
 ### Added
 - Editing functionality directly on Dashboard

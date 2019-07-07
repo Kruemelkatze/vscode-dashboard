@@ -21,6 +21,14 @@ The commands should speak for themselves. :)
 * Dashboard: Edit Projects
 * Dashboard: Remove Project
 
+## Good to know
+
+* You can **reorder** the projects directly on the dashboard.
+* **Emojis** may (or may not, depending on your preference) be good icons for projects. You can add them by pressing WIN + . (under Windows) while naming the project.
+* **Gradients** can also be used as project color.
+* Only **colors** defined by the theme were used. So the dashboard should always blend nicely into your VSCode design. If not, you can customize them in the settings.
+* vscode-dashboard automatically detects if a project is a **Git repository**. If so, this is indicated by an icon.
+
 ### Customization
 
 By default, dashboard uses only colors defined by the theme, which was tested against all default themes. If you use a custom theme and see the dashboard's colors unfit, you can change them in the settings (Settings > Dashboard). Following settings can be changed to any css color (name, hex, rgba, hsl, var) or left empty (for default):
@@ -35,11 +43,6 @@ Displaying the project path can also be toggled in the settings.
 
 [View Changelog](CHANGELOG.md)
 
-## Notes
-* You can reorder the projects directly on the dashboard.
-* Emojis may (or may not, depending on your preference) be good icons for projects. You can add them by pressing WIN + . (under Windows) while naming the project.
-* Only colors defined by the theme were used. So the dashboard should always blend nicely into your VSCode design. If not, you can customize them in the settings.
-* vscode-dashboard automatically detects if a project is a Git repository. If so, this is indicated by an icon.
 
 ## Acknowledgements
 Special thanks to [Font Awesome](http://fontawesome.io) [(License)](https://fontawesome.com/license) for the icons used in the dashboard.
