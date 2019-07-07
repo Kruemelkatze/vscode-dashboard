@@ -358,7 +358,8 @@ export function activate(context: vscode.ExtensionContext) {
             if (e.document == editProjectsDocument) {
                 let updatedProjectGroups;
                 try {
-                    updatedProjectGroups = JSON.parse(e.document.getText());
+                    var text = e.document.getText() || "[]";
+                    updatedProjectGroups = JSON.parse(text);
                 } catch (ex) {
                     vscode.window.showErrorMessage("Edited Projects File can not be parsed.")
                     return;
