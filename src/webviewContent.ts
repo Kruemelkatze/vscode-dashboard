@@ -64,10 +64,12 @@ function getProjectGroupSection(projectGroup: ProjectGroup) {
 }
 
 function getProjectDiv(project: Project) {
+    var borderStyle = `background: ${project.color};`
+
     return `
 <div class="project-container">
-    <div class="project" data-id="${project.id}" 
-         style="${project.color ? `border-top-color: ${project.color};` : ''}">
+    <div class="project" data-id="${project.id}">
+        <div class="project-border" style="${borderStyle}"></div>
         <div class="project-actions-wrapper">
             <div class="project-actions">
                 <span data-action="edit">${getEditIcon()}</span>

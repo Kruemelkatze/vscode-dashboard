@@ -65,9 +65,19 @@ body .project {
 
     margin: $defaultPadding $defaultPadding 0 0;
     padding: $defaultPadding;
+    padding-top: $defaultPadding + $borderTopSize;
 
     background-color: var(--dashboard-project-card-bg);
-    border-top: $borderTopSize solid var(--dashboard-project-card-bg);
+
+    .project-border {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: $borderTopSize;
+        background: transparent;
+        z-index: 50;
+    }
 
     .fitty-container {
         max-width: 100%;
@@ -88,6 +98,7 @@ body .project {
     .add-project-header {
         @extend .project-header;
         font-size: 60px;
+        margin-top: -0.25em;
     }
 
     .project-path-info {
@@ -114,8 +125,7 @@ body .project {
     }
 
     &.add-project, &.no-projects {
-        min-height: 102px;
-        border-top: 0;
+        min-height: 96px;
         background: none;
         font-size: 1.5em;
         opacity: if($useAddProjectOpacity, 0, 0.6);
@@ -135,12 +145,12 @@ body .project {
         position: absolute;
         right: 0;
         top: 0;
-        padding-top: 0.6em;
+        padding-top: calc(0.6em + #{$borderTopSize});
         overflow-y: hidden;
     }
 
     .project-actions {
-        margin-top: -2em;
+        margin-top: calc(-2em - #{$borderTopSize});
         transition: margin-top linear 0.2s;
         transition-delay: 0.5s;
 

@@ -302,13 +302,13 @@ export function activate(context: vscode.ExtensionContext) {
         });
 
         if (selectedColorPick != null && selectedColorPick.id === 'Custom') {
-            var hex = await vscode.window.showInputBox({
-                placeHolder: '#cc3344   crimson   rgb(68, 145, 203)',
+            var customColor = await vscode.window.showInputBox({
+                placeHolder: '#cc3344   crimson   rgb(68, 145, 203)   linear-gradient(to right, gold, darkorange)',
                 ignoreFocusOut: true,
-                prompt: "Any color name, hex, rgb(a), hsl, var.",
+                prompt: "Any color name, value or gradient.",
             });
 
-            color = (hex || "").replace(/[ ;]/i, "");
+            color = (customColor || "").replace(/[;"]/g, "").trim();
         } else if (selectedColorPick != null && selectedColorPick.id !== 'None') {
             let predefinedColor = PREDEFINED_COLORS.find(c => c.label == selectedColorPick.id);
             if (predefinedColor != null) {
