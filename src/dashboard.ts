@@ -316,6 +316,8 @@ export function activate(context: vscode.ExtensionContext) {
             } else {
                 color = selectedColorPick.id;
             }
+        } else if (projectTemplate != null) {
+            color = projectTemplate.color;
         }
 
         return color;
