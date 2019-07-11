@@ -22,7 +22,7 @@ export function getDashboardContent(context: vscode.ExtensionContext, projectGro
     </head>
     <body>
         <div class="projects-wrapper ${!config.displayProjectPath ? 'hide-project-path' : ''}">
-            ${projectGroups.length ?
+            ${projectGroups.length && projectGroups.filter(g => g.projects.length).length ?
             projectGroups.map(getProjectGroupSection).join('\n')
             :
             getNoProjectsDiv()
@@ -54,7 +54,7 @@ function getProjectGroupSection(projectGroup: ProjectGroup) {
 
     return `
     <div class="projects-group-title">
-        ${projectGroup.groupName}
+        ${projectGroup.groupName || ""}
     </div>
     <div class="projects-group" data-group-id="${projectGroup.id}">
         ${projects.map(getProjectDiv).join('\n')}
