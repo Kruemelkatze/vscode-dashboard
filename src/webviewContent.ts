@@ -38,7 +38,6 @@ export function getDashboardContent(context: vscode.ExtensionContext, projectGro
             fitty('.project-header', ${JSON.stringify(FITTY_OPTIONS)});
 
             const vscode = acquireVsCodeApi();
-            ${filePickerScript()}
             ${projectScript()}
             ${dragAndDropScript('.projects-group')}
         })();
@@ -109,35 +108,6 @@ function getAddProjectDiv(projectGroupId: string) {
         </h2>
     </div>
 </div>`
-}
-
-function filePickerScript() {
-    return `
-function handleFileSelect(evt) {
-    evt.stopPropagation();
-    var file = evt.target.files[0]; // FileList object
-    if (file == null || !file.path)
-        return;
-
-    vscode.postMessage({
-        type: 'selected-file',
-        filePath: file.path,
-    });
-}
-
-function readFileIntoMemory (file, callback) {
-    var reader = new FileReader();
-    reader.onload = function () {
-        callback({
-            name: file.name,
-            size: file.size,
-            type: file.type,
-            content: new Uint8Array(this.result)
-         });
-    };
-    reader.readAsArrayBuffer(file);
-}
-`;
 }
 
 function getCustomStyle(config: vscode.WorkspaceConfiguration) {
