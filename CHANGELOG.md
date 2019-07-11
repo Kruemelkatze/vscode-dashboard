@@ -1,6 +1,10 @@
 # Change Log
 All notable changes to the "dashboard" extension will be documented in this file. It follows the [Keep a Changelog](http://keepachangelog.com/) recommendations.
 
+## [1.4.1] 2019-07-11
+### Fixed
+- Fixed issue that nothing shows on the dashboard, if a user updates from 1.2.0 to 1.4.0 with only an empty, unnamed project group.
+
 ## [1.4] 2019-07-07
 ### Added
 - Support for gradient borders.
