@@ -371,6 +371,14 @@ export function activate(context: vscode.ExtensionContext) {
                 var jsonIsInvalid = false;
                 if (Array.isArray(updatedProjectGroups)) {
                     for (let group of updatedProjectGroups) {
+                        if (group.name && ! group.groupName) {
+                            // One of the testers produced a group with any groupName
+                            // We could not reproduce that, but this may be a result from updating legacy groups
+                            // This should fix that issue
+                            group.groupName = group.name;
+                            delete group.name;
+                        }
+
                         if (group && group.groupName == null && (group.projects == null || !group.projects.length)) {
                             // Remove empty, unnamed group
                             group._delete = true;
