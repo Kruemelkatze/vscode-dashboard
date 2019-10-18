@@ -1,0 +1,41 @@
+[
+    {
+        "id": "yzv9sjuotjnrycgzh",
+        "groupName": "",
+        "projects": [
+            {
+                "isGitRepo": false,
+                "id": "demofilesvc44mc73jxcctlvh",
+                "name": "Demo Files",
+                "path": "c:\\DemoFiles\\Demo-Files.code-workspace",
+                "color": "var(--vscode-gitDecoration-conflictingResourceForeground)"
+            },
+            {
+                "id": "vscodedashboardjy1lcx5pujnrycxq5",
+                "name": "vscode-dashboard",
+                "path": "c:\\Users\\kruemelkatze\\projects\\very long path\\vscode-dashboard",
+                "isGitRepo": false,
+                "color": "linear-gradient(to right,gold, darkorange)"
+            },
+            {
+                "id": "� colorsketch2m1wo3gvfjnrydhf1",
+                "name": "🎨 ColorSketch",
+                "path": "c:\\Users\\kruemelkatze\\projects\\ColorSketch",
+                "color": "var(--vscode-gitDecoration-untrackedResourceForeground)"
+            }
+        ]
+    },
+    {
+        "id": "assetgenerationtynyf6b6rjrgtj19h",
+        "groupName": "AssetGeneration",
+        "projects": [
+            {
+                "id": "reactstarterlitesv0v3xzrujnrye3gd",
+                "name": "ReactStarter-Lite",
+                "path": "c:\\Users\\kruemelkatze\\projects\\ReactStarterLite",
+                "isGitRepo": true,
+                "color": "var(--vscode-gitDecoration-submoduleResourceForeground)"
+            }
+        ]
+    }
+]
