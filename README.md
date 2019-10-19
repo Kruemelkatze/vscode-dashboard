@@ -31,13 +31,18 @@ The commands should speak for themselves. :)
 
 ### Customization
 
+The dashboard can be customized to an extend using the vscode configuration:
+
+* Startup behaviour (open always, on empty editor, or never)
+* Visibility of project path
+* Colors (see below)
+
 By default, dashboard uses only colors defined by the theme, which was tested against all default themes. If you use a custom theme and see the dashboard's colors unfit, you can change them in the settings (Settings > Dashboard). Following settings can be changed to any css color (name, hex, rgba, hsl, var) or left empty (for default):
 
 * Project Card Background
 * Project Name Color
 * Project Path Color
 
-Displaying the project path can also be toggled in the settings.
 
 ## Changelog
 

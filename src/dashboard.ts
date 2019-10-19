@@ -4,7 +4,7 @@ import * as path from 'path';
 import { Project, GroupOrder, ProjectGroup } from './models';
 import { getProjects, addProject, removeProject, saveProjects, writeTextFile, getProject, addProjectGroup, getProjectsFlat, migrateDataIfNeeded, getProjectAndGroup, updateProject, } from './projectService';
 import { getDashboardContent } from './webviewContent';
-import { USE_PROJECT_COLOR, PREDEFINED_COLORS, TEMP_PATH } from './constants';
+import { USE_PROJECT_COLOR, PREDEFINED_COLORS, TEMP_PATH, StartupOptions } from './constants';
 import { execSync } from 'child_process';
 
 export function activate(context: vscode.ExtensionContext) {
@@ -16,10 +16,7 @@ export function activate(context: vscode.ExtensionContext) {
         vscode.window.showInformationMessage("Migrated Dashboard Projects after Update.");
     }
 
-    var isOnWelcomePage = (!vscode.workspace.name && vscode.window.visibleTextEditors.length === 0);
-    if (isOnWelcomePage) {
-        showDashboard();
-    }
+    showDashboardOnOpenIfNeeded();
 
     const openCommand = vscode.commands.registerCommand('dashboard.open', () => {
         showDashboard();
@@ -45,6 +42,30 @@ export function activate(context: vscode.ExtensionContext) {
     console.log('vscode-dashboard has been activated');
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~ Functions ~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    function showDashboardOnOpenIfNeeded() {
+        var config = vscode.workspace.getConfiguration('dashboard');
+        var { openOnStartup } = config;
+
+        var open = false;
+
+        switch(openOnStartup) {
+            case StartupOptions.always:
+                open = true;
+                break;
+            case StartupOptions.never:
+                break;
+            case StartupOptions.emptyWorkSpace:
+            default:
+                let isOnWelcomePage = (!vscode.workspace.name && vscode.window.visibleTextEditors.length === 0);
+                open = isOnWelcomePage;
+                break;
+        }
+    
+        if (open) {
+            showDashboard();
+        }
+    }
 
     function showDashboard() {
         var columnToShowIn = vscode.window.activeTextEditor ? vscode.window.activeTextEditor.viewColumn : null;

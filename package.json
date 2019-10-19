@@ -47,11 +47,20 @@
         ],
         "configuration": {
             "type": "object",
-            "title": "Dashboard: UI Customizations",
+            "title": "Dashboard",
             "properties": {
                 "dashboard.displayProjectPath": {
                     "type": "boolean",
                     "default": true
+                },
+                "dashboard.openOnStartup": {
+                    "type": "string",
+                    "default": "empty workspace",
+                    "enum": [
+                        "always",
+                        "empty workspace",
+                        "never"
+                    ]
                 },
                 "dashboard.customProjectCardBackground": {
                     "type": "string",

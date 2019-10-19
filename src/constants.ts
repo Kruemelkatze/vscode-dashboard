@@ -12,6 +12,12 @@ export const FITTY_OPTIONS = {
     // minSize: '20', // Apparently, fitty has a problem with our setup and will overflow text if minSize is set...
 }
 
+export const StartupOptions = {
+    always: "always",
+    emptyWorkSpace: "empty workspace",
+    never: "never",
+};
+
 export const ADD_NEW_PROJECT_TO_FRONT = false;
 export const PROJECTS_FILE = "projects.json";
 export const DATA_ROOT_PATH = (process.env.APPDATA || (process.platform == 'darwin' ? process.env.HOME + 'Library/Preferences' : '/var/local')) + '/vscode-dashboard';
