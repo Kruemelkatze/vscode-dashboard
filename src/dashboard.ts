@@ -4,7 +4,7 @@ import * as path from 'path';
 import { Project, GroupOrder, ProjectGroup } from './models';
 import { getProjects, addProject, removeProject, saveProjects, writeTextFile, getProject, addProjectGroup, getProjectsFlat, migrateDataIfNeeded, getProjectAndGroup, updateProject, } from './projectService';
 import { getDashboardContent } from './webviewContent';
-import { USE_PROJECT_COLOR, PREDEFINED_COLORS, TEMP_PATH, StartupOptions, USER_CANCELED } from './constants';
+import { USE_PROJECT_COLOR, PREDEFINED_COLORS, TEMP_PATH, StartupOptions, USER_CANCELED, FixedColorOptions } from './constants';
 import { execSync } from 'child_process';
 
 export function activate(context: vscode.ExtensionContext) {
@@ -350,6 +350,10 @@ export function activate(context: vscode.ExtensionContext) {
         if (!USE_PROJECT_COLOR) {
             return null;
         }
+
+        if (projectTemplate != null){
+            color = projectTemplate.color;
+        }
         
         // Colors are keyed by label, not by value
         // I tried to key them by their value, but the selected QuickPick was always undefined,
@@ -358,8 +362,9 @@ export function activate(context: vscode.ExtensionContext) {
             id: c.label,
             label: c.label,
         }));
-        colorPicks.unshift({ id: 'None', label: 'None' });
-        colorPicks.push({ id: 'Custom', label: 'Custom Color' });
+        colorPicks.unshift({ id: FixedColorOptions.random, label: 'Random' });
+        colorPicks.push({ id: FixedColorOptions.none, label: 'None' });
+        colorPicks.push({ id: FixedColorOptions.custom, label: 'Custom Color' });
 
         if (projectTemplate && projectTemplate.color) {
             // Get existing color name by value
@@ -387,23 +392,31 @@ export function activate(context: vscode.ExtensionContext) {
             throw new Error(USER_CANCELED);
         }
 
-        if (selectedColorPick.id === 'Custom') {
-            var customColor = await vscode.window.showInputBox({
-                placeHolder: '#cc3344   crimson   rgb(68, 145, 203)   linear-gradient(to right, gold, darkorange)',
-                ignoreFocusOut: true,
-                prompt: "Any color name, value or gradient.",
-            });
-
-            color = (customColor || "").replace(/[;"]/g, "").trim();
-        } else if (selectedColorPick != null && selectedColorPick.id !== 'None') {
-            let predefinedColor = PREDEFINED_COLORS.find(c => c.label == selectedColorPick.id);
-            if (predefinedColor != null) {
-                color = predefinedColor.value;
-            } else {
-                color = selectedColorPick.id;
-            }
-        } else if (projectTemplate != null) {
-            color = projectTemplate.color;
+        switch (selectedColorPick.id) {
+            case FixedColorOptions.custom:
+                let customColor = await vscode.window.showInputBox({
+                    placeHolder: '#cc3344   crimson   rgb(68, 145, 203)   linear-gradient(to right, gold, darkorange)',
+                    ignoreFocusOut: true,
+                    prompt: "Any color name, value or gradient.",
+                });
+               
+                color = (customColor || "").replace(/[;"]/g, "").trim();
+                break;
+            case FixedColorOptions.none:
+                color = null;
+                break;
+            case FixedColorOptions.random:
+                let randomColor = PREDEFINED_COLORS[Math.floor(Math.random() * PREDEFINED_COLORS.length)];
+                color = randomColor.value;
+                break;
+            default:
+                // PredefinedColor
+                let predefinedColor = PREDEFINED_COLORS.find(c => c.label == selectedColorPick.id);
+                if (predefinedColor != null) {
+                    color = predefinedColor.value;
+                } else {
+                    color = selectedColorPick.id;
+                }
         }
 
         return color;
