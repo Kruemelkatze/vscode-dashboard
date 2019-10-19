@@ -2,7 +2,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { Project, GroupOrder, ProjectGroup } from './models';
-import { getProjects, addProject, removeProject, saveProjects, writeTextFile, getProject, addProjectGroup, getProjectsFlat, migrateDataIfNeeded, getProjectAndGroup, updateProject, } from './projectService';
+import { getProjects, addProject, removeProject, saveProjects, writeTextFile, getProject, addProjectGroup, getProjectsFlat, migrateDataIfNeeded, getProjectAndGroup, updateProject, getProjectsGroup, updateProjectGroup, removeProjectsGroup } from './projectService';
 import { getDashboardContent } from './webviewContent';
 import { USE_PROJECT_COLOR, PREDEFINED_COLORS, TEMP_PATH, StartupOptions, USER_CANCELED, FixedColorOptions } from './constants';
 import { execSync } from 'child_process';
@@ -94,7 +94,7 @@ export function activate(context: vscode.ExtensionContext) {
             }, null, context.subscriptions);
 
             panel.webview.onDidReceiveMessage(async (e) => {
-                let projectId: string;
+                let projectId: string, projectGroupId: string;
                 switch (e.type) {
                     case 'selected-project':
                         projectId = e.projectId as string;
@@ -115,7 +115,7 @@ export function activate(context: vscode.ExtensionContext) {
                         }
                         break;
                     case 'add-project':
-                        let projectGroupId = e.projectGroupId as string;
+                        projectGroupId = e.projectGroupId as string;
                         await vscode.commands.executeCommand("dashboard.addProject", projectGroupId);
                         break;
                     case 'reordered-projects':
@@ -130,12 +130,55 @@ export function activate(context: vscode.ExtensionContext) {
                         projectId = e.projectId as string;
                         await editProject(projectId);
                         break;
+                    case 'edit-projects-group':
+                        projectGroupId = e.projectGroupId as string;
+                        await editProjectsGroup(projectGroupId);
+                        break;
+                    case 'delete-projects-group':
+                        projectGroupId = e.projectGroupId as string;
+                        await deleteProjectsGroup(projectGroupId);
+                        break;
 
                 }
             });
 
             instance = panel;
         }
+    }
+
+    async function editProjectsGroup(projectGroupId: string) {
+        var group = getProjectsGroup(context, projectGroupId);
+        if (group == null) {
+            return;
+        }
+
+        // Name
+        var groupName = await vscode.window.showInputBox({
+            value: group.groupName || undefined,
+            valueSelection: group.groupName ? [0, group.groupName.length] : undefined,
+            placeHolder: 'Project Group Name',
+            ignoreFocusOut: true
+        });
+
+        group.groupName = groupName;
+        await updateProjectGroup(context, projectGroupId, group);
+        
+        showDashboard();
+    }
+    
+    async function deleteProjectsGroup(projectGroupId: string) {
+        var group = getProjectsGroup(context, projectGroupId);
+        if (group == null) {
+            return;
+        }
+
+        let accepted = await vscode.window.showWarningMessage(`Delete ${group.groupName}?`, { modal: true }, 'Delete');
+        if (!accepted) {
+            return;
+        }
+
+        await removeProjectsGroup(context, projectGroupId);
+        showDashboard();
     }
 
     async function addProjectPerCommand(projectGroupId: string = null) {

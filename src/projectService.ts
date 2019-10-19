@@ -43,6 +43,11 @@ export function getProjectAndGroup(context: vscode.ExtensionContext, projectId: 
     return [null, null];
 }
 
+export function getProjectsGroup(context: vscode.ExtensionContext, projectGroupId: string): ProjectGroup {
+    var projects = getProjects(context);
+    return projects.find(g => g.id === projectGroupId) || null;
+}
+
 // ~~~~~~~~~~~~~~~~~~~~~~~~~ SAVE Projects ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 export function saveProjects(context: vscode.ExtensionContext, projectGroups: ProjectGroup[]): Thenable<void> {
@@ -94,7 +99,7 @@ export async function addProject(context: vscode.ExtensionContext, project: Proj
 }
 
 export async function updateProject(context: vscode.ExtensionContext, projectId: string, updatedProject: Project) {
-    if (!projectId || updateProject == null) {
+    if (!projectId || updatedProject == null) {
         return;
     }
 
@@ -105,6 +110,20 @@ export async function updateProject(context: vscode.ExtensionContext, projectId:
             Object.assign(project, updatedProject, { id: projectId });
             break;
         }
+    }
+
+    saveProjects(context, projectGroups);
+}
+
+export async function updateProjectGroup(context: vscode.ExtensionContext, projectsGroupId: string, updatedProjectGroup: ProjectGroup) {
+    if (!projectsGroupId || updatedProjectGroup == null) {
+        return;
+    }
+
+    var projectGroups = getProjects(context);
+    var group = projectGroups.find(g => g.id === projectsGroupId);
+    if (group != null) {
+        Object.assign(group, updatedProjectGroup, { id: projectsGroupId });
     }
 
     saveProjects(context, projectGroups);
@@ -125,6 +144,15 @@ export async function removeProject(context: vscode.ExtensionContext, projectId:
         }
     }
     await saveProjects(context, projectGroups);
+    return projectGroups;
+}
+
+export async function removeProjectsGroup(context: vscode.ExtensionContext, projectsGroupId: string): Promise<ProjectGroup[]> {
+    let projectGroups = getProjects(context);
+
+    projectGroups = projectGroups.filter(g => g.id !== projectsGroupId);
+    await saveProjects(context, projectGroups);
+
     return projectGroups;
 }
 

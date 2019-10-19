@@ -41,7 +41,7 @@ export function getDashboardContent(context: vscode.ExtensionContext, projectGro
 
             const vscode = acquireVsCodeApi();
             ${projectScript()}
-            ${dragAndDropScript('.projects-group')}
+            ${dragAndDropScript('.projects-group-list')}
         })();
     </script>
 </html>`;
@@ -55,13 +55,23 @@ function getProjectGroupSection(projectGroup: ProjectGroup, totalGroupCount: num
     var showNamePlaceholder = totalGroupCount > 1; 
 
     return `
+<div class="projects-group" data-group-id="${projectGroup.id}">
     <div class="projects-group-title">
-        ${projectGroup.groupName || (showNamePlaceholder ? "Unnamed Project Group" : "")}
+        <span>${projectGroup.groupName || (showNamePlaceholder ? "Unnamed Project Group" : "")}</span>
+        <div class="projects-group-actions right">
+            <span data-action="add">${getAddIcon()}</span>
+        </div>
+        <div class="projects-group-actions left">
+            <!-- <span data-action="drag">${getDragIcon()}</span> -->
+            <span data-action="edit">${getEditIcon()}</span>
+            <span data-action="delete">${getDeleteIcon()}</span>
+        </div>
     </div>
-    <div class="projects-group" data-group-id="${projectGroup.id}">
+    <div class="projects-group-list">
         ${projectGroup.projects.map(getProjectDiv).join('\n')}
         ${showAddButton ? getAddProjectDiv(projectGroup.id) : ""}
-    </div>            
+    </div>       
+</div>     
     `;
 }
 
@@ -153,6 +163,43 @@ function onAddProjectClicked(e) {
     });
 }
 
+function onInsideProjectClick(e, projectDiv) {
+    var dataId = projectDiv.getAttribute("data-id");
+    if (dataId == null)
+        return;
+
+    if (onTriggerProjectAction(e.target, dataId))
+        return;
+
+    var newWindow = !!e.ctrlKey;
+    onProjectClicked(dataId, newWindow);
+}
+
+function onInsideProjectsGroupClick(e, projectsGroupDiv) {
+    var groupId = projectsGroupDiv.getAttribute("data-group-id");
+    if (groupId == null)
+        return;
+
+    var actionDiv = e.target.closest('[data-action]')
+    var action = actionDiv != null ? actionDiv.getAttribute("data-action") : null;
+    if (!action)
+        return;
+
+    if (action === "add"){
+        vscode.postMessage({
+            type: 'add-project',
+            projectGroupId: groupId,
+        });
+
+        return;
+    }
+
+    vscode.postMessage({
+        type: action + '-projects-group',
+        projectGroupId: groupId,
+    });
+}
+
 function onTriggerProjectAction(target, projectId) {
     var actionDiv = target.closest('[data-action]')
     if (actionDiv == null)
@@ -175,18 +222,16 @@ document.addEventListener('click', function(e) {
         return;
 
     var projectDiv = e.target.closest('.project');
-    if (!projectDiv)
+    if (projectDiv) {
+        onInsideProjectClick(e, projectDiv);
         return;
+    }
     
-    var dataId = projectDiv.getAttribute("data-id");
-    if (dataId == null)
+    var projectsGroupDiv = e.target.closest('.projects-group');
+    if (projectsGroupDiv) {
+        onInsideProjectsGroupClick(e, projectsGroupDiv);
         return;
-
-    if (onTriggerProjectAction(e.target, dataId))
-        return;
-
-    var newWindow = !!e.ctrlKey;
-    onProjectClicked(dataId, newWindow);
+    }    
 });
 
 document
@@ -259,6 +304,22 @@ function getDeleteIcon() {
     return `
 <svg viewBox="0 0 512 512">
     <path d="M242.72 256l100.07-100.07c12.28-12.28 12.28-32.19 0-44.48l-22.24-22.24c-12.28-12.28-32.19-12.28-44.48 0L176 189.28 75.93 89.21c-12.28-12.28-32.19-12.28-44.48 0L9.21 111.45c-12.28 12.28-12.28 32.19 0 44.48L109.28 256 9.21 356.07c-12.28 12.28-12.28 32.19 0 44.48l22.24 22.24c12.28 12.28 32.2 12.28 44.48 0L176 322.72l100.07 100.07c12.28 12.28 32.2 12.28 44.48 0l22.24-22.24c12.28-12.28 12.28-32.19 0-44.48L242.72 256z"/>
+</svg>
+`;
+}
+
+function getDragIcon() {
+    return `
+<svg viewBox="0 0 512 512">
+    <path d="M352.201 425.775l-79.196 79.196c-9.373 9.373-24.568 9.373-33.941 0l-79.196-79.196c-15.119-15.119-4.411-40.971 16.971-40.97h51.162L228 284H127.196v51.162c0 21.382-25.851 32.09-40.971 16.971L7.029 272.937c-9.373-9.373-9.373-24.569 0-33.941L86.225 159.8c15.119-15.119 40.971-4.411 40.971 16.971V228H228V127.196h-51.23c-21.382 0-32.09-25.851-16.971-40.971l79.196-79.196c9.373-9.373 24.568-9.373 33.941 0l79.196 79.196c15.119 15.119 4.411 40.971-16.971 40.971h-51.162V228h100.804v-51.162c0-21.382 25.851-32.09 40.97-16.971l79.196 79.196c9.373 9.373 9.373 24.569 0 33.941L425.773 352.2c-15.119 15.119-40.971 4.411-40.97-16.971V284H284v100.804h51.23c21.382 0 32.09 25.851 16.971 40.971z"></path>
+</svg>
+`;
+}
+
+function getAddIcon() {
+    return `
+<svg viewBox="0 0 512 512">
+    <path d="M416 208H272V64c0-17.67-14.33-32-32-32h-32c-17.67 0-32 14.33-32 32v144H32c-17.67 0-32 14.33-32 32v32c0 17.67 14.33 32 32 32h144v144c0 17.67 14.33 32 32 32h32c17.67 0 32-14.33 32-32V304h144c17.67 0 32-14.33 32-32v-32c0-17.67-14.33-32-32-32z"></path>
 </svg>
 `;
 }

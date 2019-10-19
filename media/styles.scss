@@ -1,5 +1,24 @@
 @import '../node_modules/dragula/dist/dragula.min.css';
 
+// MIXINS
+@mixin actions($size: 1em, $spacing: 0.3em) {
+    svg {
+        width: $size;
+        fill: var(--dashboard-foreground);
+        margin-right: $spacing;
+    }
+    
+    :hover > svg {
+        filter: brightness(150%);
+    }
+
+    [data-action] {
+        cursor: pointer;
+    }
+}
+
+// GLOBALS
+
 :root {
     --dashboard-project-card-bg: var(--vscode-tab-inactiveBackground);
     --dashboard-foreground: var(--vscode-editor-foreground);
@@ -8,6 +27,7 @@
 
 $useAddProjectOpacity: true;
 
+$projectListMinHeight: 163px;
 $columnWidth: 350px;
 $borderTopSize: 7px;
 $defaultPadding: 20px;
@@ -19,10 +39,57 @@ body {
     user-select: none;
 }
 
-.projects-group {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: flex-start;    
+// RULES
+
+.projects-group {    
+    margin-top: $defaultPadding * 1.5;
+
+    &:first-child {
+        margin-top: $defaultPadding / 2;
+    }
+
+    .projects-group-title {
+        min-width: $columnWidth - 19px;
+        display: inline-block;
+        font-size: $projectHeaderSize / 2;
+        font-weight: 200;
+        margin-left: 0px;
+
+        > span {
+            cursor: pointer;
+        }
+    }
+
+    .projects-group-actions {
+        transition: opacity 200ms ease-in-out 0.5s;     
+        opacity: 0;
+        pointer-events: none;
+
+        @include actions(0.7em, 0);
+
+        &.left {
+            display: inline;
+            padding-left: 0.5em;
+        }
+
+        &.right {
+            float: right;
+        }
+    }
+
+    .projects-group-title:hover .projects-group-actions {
+        opacity: 1;
+        pointer-events: all;
+    }
+
+    .projects-group-list {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-start;
+
+        margin-top: -10px;
+        min-height: $projectListMinHeight;
+    }
 }
 
 @if($useAddProjectOpacity) {
@@ -40,19 +107,6 @@ body {
     }
 }
 
-
-.projects-group-title {
-    width: 100%;
-    font-size: $projectHeaderSize / 2;
-    font-weight: 200;
-    margin-top: $defaultPadding * 1.5;
-    margin-left: 0px;
-    margin-bottom: -$defaultPadding / 2;
-
-    &:first-child {
-        margin-top: $defaultPadding / 2;
-    }
-}
 
 body .project {
     cursor: pointer;
@@ -154,15 +208,7 @@ body .project {
         transition: margin-top linear 0.2s;
         transition-delay: 0.5s;
 
-        svg {
-            width: 1.2em;
-            fill: var(--dashboard-foreground);
-            margin-right: 0.3em;
-        }
-
-        span:hover > svg {
-            filter: brightness(150%);
-        }
+        @include actions(1.2em);
     }
 
     &:hover .project-actions {
@@ -170,10 +216,11 @@ body .project {
     }
 }
 
+
 // CUSTOM CONFIGURATION
 .hide-project-path .project {
     padding: (1.5 * $defaultPadding) $defaultPadding;
-
+    
     .project-path-info {
         display: none;
     }
@@ -188,6 +235,10 @@ body .project {
     .project-actions-wrapper {
         display: none;
     }
+}
+
+.gu-mirror div {
+    cursor: grabbing !important;
 }
 
 .last {
