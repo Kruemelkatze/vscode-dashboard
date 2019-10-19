@@ -55,8 +55,12 @@ export function activate(context: vscode.ExtensionContext) {
                 break;
             case StartupOptions.emptyWorkSpace:
             default:
-                let isOnWelcomePage = (!vscode.workspace.name && vscode.window.visibleTextEditors.length === 0);
-                open = isOnWelcomePage;
+                let editors = vscode.window.visibleTextEditors;
+                // Includes Workaround for temporary code runner file
+                let noOpenEditorsOrWorkspaces = !vscode.workspace.name && (
+                    editors.length === 0 || editors.length === 1 && editors[0].document.languageId === "code-runner-output"
+                );
+                open = noOpenEditorsOrWorkspaces;
                 break;
         }
     
