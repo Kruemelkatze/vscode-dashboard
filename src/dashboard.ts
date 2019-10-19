@@ -153,7 +153,6 @@ export function activate(context: vscode.ExtensionContext) {
         }
         
         showDashboard();
-        vscode.window.showInformationMessage(`Project ${project.name} created.`);
     }
 
     async function editProject(projectId: string) {
@@ -175,7 +174,6 @@ export function activate(context: vscode.ExtensionContext) {
         }
 
         showDashboard();
-        vscode.window.showInformationMessage(`Project ${project.name} updated.`);
     }
 
     async function queryProjectFields(projectGroupId: string = null, projectTemplate: Project = null) : Promise<[Project, string]> {   
@@ -239,9 +237,6 @@ export function activate(context: vscode.ExtensionContext) {
 
         //Test if Git Repo
         let isGitRepo = isFolderGitRepo(projectPath);
-        if (isGitRepo) {
-            vscode.window.showInformationMessage(`Detected ${projectName} as Git repository.`);
-        }
 
         // Save
         let project = new Project(projectName, projectPath);
@@ -433,8 +428,6 @@ export function activate(context: vscode.ExtensionContext) {
 
         await removeProject(context, selectedProjectPick.id)
         showDashboard();
-
-        vscode.window.showInformationMessage(`Project ${selectedProjectPick.label} removed.`);
     }
 
     async function editProjectsManuallyPerCommand() {
@@ -513,8 +506,6 @@ export function activate(context: vscode.ExtensionContext) {
                 subscriptions.forEach(s => s.dispose());
                 // await deleteFile(tempFilePath); // Deleting file does not make sense, as the file gets immidiately saved again after this listener
 
-                vscode.window.showInformationMessage("Saved Dashboard Projects.");
-
                 // Select and close our document editor
                 vscode.window.showTextDocument(e.document);
                 vscode.commands.executeCommand('workbench.action.closeActiveEditor')
@@ -539,7 +530,6 @@ export function activate(context: vscode.ExtensionContext) {
             vscode.window.showInformationMessage('Invalid Argument passed to Reordering Projects.');
         }
 
-        vscode.window.showInformationMessage('Saved Dashboard Projects.');
         var projectGroups = getProjects(context);
 
         // Map projects by id for easier access
@@ -563,7 +553,6 @@ export function activate(context: vscode.ExtensionContext) {
         }
 
         saveProjects(context, reorderedProjectGroups);
-        vscode.window.showInformationMessage("Saved Dashboard Projects.");
     }
 
     async function deleteProject(projectId: string){
@@ -579,7 +568,6 @@ export function activate(context: vscode.ExtensionContext) {
 
         await removeProject(context, projectId);
         showDashboard();
-        vscode.window.showInformationMessage(`Project ${project.name} removed.`);
     }
 
     function isFolderGitRepo(path: string) {
