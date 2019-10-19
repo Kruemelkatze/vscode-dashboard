@@ -44,6 +44,24 @@ body {
 .projects-group {    
     margin-top: $defaultPadding * 1.5;
 
+    &.temp-group {
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity ease-in-out 200ms; 
+
+        .drop-signal {
+            width: $columnWidth - 19px;
+            align-self: stretch;
+            margin-top: $defaultPadding;
+            background:  var(--dashboard-project-card-bg);
+            opacity: 0.2;
+
+            &:not(:only-child){
+                display: none;
+            }
+        }
+    }
+
     &:first-child {
         margin-top: $defaultPadding / 2;
     }
@@ -244,7 +262,12 @@ body .project {
 
     .project-actions-wrapper, .projects-group-actions {
         display: none !important;
-    }
+    }    
+}
+
+.gu-unselectable .projects-group.temp-group {
+    pointer-events: all;
+    opacity: 1;
 }
 
 .last {

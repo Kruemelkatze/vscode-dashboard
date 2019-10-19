@@ -571,8 +571,9 @@ export function activate(context: vscode.ExtensionContext) {
     function reorderProjectGroups(groupOrders: GroupOrder[]) {
         var projectGroups = getProjects(context);
 
-        if (groupOrders == null || groupOrders.length !== projectGroups.length){
+        if (groupOrders == null) {
             vscode.window.showInformationMessage('Invalid Argument passed to Reordering Projects.');
+            return;
         }
 
 
@@ -589,7 +590,7 @@ export function activate(context: vscode.ExtensionContext) {
         for (let { groupId, projectIds } of groupOrders) {
             let group = projectGroups.find(g => g.id === groupId);
             if (group == null) {
-                continue;
+                group = new ProjectGroup("Project Group #" + (reorderedProjectGroups.length + 1));
             }
 
             group.projects = projectIds.map(pid => projectMap.get(pid)).filter(p => p != null);
@@ -597,6 +598,7 @@ export function activate(context: vscode.ExtensionContext) {
         }
 
         saveProjects(context, reorderedProjectGroups);
+        showDashboard();
     }
 
     async function deleteProject(projectId: string){

@@ -25,10 +25,12 @@ export function getDashboardContent(context: vscode.ExtensionContext, projectGro
     <body>
         <div class="projects-wrapper ${!config.displayProjectPath ? 'hide-project-path' : ''}">
             ${groups.length ?
-            groups.map(group => getProjectGroupSection(group, groups.length, config)).join('\n')
-            :
-            getNoProjectsDiv()
-        }           
+                groups.map(group => getProjectGroupSection(group, groups.length, config)).join('\n')
+                :
+                getNoProjectsDiv()
+            }
+
+            ${getTempProjectGroupSection(groups.length)}
         </div>
     </body>
 
@@ -48,6 +50,8 @@ export function getDashboardContent(context: vscode.ExtensionContext, projectGro
 }
 
 function getProjectGroupSection(projectGroup: ProjectGroup, totalGroupCount: number, config : vscode.WorkspaceConfiguration) {
+    // Apply changes to HTML here also to getTempProjectGroupSection
+
     // Always show add button when there is only one unnamed group
     var showAddButton = config.showAddProjectButtonTile || (totalGroupCount === 1 && !projectGroup.groupName); 
 
@@ -71,8 +75,21 @@ function getProjectGroupSection(projectGroup: ProjectGroup, totalGroupCount: num
         ${projectGroup.projects.map(getProjectDiv).join('\n')}
         ${showAddButton ? getAddProjectDiv(projectGroup.id) : ""}
     </div>       
+</div>`;
+}
+
+function getTempProjectGroupSection(totalGroupCount: number) {
+    return `
+<div class="projects-group temp-group" data-group-id="">
+    <div class="projects-group-title">
+        <span data-drag-group>Create new Project Group</span>
+    </div>
+    <div class="projects-group-list">
+        <div class="drop-signal"></div>
+    </div>       
 </div>     
-    `;
+    </div>       
+</div>`;
 }
 
 function getProjectDiv(project: Project) {
@@ -262,7 +279,6 @@ window.onload = () => {
     projectsGroupsDrake.on('drop', onReordered);
 
     function onReordered() {
-        debugger
         // Build reordering object
         let groupElements = document.querySelectorAll('${projectsGroupsContainerSelector} [data-group-id]');
         let groupOrders = [];
