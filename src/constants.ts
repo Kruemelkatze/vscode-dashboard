@@ -18,6 +18,8 @@ export const StartupOptions = {
     never: "never",
 };
 
+export const USER_CANCELED = "CanceledByUser"; // A symbol would be nice, but throw new Error(Symbol) does not work
+
 export const ADD_NEW_PROJECT_TO_FRONT = false;
 export const PROJECTS_FILE = "projects.json";
 export const DATA_ROOT_PATH = (process.env.APPDATA || (process.platform == 'darwin' ? process.env.HOME + 'Library/Preferences' : '/var/local')) + '/vscode-dashboard';

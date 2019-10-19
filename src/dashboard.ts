@@ -4,7 +4,7 @@ import * as path from 'path';
 import { Project, GroupOrder, ProjectGroup } from './models';
 import { getProjects, addProject, removeProject, saveProjects, writeTextFile, getProject, addProjectGroup, getProjectsFlat, migrateDataIfNeeded, getProjectAndGroup, updateProject, } from './projectService';
 import { getDashboardContent } from './webviewContent';
-import { USE_PROJECT_COLOR, PREDEFINED_COLORS, TEMP_PATH, StartupOptions } from './constants';
+import { USE_PROJECT_COLOR, PREDEFINED_COLORS, TEMP_PATH, StartupOptions, USER_CANCELED } from './constants';
 import { execSync } from 'child_process';
 
 export function activate(context: vscode.ExtensionContext) {
@@ -38,8 +38,6 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(addProjectCommand);
     context.subscriptions.push(removeProjectCommand);
     context.subscriptions.push(editProjectsManuallyCommand);
-
-    console.log('vscode-dashboard has been activated');
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~ Functions ~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -141,8 +139,18 @@ export function activate(context: vscode.ExtensionContext) {
     }
 
     async function addProjectPerCommand(projectGroupId: string = null) {
-        var [project, selectedGroupId] = await queryProjectFields(projectGroupId);
-        await addProject(context, project, selectedGroupId);
+        var project: Project, selectedGroupId: string;
+
+        try {
+            [project, selectedGroupId] = await queryProjectFields(projectGroupId);
+            await addProject(context, project, selectedGroupId);
+        } catch (error) {
+            if (error.message !== USER_CANCELED){
+                vscode.window.showErrorMessage(`An error occured while adding the project.`);
+            }
+            
+            return;
+        }
         
         showDashboard();
         vscode.window.showInformationMessage(`Project ${project.name} created.`);
@@ -154,23 +162,33 @@ export function activate(context: vscode.ExtensionContext) {
             return;
         }
 
-        var [editedProject, selectedGroupId] = await queryProjectFields(group.id, project);
-        await updateProject(context, projectId, editedProject);
-        //await addProject(context, editedProject, selectedGroupId); // Add edited
-        //await removeProject(context, projectId); // Delete old
+        var editedProject: Project, selectedGroupId: string;
+        try {
+            [editedProject, selectedGroupId] = await queryProjectFields(group.id, project);
+            await updateProject(context, projectId, editedProject);
+        } catch (error) {
+            if (error.message !== USER_CANCELED){
+                vscode.window.showErrorMessage(`An error occured while updating project ${project.name}.`);
+            }      
+            
+            return;
+        }
 
         showDashboard();
-
         vscode.window.showInformationMessage(`Project ${project.name} updated.`);
     }
 
-    async function queryProjectFields(projectGroupId: string = null, projectTemplate: Project = null) : Promise<[Project, string]> {       
-        // For editing a project: Ignore Group and Path selection and take both from template
+    async function queryProjectFields(projectGroupId: string = null, projectTemplate: Project = null) : Promise<[Project, string]> {   
+        // For editing a project: Ignore Group selection and take it from template
         var selectedGroupId: string, projectPath: string;
-        if (projectTemplate != null && projectGroupId != null) {
+        var isEditing = projectTemplate != null && projectGroupId != null;
+
+        if (isEditing) {
+            // Editing
             selectedGroupId = projectGroupId;
             projectPath = projectTemplate.path;
         } else {
+            // New
             selectedGroupId = await queryProjectGroup(projectGroupId);
             projectPath = await queryProjectPath();
         }
@@ -187,8 +205,34 @@ export function activate(context: vscode.ExtensionContext) {
             validateInput: (val: string) => val ? '' : 'A Project Name must be provided.',
         });
 
-        if (!projectName)
-            return;
+        if (!projectName) {
+            throw new Error(USER_CANCELED);
+        }
+
+        // Updating path if needed
+        if (isEditing) {
+            let updatePathPicks = [
+                {
+                    id: false,
+                    label: "Keep Path", 
+                },
+                {
+                    id: true,
+                    label: "Open Picker"
+                },
+            ]
+            let updatePath = await vscode.window.showQuickPick(updatePathPicks, {
+                placeHolder: "Update Path?"
+            });
+
+            if (updatePath == null){
+                throw new Error(USER_CANCELED);
+            }
+
+            if (updatePath.id) {
+                projectPath = await queryProjectPath(projectPath);
+            }
+        }
 
         // Color
         var color = await queryProjectColor(projectTemplate);        
@@ -243,6 +287,11 @@ export function activate(context: vscode.ExtensionContext) {
         let selectedProjectGroupPick = await vscode.window.showQuickPick(projectGroupPicks, {
             placeHolder: "Project Group"
         });
+
+        if (selectedProjectGroupPick == null){
+            throw new Error(USER_CANCELED);
+        }
+
         projectGroupId = selectedProjectGroupPick.id;
         if (projectGroupId === 'Add') {
             // If there is no default group, allow name to be empty
@@ -259,7 +308,7 @@ export function activate(context: vscode.ExtensionContext) {
         return projectGroupId;
     }
 
-    async function queryProjectPath(): Promise<string> {
+    async function queryProjectPath(defaultPath: string = null): Promise<string> {
         let projectTypePicks = [
             { id: true, label: 'Folder Project' },
             { id: false, label: 'File or Multi-Root Project' },
@@ -268,18 +317,30 @@ export function activate(context: vscode.ExtensionContext) {
         let selectedProjectTypePick = await vscode.window.showQuickPick(projectTypePicks, {
             placeHolder: "Project Type",
         });
+
+        if (selectedProjectTypePick == null) {
+            throw new Error(USER_CANCELED);
+        }
+
         let folderProject = selectedProjectTypePick.id;
+
+        var defaultUri: vscode.Uri = null;
+        if (defaultPath){
+            defaultUri = vscode.Uri.parse(defaultPath);
+        }
 
         // Path
         let selectedProjectUris = await vscode.window.showOpenDialog({
+            defaultUri,
             openLabel: `Select ${folderProject ? 'Folder' : 'File'} as Project`,
             canSelectFolders: folderProject,
             canSelectFiles: !folderProject,
             canSelectMany: false,
         });
 
-        if (selectedProjectUris == null || selectedProjectUris[0] == null)
-            return;
+        if (selectedProjectUris == null || selectedProjectUris[0] == null) {
+            throw new Error(USER_CANCELED);
+        }
 
         return selectedProjectUris[0].fsPath;
     }
@@ -322,7 +383,11 @@ export function activate(context: vscode.ExtensionContext) {
             placeHolder: 'Project Color',
         });
 
-        if (selectedColorPick != null && selectedColorPick.id === 'Custom') {
+        if (selectedColorPick == null){
+            throw new Error(USER_CANCELED);
+        }
+
+        if (selectedColorPick.id === 'Custom') {
             var customColor = await vscode.window.showInputBox({
                 placeHolder: '#cc3344   crimson   rgb(68, 145, 203)   linear-gradient(to right, gold, darkorange)',
                 ignoreFocusOut: true,
