@@ -10,14 +10,6 @@ import { execSync } from 'child_process';
 export function activate(context: vscode.ExtensionContext) {
     var instance: vscode.WebviewPanel = null;
 
-    // In v1.2, the data scheme has changed by introducing project groups.
-    let migrated = migrateDataIfNeeded(context);
-    if (migrated) {
-        vscode.window.showInformationMessage("Migrated Dashboard Projects after Update.");
-    }
-
-    showDashboardOnOpenIfNeeded();
-
     const openCommand = vscode.commands.registerCommand('dashboard.open', () => {
         showDashboard();
     });
@@ -39,7 +31,17 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(removeProjectCommand);
     context.subscriptions.push(editProjectsManuallyCommand);
 
+    startUp();
+
     // ~~~~~~~~~~~~~~~~~~~~~~~~~ Functions ~~~~~~~~~~~~~~~~~~~~~~~~~
+    async function startUp() {
+        let migrated = await migrateDataIfNeeded(context);
+        if (migrated) {
+            vscode.window.showInformationMessage("Migrated Dashboard Projects after changing Settings.");
+        }
+    
+        showDashboardOnOpenIfNeeded();
+    }
 
     function showDashboardOnOpenIfNeeded() {
         var config = vscode.workspace.getConfiguration('dashboard');
@@ -124,7 +126,7 @@ export function activate(context: vscode.ExtensionContext) {
                         break;
                     case 'reordered-projects':
                         let groupOrders = e.groupOrders as GroupOrder[];
-                        reorderProjectGroups(groupOrders);
+                        await reorderProjectGroups(groupOrders);
                         break;
                     case 'delete-project':
                         projectId = e.projectId as string;
@@ -547,7 +549,7 @@ export function activate(context: vscode.ExtensionContext) {
 
                 updatedProjectGroups = updatedProjectGroups.filter(g => !g._delete);
 
-                saveProjects(context, updatedProjectGroups);
+                await saveProjects(context, updatedProjectGroups);
                 showDashboard();
 
                 subscriptions.forEach(s => s.dispose());
@@ -572,7 +574,7 @@ export function activate(context: vscode.ExtensionContext) {
         // subscriptions.push(closeSubscription);
     }
 
-    function reorderProjectGroups(groupOrders: GroupOrder[]) {
+    async function reorderProjectGroups(groupOrders: GroupOrder[]) {
         var projectGroups = getProjects(context);
 
         if (groupOrders == null) {
@@ -584,6 +586,10 @@ export function activate(context: vscode.ExtensionContext) {
         // Map projects by id for easier access
         var projectMap = new Map<string, Project>();
         for (let group of projectGroups) {
+            if (group.projects == null){
+                continue;
+            }
+            
             for (let project of group.projects) {
                 projectMap.set(project.id, project);
             }
@@ -601,7 +607,7 @@ export function activate(context: vscode.ExtensionContext) {
             reorderedProjectGroups.push(group);
         }
 
-        saveProjects(context, reorderedProjectGroups);
+        await saveProjects(context, reorderedProjectGroups);
         showDashboard();
     }
 

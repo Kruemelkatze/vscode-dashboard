@@ -29,11 +29,13 @@ The commands should speak for themselves. :)
 * Only **colors** defined by the theme were used. So the dashboard should always blend nicely into your VSCode design. If not, you can customize them in the settings.
 * vscode-dashboard automatically detects if a project is a **Git repository**. If so, this is indicated by an icon.
 
-### Customization
+### Configuration
 
-The dashboard can be customized to an extend using the vscode configuration:
+The dashboard can be configured and customized using the vscode configuration:
 
+* Projects are stored in the globalState by default (saved on machine), but can be set to be saved in the settings (to be synced via [Settings Sync](https://marketplace.visualstudio.com/items?itemName=Shan.code-settings-sync)) instead. Note that by doing so, you remove the possiblity of having varying dashboards on your synced devices.
 * Startup behaviour (open always, on empty editor, or never)
+* Placement of '+' button
 * Visibility of project path
 * Colors (see below)
 

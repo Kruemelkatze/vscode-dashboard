@@ -56,16 +56,12 @@ export function getDashboardContent(context: vscode.ExtensionContext, webviewPan
 function getProjectGroupSection(projectGroup: ProjectGroup, totalGroupCount: number, config : vscode.WorkspaceConfiguration) {
     // Apply changes to HTML here also to getTempProjectGroupSection
 
-    // Always show add button when there is only one unnamed group
-    var showAddButton = config.showAddProjectButtonTile || (totalGroupCount === 1 && !projectGroup.groupName); 
-
-    // If there is more than one group, name every unnamed group 'Unnamed ...' in order to be able to edit it
-    var showNamePlaceholder = totalGroupCount > 1; 
+    var showAddButton = config.showAddProjectButtonTile;
 
     return `
 <div class="projects-group" data-group-id="${projectGroup.id}">
     <div class="projects-group-title">
-        <span data-drag-group>${projectGroup.groupName || (showNamePlaceholder ? "Unnamed Project Group" : "")}</span>
+        <span data-drag-group>${projectGroup.groupName || "Unnamed Project Group"}</span>
         <div class="projects-group-actions right">
             <span data-action="add">${getAddIcon()}</span>
         </div>

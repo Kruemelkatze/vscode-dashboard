@@ -5,12 +5,29 @@ import * as mkdirp from 'mkdirp';
 import * as vscode from 'vscode';
 
 import { Project, ProjectGroup } from "./models";
-import { DATA_ROOT_PATH, ADD_NEW_PROJECT_TO_FRONT } from "./constants";
+import { ADD_NEW_PROJECT_TO_FRONT } from "./constants";
+
+function useSettingsStorage(): boolean {
+    return vscode.workspace.getConfiguration('dashboard').get('storeProjectsInSettings');
+}
+
+function sanitizeProjectGroups(projectGroups: ProjectGroup[]): ProjectGroup[] {
+    if (!Array.isArray(projectGroups)) {
+        return [];
+    }
+
+    return projectGroups.filter(g => g && g.id && g.projects && g.projects.length);
+}
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~ GET Projects ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 export function getProjects(context: vscode.ExtensionContext): ProjectGroup[] {
-    return (context.globalState.get("projects") || []) as ProjectGroup[];
+    var groups = useSettingsStorage ?
+        getProjectsFromSettings(context) :
+        getProjectsFromGlobalState(context);
+
+    groups = sanitizeProjectGroups(groups);
+    return groups;
 }
 
 export function getProjectsFlat(context: vscode.ExtensionContext): Project[] {
@@ -51,7 +68,13 @@ export function getProjectsGroup(context: vscode.ExtensionContext, projectGroupI
 // ~~~~~~~~~~~~~~~~~~~~~~~~~ SAVE Projects ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 export function saveProjects(context: vscode.ExtensionContext, projectGroups: ProjectGroup[]): Thenable<void> {
-    return context.globalState.update("projects", projectGroups);
+    projectGroups = sanitizeProjectGroups(projectGroups);
+
+    if (useSettingsStorage()) {
+        return saveProjectsInSettings(context, projectGroups);
+    } else {
+        return saveProjectsInGlobalState(context, projectGroups);
+    }
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~ MODIFY Projects ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -193,40 +216,60 @@ function writeFile(filePath: string, data: any, encoding: string = undefined): P
     });
 }
 
-// ~~~~~~~~~~~~~~~~~~~~~~~~~ Model Migration ~~~~~~~~~~~~~~~~~~~~~~~~~
-export function migrateDataIfNeeded(context: vscode.ExtensionContext) {
-    let migrated = context.globalState.get("MigratedToGroupSchema") === true;
+// ~~~~~~~~~~~~~~~~~~~~~~~~~ STORAGE ~~~~~~~~~~~~~~~~~~~~~~~~~
+function getProjectsFromGlobalState(context: vscode.ExtensionContext, unsafe: boolean = false): ProjectGroup[] {
+    var projectGroups = context.globalState.get("projects") as ProjectGroup[];
 
-    if (!migrated) {
-        var data = context.globalState.get("projects");
-        // is data an array containing something?
-        if (data != null && data[0]) {
-            let element = data[0];
-            if (element.path !== undefined && element.name !== undefined) {
-                // Project
-                // instanceof does not work here, as we are dealing with serialized objects. Maybe there's a better way in TypeScript?
-                var groups = updateToGroupSchema(data as Project[]);
-                context.globalState.update("projects", groups);
-            } else {
-                // ProjectGroup --> already migrated
-            }
-        } else {
-            // Default to empty array to be safe
-            context.globalState.update("projects", []);
-        }
-
-        context.globalState.update("MigratedToGroupSchema", true);
+    if (projectGroups == null && !unsafe) {
+        projectGroups = [];
     }
 
-    return !migrated;
+    return projectGroups;
 }
 
-function updateToGroupSchema(projects: Project[]): ProjectGroup[] {
-    if (projects == null) {
-        return [];
+function getProjectsFromSettings(context: vscode.ExtensionContext, unsafe: boolean = false): ProjectGroup[] {
+    var projectGroups = vscode.workspace.getConfiguration('dashboard').get('projectData') as ProjectGroup[];
+
+    if (projectGroups == null && !unsafe) {
+        projectGroups = [];
     }
 
-    let initialGroup = new ProjectGroup("", projects);
-    let groups = [initialGroup];
-    return groups;
+    return projectGroups;
+}
+
+function saveProjectsInGlobalState(context: vscode.ExtensionContext, projectGroups: ProjectGroup[]): Thenable<void> {
+    return context.globalState.update("projects", projectGroups);
+}
+
+function saveProjectsInSettings(context: vscode.ExtensionContext, projectGroups: ProjectGroup[]): Thenable<void> {
+    var config = vscode.workspace.getConfiguration('dashboard');
+    return config.update("projectData", projectGroups, vscode.ConfigurationTarget.Global);
+}
+
+// ~~~~~~~~~~~~~~~~~~~~~~~~~ Model Migration ~~~~~~~~~~~~~~~~~~~~~~~~~
+export async function migrateDataIfNeeded(context: vscode.ExtensionContext) {
+    var toMigrate = false;
+
+    var projectsInSettings = getProjectsFromSettings(context, true);
+    var projectsInGlobalState = getProjectsFromGlobalState(context, true);
+
+    if (useSettingsStorage()) {
+        // Migrate from Global State to Settings
+        toMigrate = projectsInSettings == null && projectsInGlobalState != null;
+
+        if (toMigrate) {
+            await saveProjectsInSettings(context, projectsInGlobalState);
+            await saveProjectsInGlobalState(context, null);
+        }
+    } else {
+        // Migrate from Settings To Global State
+        toMigrate = projectsInGlobalState == null && projectsInSettings != null;
+
+        if (toMigrate) {
+            await saveProjectsInGlobalState(context, projectsInSettings);
+            await saveProjectsInSettings(context, null);
+        }
+    }
+
+    return toMigrate;
 }
