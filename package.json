@@ -62,6 +62,11 @@
                         "never"
                     ]
                 },
+                "dashboard.showAddProjectButtonTile": {
+                    "type": "boolean",
+                    "description": "If set to false, the dedicated '+' tile is hidden inside project groups. Projects can be added by using the actions when hovering the group name.",
+                    "default": true
+                },
                 "dashboard.customProjectCardBackground": {
                     "type": "string",
                     "default": null

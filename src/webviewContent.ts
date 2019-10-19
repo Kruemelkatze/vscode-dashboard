@@ -10,6 +10,8 @@ export function getDashboardContent(context: vscode.ExtensionContext, projectGro
     var fittyPath = getMediaResource(context, 'fitty.min.js');
     var dragulaPath = getMediaResource(context, 'dragula.min.js');
 
+    var groups = projectGroups.filter(g => g.projects && g.projects.length);
+
     return `
 <!DOCTYPE html>
     <html lang="en">
@@ -22,8 +24,8 @@ export function getDashboardContent(context: vscode.ExtensionContext, projectGro
     </head>
     <body>
         <div class="projects-wrapper ${!config.displayProjectPath ? 'hide-project-path' : ''}">
-            ${projectGroups.length && projectGroups.filter(g => g.projects.length).length ?
-            projectGroups.map(getProjectGroupSection).join('\n')
+            ${groups.length ?
+            groups.map(group => getProjectGroupSection(group, groups.length, config)).join('\n')
             :
             getNoProjectsDiv()
         }           
@@ -45,19 +47,20 @@ export function getDashboardContent(context: vscode.ExtensionContext, projectGro
 </html>`;
 }
 
-function getProjectGroupSection(projectGroup: ProjectGroup) {
-    var projects = projectGroup.projects;
-    if (projects == null || !projects.length) {
-        return "";
-    }
+function getProjectGroupSection(projectGroup: ProjectGroup, totalGroupCount: number, config : vscode.WorkspaceConfiguration) {
+    // Always show add button when there is only one unnamed group
+    var showAddButton = config.showAddProjectButtonTile || (totalGroupCount === 1 && !projectGroup.groupName); 
+
+    // If there is more than one group, name every unnamed group 'Unnamed ...' in order to be able to edit it
+    var showNamePlaceholder = totalGroupCount > 1; 
 
     return `
     <div class="projects-group-title">
-        ${projectGroup.groupName || ""}
+        ${projectGroup.groupName || (showNamePlaceholder ? "Unnamed Project Group" : "")}
     </div>
     <div class="projects-group" data-group-id="${projectGroup.id}">
-        ${projects.map(getProjectDiv).join('\n')}
-        ${getAddProjectDiv(projectGroup.id)}
+        ${projectGroup.projects.map(getProjectDiv).join('\n')}
+        ${showAddButton ? getAddProjectDiv(projectGroup.id) : ""}
     </div>            
     `;
 }
