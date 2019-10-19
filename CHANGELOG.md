@@ -4,6 +4,17 @@ All notable changes to the "dashboard" extension will be documented in this file
 ## [1.5] t.b.d.
 ### Added
 - Added config for startup behaviour.
+- Editing and rearranging projects groups directly on the dashboard.
+- Option for storing projects in the User Settings (to be synced via [Settings Sync](https://marketplace.visualstudio.com/items?itemName=Shan.code-settings-sync)).
+
+### Changed
+- Default option for color is now 'Random', as most people use colors. :-)
+- Editing a project via UI now also prompts for editing its path.
+- Reduced number of message from the extension.
+
+### Fixed
+- Fixed some exceptions thrown when user cancelled any input (by pressing esc or unfocusing the window).
+- Fixed a bug that made the dashboard not open automatically because of a hidden file of the ***Code Runner*** extension.
 
 ## [1.4.1] 2019-07-11
 ### Fixed
