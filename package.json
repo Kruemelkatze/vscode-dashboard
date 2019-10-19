@@ -91,16 +91,16 @@
     },
     "devDependencies": {
         "@types/mocha": "^5.2.7",
-        "@types/node": "^12.0.10",
+        "@types/node": "^12.11.1",
         "dragula": "^3.7.2",
         "fitty": "^2.2.6",
         "gulp": "^4.0.2",
         "gulp-clean-css": "^4.2.0",
         "gulp-sass": "^4.0.2",
         "node-sass": "^4.12.0",
-        "tslint": "^5.18.0",
-        "typescript": "^3.5.2",
-        "vscode": "^1.1.34"
+        "tslint": "^5.20.0",
+        "typescript": "^3.6.4",
+        "vscode": "^1.1.36"
     },
     "dependencies": {
         "mkdirp": "^0.5.1"
