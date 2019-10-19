@@ -74,7 +74,7 @@ export function activate(context: vscode.ExtensionContext) {
         var projects = getProjects(context);
 
         if (instance) {
-            instance.webview.html = getDashboardContent(context, projects);
+            instance.webview.html = getDashboardContent(context, instance, projects);
             instance.reveal(columnToShowIn);
         } else {
             var panel = vscode.window.createWebviewPanel(
@@ -90,7 +90,7 @@ export function activate(context: vscode.ExtensionContext) {
             );
             panel.iconPath = vscode.Uri.file("");
 
-            panel.webview.html = getDashboardContent(context, projects);
+            panel.webview.html = getDashboardContent(context, panel, projects);
 
             // Reset when the current panel is closed
             panel.onDidDispose(() => {

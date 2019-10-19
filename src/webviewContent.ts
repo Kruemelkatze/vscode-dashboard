@@ -3,12 +3,12 @@ import * as path from 'path';
 import { Project, ProjectGroup } from "./models";
 import { FITTY_OPTIONS } from './constants';
 
-export function getDashboardContent(context: vscode.ExtensionContext, projectGroups: ProjectGroup[]): string {
+export function getDashboardContent(context: vscode.ExtensionContext, webviewPanel: vscode.WebviewPanel, projectGroups: ProjectGroup[]): string {
     var config = vscode.workspace.getConfiguration('dashboard')
     
-    var stylesPath = getMediaResource(context, 'styles.css');
-    var fittyPath = getMediaResource(context, 'fitty.min.js');
-    var dragulaPath = getMediaResource(context, 'dragula.min.js');
+    var stylesPath = getMediaResource(context, webviewPanel, 'styles.css');
+    var fittyPath = getMediaResource(context, webviewPanel, 'fitty.min.js');
+    var dragulaPath = getMediaResource(context, webviewPanel, 'dragula.min.js');
 
     var groups = projectGroups.filter(g => g.projects && g.projects.length);
 
@@ -17,9 +17,13 @@ export function getDashboardContent(context: vscode.ExtensionContext, projectGro
     <html lang="en">
     <head>
         <meta charset="UTF-8">
+        <meta
+            http-equiv="Content-Security-Policy"
+            content="default-src 'none'; script-src ${webviewPanel.webview.cspSource} 'unsafe-inline'; style-src ${webviewPanel.webview.cspSource} 'unsafe-inline';"
+        />
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link rel="stylesheet" type="text/css" href="${stylesPath}">
-        <title>Cat Coding</title>
+        <title>Dashboard</title>
         ${getCustomStyle(config)}
     </head>
     <body>
@@ -347,9 +351,9 @@ function getAddIcon() {
 `;
 }
 
-function getMediaResource(context: vscode.ExtensionContext, name: string) {
+function getMediaResource(context: vscode.ExtensionContext, webviewPanel: vscode.WebviewPanel, name: string) {
     let resource = vscode.Uri.file(path.join(context.extensionPath, 'media', name));
-    resource = resource.with({ scheme: 'vscode-resource' });
-
+    resource = webviewPanel.webview.asWebviewUri(resource);
+    
     return resource;
 }
