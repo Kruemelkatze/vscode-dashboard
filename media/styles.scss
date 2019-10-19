@@ -237,8 +237,14 @@ body .project {
     }
 }
 
-.gu-mirror div {
-    cursor: grabbing !important;
+.gu-mirror {
+    * {
+        cursor: grabbing !important;
+    }
+
+    .project-actions-wrapper, .projects-group-actions {
+        display: none !important;
+    }
 }
 
 .last {

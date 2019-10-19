@@ -41,7 +41,7 @@ export function getDashboardContent(context: vscode.ExtensionContext, projectGro
 
             const vscode = acquireVsCodeApi();
             ${projectScript()}
-            ${dragAndDropScript('.projects-group-list')}
+            ${dragAndDropScripts('.projects-group-list', '.projects-wrapper')}
         })();
     </script>
 </html>`;
@@ -57,7 +57,7 @@ function getProjectGroupSection(projectGroup: ProjectGroup, totalGroupCount: num
     return `
 <div class="projects-group" data-group-id="${projectGroup.id}">
     <div class="projects-group-title">
-        <span>${projectGroup.groupName || (showNamePlaceholder ? "Unnamed Project Group" : "")}</span>
+        <span data-drag-group>${projectGroup.groupName || (showNamePlaceholder ? "Unnamed Project Group" : "")}</span>
         <div class="projects-group-actions right">
             <span data-action="add">${getAddIcon()}</span>
         </div>
@@ -242,22 +242,29 @@ document
 `;
 }
 
-function dragAndDropScript(selector: string) {
+function dragAndDropScripts(projectsContainerSelector: string, projectsGroupsContainerSelector: string) {
     return `
 window.onload = () => {
-    var containers = document.querySelectorAll('${selector}');
-
-    var drake = dragula([].slice.call(containers), {
+    var projectsContainers = document.querySelectorAll('${projectsContainerSelector}');
+    var projectDrake = dragula([].slice.call(projectsContainers), {
         moves: function (el, source, handle, sibling) {
             return !el.hasAttribute("data-nodrag");
         },
     });
+    projectDrake.on('drop', onReordered);
 
-    drake.on('drop', onReordered);
+    var projectsGroupsContainers = document.querySelectorAll('${projectsGroupsContainerSelector}');
+    var projectsGroupsDrake = dragula([].slice.call(projectsGroupsContainers), {
+        moves: function (el, source, handle, sibling) {
+            return handle.hasAttribute("data-drag-group");
+        },
+    });
+    projectsGroupsDrake.on('drop', onReordered);
 
     function onReordered() {
+        debugger
         // Build reordering object
-        let groupElements = document.querySelectorAll('[data-group-id]');
+        let groupElements = document.querySelectorAll('${projectsGroupsContainerSelector} [data-group-id]');
         let groupOrders = [];
         
         for (let groupElement of groupElements){

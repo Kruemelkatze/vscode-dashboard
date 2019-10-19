@@ -569,11 +569,12 @@ export function activate(context: vscode.ExtensionContext) {
     }
 
     function reorderProjectGroups(groupOrders: GroupOrder[]) {
-        if (groupOrders == null){
+        var projectGroups = getProjects(context);
+
+        if (groupOrders == null || groupOrders.length !== projectGroups.length){
             vscode.window.showInformationMessage('Invalid Argument passed to Reordering Projects.');
         }
 
-        var projectGroups = getProjects(context);
 
         // Map projects by id for easier access
         var projectMap = new Map<string, Project>();
