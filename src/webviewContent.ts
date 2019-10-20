@@ -269,6 +269,8 @@ window.onload = () => {
         },
     });
     projectDrake.on('drop', onReordered);
+    projectDrake.on('drag', () => document.body.classList.add('project-dragging'));
+    projectDrake.on('dragend', () => document.body.classList.remove('project-dragging'));
 
     var projectsGroupsContainers = document.querySelectorAll('${projectsGroupsContainerSelector}');
     var projectsGroupsDrake = dragula([].slice.call(projectsGroupsContainers), {

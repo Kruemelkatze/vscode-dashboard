@@ -265,7 +265,7 @@ body .project {
     }    
 }
 
-.gu-unselectable .projects-group.temp-group {
+.project-dragging .projects-group.temp-group {
     pointer-events: all;
     opacity: 1;
 }
