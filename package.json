@@ -50,11 +50,11 @@
             "title": "Dashboard",
             "properties": {
                 "dashboard.projectData": {
-                    "type":"array",
+                    "type": "array",
                     "markdownDescription": "Stores the dashboard data if the ```dashboard.storeProjectsInSettings``` option is set to ```true```. The raw data can be edited by using the command ```Dashboard: Edit Projects```.",
                     "default": null
                 },
-                "dashboard.storeProjectsInSettings":{
+                "dashboard.storeProjectsInSettings": {
                     "type": "boolean",
                     "default": false,
                     "markdownDescription": "If set to ```true```, the dashboard data is saved in the user settings and can be synced using the ```Settings Sync``` extension to multiple devices. NOTE: This disables the possibility of having varying dashboard data on these devices. **(VSCode restart required)**"
@@ -88,11 +88,6 @@
                 "dashboard.customProjectPathColor": {
                     "type": "string",
                     "default": null
-                },
-                "dashboard.customProjectsTempFileLocation": {
-                    "type": "string",
-                    "default": null,
-                    "description": "Absolute path of temporary file for editing the dashboard manually."
                 }
             }
         }

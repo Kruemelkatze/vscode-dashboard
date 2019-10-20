@@ -4,7 +4,7 @@ import * as path from 'path';
 import { Project, GroupOrder, ProjectGroup } from './models';
 import { getProjects, addProject, removeProject, saveProjects, writeTextFile, getProject, addProjectGroup, getProjectsFlat, migrateDataIfNeeded, getProjectAndGroup, updateProject, getProjectsGroup, updateProjectGroup, removeProjectsGroup } from './projectService';
 import { getDashboardContent } from './webviewContent';
-import { USE_PROJECT_COLOR, PREDEFINED_COLORS, TEMP_PATH, StartupOptions, USER_CANCELED, FixedColorOptions } from './constants';
+import { USE_PROJECT_COLOR, PREDEFINED_COLORS, StartupOptions, USER_CANCELED, FixedColorOptions } from './constants';
 import { execSync } from 'child_process';
 
 export function activate(context: vscode.ExtensionContext) {
@@ -636,9 +636,8 @@ export function activate(context: vscode.ExtensionContext) {
     }
 
     function getProjectsTempFilePath(): string {
-        var config = vscode.workspace.getConfiguration('dashboard')
-        var { customProjectsTempFileLocation } = config;        
-        return customProjectsTempFileLocation || `${TEMP_PATH}/Dashboard Projects.json`;
+        var savePath = context.globalStoragePath;
+        return `${savePath}/Dashboard Projects.json`;
     }
 
     function getLastPartOfPath(path: string): string {

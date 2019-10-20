@@ -12,20 +12,18 @@ export const FITTY_OPTIONS = {
     // minSize: '20', // Apparently, fitty has a problem with our setup and will overflow text if minSize is set...
 }
 
-export const StartupOptions = {
+export const StartupOptions = Object.freeze({
     always: "always",
     emptyWorkSpace: "empty workspace",
     never: "never",
-};
+});
 
-export const FixedColorOptions = {
+export const FixedColorOptions = Object.freeze({
     random: 'Random',
     none: 'None',
     custom: 'Custom',
-}
+});
 
 export const USER_CANCELED = "CanceledByUser"; // A symbol would be nice, but throw new Error(Symbol) does not work
 
 export const ADD_NEW_PROJECT_TO_FRONT = false;
-export const PROJECTS_FILE = "projects.json";
-export const TEMP_PATH = (process.env.TMP || (process.platform == 'darwin' ? process.env.HOME + '/tmp' : '/var/tmp'));
