@@ -626,9 +626,10 @@ export function activate(context: vscode.ExtensionContext) {
         showDashboard();
     }
 
-    function isFolderGitRepo(path: string) {
+    function isFolderGitRepo(fPath: string) {
         try {
-            var test = execSync(`cd ${path} && git rev-parse --is-inside-work-tree`, { encoding: 'utf8' });
+            fPath = path.dirname(fPath);
+            var test = execSync(`cd ${fPath} && git rev-parse --is-inside-work-tree`, { encoding: 'utf8' });
             return !!test;
         } catch (e) {
             return false;
