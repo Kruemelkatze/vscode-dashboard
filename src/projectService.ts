@@ -22,7 +22,7 @@ function sanitizeProjectGroups(projectGroups: ProjectGroup[]): ProjectGroup[] {
 // ~~~~~~~~~~~~~~~~~~~~~~~~~ GET Projects ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 export function getProjects(context: vscode.ExtensionContext): ProjectGroup[] {
-    var groups = useSettingsStorage ?
+    var groups = useSettingsStorage() ?
         getProjectsFromSettings(context) :
         getProjectsFromGlobalState(context);
 
