@@ -61,12 +61,12 @@ function getProjectGroupSection(projectGroup: ProjectGroup, totalGroupCount: num
     <div class="projects-group-title">
         <span data-drag-group>${projectGroup.groupName || "Unnamed Project Group"}</span>
         <div class="projects-group-actions right">
-            <span data-action="add">${getAddIcon()}</span>
+            <span data-action="add" title="Add Project">${getAddIcon()}</span>
         </div>
         <div class="projects-group-actions left">
             <!-- <span data-action="drag">${getDragIcon()}</span> -->
-            <span data-action="edit">${getEditIcon()}</span>
-            <span data-action="delete">${getDeleteIcon()}</span>
+            <span data-action="edit" title="Edit Project Group">${getEditIcon()}</span>
+            <span data-action="delete" title="Remove Project Group">${getDeleteIcon()}</span>
         </div>
     </div>
     <div class="projects-group-list">
@@ -104,8 +104,8 @@ function getProjectDiv(project: Project, infos: DashboardInfos) {
         <div class="project-border" style="${borderStyle}"></div>
         <div class="project-actions-wrapper">
             <div class="project-actions">
-                <span data-action="edit">${getEditIcon()}</span>
-                <span data-action="delete">${getDeleteIcon()}</span>
+                <span data-action="edit" title="Edit Project">${getEditIcon()}</span>
+                <span data-action="delete" title="Remove Project">${getDeleteIcon()}</span>
             </div>
         </div>
         <div class="fitty-container">
