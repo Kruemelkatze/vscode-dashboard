@@ -1,20 +1,20 @@
 [
     {
         "id": "yzv9sjuotjnrycgzh",
-        "groupName": "",
+        "groupName": "Private Projects",
         "projects": [
             {
-                "isGitRepo": false,
                 "id": "demofilesvc44mc73jxcctlvh",
                 "name": "Demo Files",
                 "path": "c:\\DemoFiles\\Demo-Files.code-workspace",
+                "isGitRepo": false,
                 "color": "var(--vscode-gitDecoration-conflictingResourceForeground)"
             },
             {
                 "id": "vscodedashboardjy1lcx5pujnrycxq5",
                 "name": "vscode-dashboard",
                 "path": "c:\\Users\\kruemelkatze\\projects\\very long path\\vscode-dashboard",
-                "isGitRepo": false,
+                "isGitRepo": true,
                 "color": "linear-gradient(to right,gold, darkorange)"
             },
             {
@@ -26,8 +26,8 @@
         ]
     },
     {
-        "id": "assetgenerationtynyf6b6rjrgtj19h",
-        "groupName": "AssetGeneration",
+        "id": "contributionstynyf6b6rjrgtj19h",
+        "groupName": "Remote Projects",
         "projects": [
             {
                 "id": "reactstarterlitesv0v3xzrujnrye3gd",

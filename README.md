@@ -1,19 +1,18 @@
 # vscode-dashboard
 
-**vscode-dashboard** is a Visual Studio Code extension that lets you organize your projects/workspaces in a speed-dial like manner. Pin your frequently visited folders and files onto a dashboard to access them quickly.
+**vscode-dashboard** is a Visual Studio Code extension that lets you organize your projects in a speed-dial like manner. Pin your frequently visited **folders**, **files** or **SSH remotes** onto a dashboard to access them quickly.
 
 ![demo-screenshot](screenshot.png)
 
 ## Usage
 
-The dashboard is a dedicated webview inside vscode that is opened when the welcome page is shown. It can also be opened via command. Clicking a project opens it in the current window, while strg+click opens it in a new window.
+The dashboard is a dedicated UI that can be opened using a command or ***CTRL + F1*** and configured to open automatically. Clicking a project opens it in the current window, while ***ctrl + click*** opens it in a new window.
 
-Adding a workspace or file (project) can be done via command or button. First a project type (folder or file/multi-workspace) has to be selected. You are then prompted to provide a name, path and an optional color. Projects can also be separated into **project groups**. When adding a new project, you are prompted to select an existing group or create a new one.
+Adding a project can be done via command or button. First a project type (folder or file/multi-workspace or SSH remote) has to be selected. You are then prompted to provide a name, path and an optional color. Projects can also be separated into **project groups**. When adding a new project, you are prompted to select an existing group or create a new one.
 
-Projects can be added, edited, deleted and reordered **directly on the dashboard**. For more control, you can also edit them manually by editing a JSON file.
+Projects and project groups can be added, edited, deleted and reordered **directly on the dashboard**. For manual control, you can also edit them  by editing a JSON file (using the ***Dashboard: Edit Projects*** command).
 
 ## Good to know
-
 * You can **edit** and **reorder** projects and project groups directly on the dashboard.
 * **Emojis** may (or may not, depending on your preference) be good icons for projects. You can add them by pressing WIN + . (under Windows) while naming the project.
 * **Gradients** can also be used as project color.

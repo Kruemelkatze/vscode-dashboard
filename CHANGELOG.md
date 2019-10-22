@@ -3,6 +3,7 @@ All notable changes to the "dashboard" extension will be documented in this file
 
 ## [1.5] t.b.d.
 ### Added
+- Support for [Remote Development Projects](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.vscode-remote-extensionpack).
 - Added config for startup behaviour.
 - Editing and rearranging projects groups directly on the dashboard.
 - Option for storing projects in the User Settings (to be synced via [Settings Sync](https://marketplace.visualstudio.com/items?itemName=Shan.code-settings-sync)).
