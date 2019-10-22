@@ -21,12 +21,15 @@ function sanitizeProjectGroups(projectGroups: ProjectGroup[]): ProjectGroup[] {
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~ GET Projects ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-export function getProjects(context: vscode.ExtensionContext): ProjectGroup[] {
+export function getProjects(context: vscode.ExtensionContext, noSanitize = false): ProjectGroup[] {
     var groups = useSettingsStorage() ?
         getProjectsFromSettings(context) :
         getProjectsFromGlobalState(context);
 
-    groups = sanitizeProjectGroups(groups);
+    if (!noSanitize) {
+        groups = sanitizeProjectGroups(groups);
+    }
+
     return groups;
 }
 
@@ -67,8 +70,10 @@ export function getProjectsGroup(context: vscode.ExtensionContext, projectGroupI
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~ SAVE Projects ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-export function saveProjects(context: vscode.ExtensionContext, projectGroups: ProjectGroup[]): Thenable<void> {
-    projectGroups = sanitizeProjectGroups(projectGroups);
+export function saveProjects(context: vscode.ExtensionContext, projectGroups: ProjectGroup[], noSanitize = false): Thenable<void> {
+    if (!noSanitize){
+        projectGroups = sanitizeProjectGroups(projectGroups);
+    }
 
     if (useSettingsStorage()) {
         return saveProjectsInSettings(context, projectGroups);
@@ -86,13 +91,13 @@ export async function addProjectGroup(context: vscode.ExtensionContext, groupNam
 
     let newProjectGroup = new ProjectGroup(groupName, projects);
     projectGroups.push(newProjectGroup);
-    await saveProjects(context, projectGroups);
+    await saveProjects(context, projectGroups, true);
     return newProjectGroup;
 }
 
 export async function addProject(context: vscode.ExtensionContext, project: Project, projectGroupId: string): Promise<ProjectGroup[]> {
     // Get project groups, default them to [] if there are no groups
-    var projectGroups = getProjects(context);
+    var projectGroups = getProjects(context, true);
     if (projectGroups == null) {
         projectGroups = [];
     }
