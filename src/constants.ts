@@ -12,6 +12,13 @@ export const FITTY_OPTIONS = {
     // minSize: '20', // Apparently, fitty has a problem with our setup and will overflow text if minSize is set...
 }
 
+export const USER_CANCELED = "CanceledByUser"; // A symbol would be nice, but throw new Error(Symbol) does not work
+export const ADD_NEW_PROJECT_TO_FRONT = false;
+
+export const SSH_REMOTE_PREFIX = "vscode-remote://ssh-remote+";
+export const REMOTE_REGEX = /^vscode-remote:\/\/[^\+]+\+/;
+export const SSH_REGEX = /^([\w\.\-]+\@)?[\w]+([\w\.\-]+[\w]+)?(?<folder>\/[\w\.\-\/~]*)*$/;
+
 export const StartupOptions = Object.freeze({
     always: "always",
     emptyWorkSpace: "empty workspace",
@@ -24,6 +31,6 @@ export const FixedColorOptions = Object.freeze({
     custom: 'Custom',
 });
 
-export const USER_CANCELED = "CanceledByUser"; // A symbol would be nice, but throw new Error(Symbol) does not work
-
-export const ADD_NEW_PROJECT_TO_FRONT = false;
+export const RelevantExtensions = Object.freeze({
+    remoteSSH: 'ms-vscode-remote.remote-ssh',
+});

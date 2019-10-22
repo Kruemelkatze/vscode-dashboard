@@ -1,5 +1,7 @@
 'use strict';
 
+import { SSH_REMOTE_PREFIX } from "./constants";
+
 export class ProjectGroup {
     id: string;
     groupName: string;
@@ -24,6 +26,14 @@ export class Project {
         this.name = name;
         this.path = path;
     }
+
+    getRemoteType() : ProjectRemoteType {
+        if (this.path && this.path.startsWith(SSH_REMOTE_PREFIX)){
+            return ProjectRemoteType.SSH;
+        }
+
+        return ProjectRemoteType.None;
+    }
 }
 
 export interface GroupOrder {
@@ -39,4 +49,9 @@ function generateRandomId(prepend: string = null) {
     }
 
     return prepend + Math.random().toString(36).substr(2, 9) + Date.now().toString(36);
+}
+
+export enum ProjectRemoteType {
+    None,
+    SSH,
 }

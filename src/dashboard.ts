@@ -1,14 +1,18 @@
 'use strict';
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { Project, GroupOrder, ProjectGroup } from './models';
+import { Project, GroupOrder, ProjectGroup, ProjectRemoteType } from './models';
 import { getProjects, addProject, removeProject, saveProjects, writeTextFile, getProject, addProjectGroup, getProjectsFlat, migrateDataIfNeeded, getProjectAndGroup, updateProject, getProjectsGroup, updateProjectGroup, removeProjectsGroup } from './projectService';
 import { getDashboardContent } from './webviewContent';
-import { USE_PROJECT_COLOR, PREDEFINED_COLORS, StartupOptions, USER_CANCELED, FixedColorOptions } from './constants';
+import { USE_PROJECT_COLOR, PREDEFINED_COLORS, StartupOptions, USER_CANCELED, FixedColorOptions, RelevantExtensions, SSH_REGEX, REMOTE_REGEX, SSH_REMOTE_PREFIX } from './constants';
 import { execSync } from 'child_process';
 
 export function activate(context: vscode.ExtensionContext) {
     var instance: vscode.WebviewPanel = null;
+
+    const relevantExtensionsInstalls = {
+        remoteSSH: false,
+    };
 
     const openCommand = vscode.commands.registerCommand('dashboard.open', () => {
         showDashboard();
@@ -35,6 +39,12 @@ export function activate(context: vscode.ExtensionContext) {
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~ Functions ~~~~~~~~~~~~~~~~~~~~~~~~~
     async function startUp() {
+        for (let exName in relevantExtensionsInstalls) {
+            let exId = RelevantExtensions[exName];
+            let installed = vscode.extensions.getExtension(exId) !== undefined;
+            relevantExtensionsInstalls[exName] = installed;
+        }
+
         let migrated = await migrateDataIfNeeded(context);
         if (migrated) {
             vscode.window.showInformationMessage("Migrated Dashboard Projects after changing Settings.");
@@ -111,14 +121,7 @@ export function activate(context: vscode.ExtensionContext) {
                             break;
                         }
 
-                        let uri = vscode.Uri.file(project.path);
-
-                        let currentPath = vscode.workspace.rootPath;
-                        if (currentPath != null && vscode.Uri.file(currentPath).path === uri.path) {
-                            vscode.window.showInformationMessage("Selected Project is already opened.");
-                        } else {
-                            await vscode.commands.executeCommand("vscode.openFolder", uri, newWindow);
-                        }
+                        await openProject(project, newWindow);                        
                         break;
                     case 'add-project':
                         projectGroupId = e.projectGroupId as string;
@@ -185,6 +188,34 @@ export function activate(context: vscode.ExtensionContext) {
 
         await removeProjectsGroup(context, projectGroupId);
         showDashboard();
+    }
+
+    async function openProject(project: Project, openInNewWindow: boolean): Promise<void> {
+        // project is parsed from JSON at runtime, so its not an instance of Project
+        let remoteType = Project.prototype.getRemoteType.call(project);
+        let projectPath = (project.path || '').trim();
+
+        let uri: vscode.Uri;
+        switch (remoteType) {
+            case ProjectRemoteType.None:
+                uri = vscode.Uri.file(projectPath);
+                await vscode.commands.executeCommand("vscode.openFolder", uri, openInNewWindow);
+                break;
+            case ProjectRemoteType.SSH:
+                let remotePathMatch = projectPath.replace(SSH_REMOTE_PREFIX, '').match(SSH_REGEX);
+                let hasRemoteFolder = remotePathMatch.groups.folder != null;
+
+                if (hasRemoteFolder) {
+                    uri = vscode.Uri.parse(projectPath);
+                    vscode.commands.executeCommand("vscode.openFolder", uri, openInNewWindow)
+                } else {
+                    vscode.commands.executeCommand("vscode.newWindow", {
+                        remoteAuthority: projectPath.replace("vscode-remote://", ""),
+                        reuseWindow: !openInNewWindow,
+                    });
+                }
+                break;
+        }
     }
 
     async function addProjectPerCommand(projectGroupId: string = null) {
@@ -265,11 +296,11 @@ export function activate(context: vscode.ExtensionContext) {
                 },
                 {
                     id: true,
-                    label: "Open Picker"
+                    label: "Edit Path"
                 },
             ]
             let updatePath = await vscode.window.showQuickPick(updatePathPicks, {
-                placeHolder: "Update Path?"
+                placeHolder: "Edit Path?"
             });
 
             if (updatePath == null){
@@ -354,8 +385,9 @@ export function activate(context: vscode.ExtensionContext) {
 
     async function queryProjectPath(defaultPath: string = null): Promise<string> {
         let projectTypePicks = [
-            { id: true, label: 'Folder Project' },
-            { id: false, label: 'File or Multi-Root Project' },
+            { id: 'dir', label: 'Folder Project' },
+            { id: 'file', label: 'File or Multi-Root Project' },
+            { id: 'ssh', label: 'SSH Target' },
         ];
 
         let selectedProjectTypePick = await vscode.window.showQuickPick(projectTypePicks, {
@@ -366,10 +398,25 @@ export function activate(context: vscode.ExtensionContext) {
             throw new Error(USER_CANCELED);
         }
 
-        let folderProject = selectedProjectTypePick.id;
+        if (defaultPath != null){
+            defaultPath = defaultPath.replace(REMOTE_REGEX, ''); // 'Trim vscode-remote://REMOTE_TYPE+'
+        }
 
+        switch(selectedProjectTypePick.id){
+            case 'dir':
+                return await getPathFromPicker(true, defaultPath);
+            case 'file':
+                return await getPathFromPicker(false, defaultPath);
+            case 'ssh':
+                return await getSSHPath(defaultPath);
+            default:
+                throw new Error(USER_CANCELED);
+        }
+    }
+
+    async function getPathFromPicker(folderProject: boolean, defaultPath: string = null): Promise<string> {
         var defaultUri: vscode.Uri = null;
-        if (defaultPath){
+        if (defaultPath) {
             defaultUri = vscode.Uri.parse(defaultPath);
         }
 
@@ -386,7 +433,24 @@ export function activate(context: vscode.ExtensionContext) {
             throw new Error(USER_CANCELED);
         }
 
-        return selectedProjectUris[0].fsPath;
+        return selectedProjectUris[0].fsPath.trim();
+    }
+
+    async function getSSHPath(defaultPath: string = null): Promise<string> {
+        let remotePath = await vscode.window.showInputBox({
+            placeHolder: 'user@target.xyz/home/optional-folder',
+            value: defaultPath || undefined,
+            ignoreFocusOut: true,
+            prompt: "SSH remote, target folder is optional",
+            validateInput: (val: string) => SSH_REGEX.test(val) ? '' : 'A valid SSH Target must be proviced',
+        });
+
+        if (!remotePath) {
+            throw new Error(USER_CANCELED);
+        }
+
+        remotePath = `${SSH_REMOTE_PREFIX}${remotePath}`;
+        return remotePath.trim();
     }
 
     async function queryProjectColor(projectTemplate: Project = null): Promise<string> {
@@ -642,8 +706,15 @@ export function activate(context: vscode.ExtensionContext) {
     }
 
     function getLastPartOfPath(path: string): string {
-        // get last folder of filename of path
-        return path ? path.replace(/^[\\\/]|[\\\/]$/g, '').replace(/^.*[\\\/]/, '') : "";
+        if (!path){
+            return "";
+        }
+        // get last folder of filename of path/remote
+        path = path.replace(REMOTE_REGEX, ''); // Remove remote prefix
+        path = path.replace(/^\w+\@/, ''); // Remove Username
+        let lastPart = path.replace(/^[\\\/]|[\\\/]$/g, '').replace(/^.*[\\\/]/, '');
+
+        return lastPart;
     }
 }
 
