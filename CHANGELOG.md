@@ -1,17 +1,20 @@
 # Change Log
 All notable changes to the "dashboard" extension will be documented in this file. It follows the [Keep a Changelog](http://keepachangelog.com/) recommendations.
 
-## [1.5] t.b.d.
+## [1.5] 2019-10-22
 ### Added
 - Support for [Remote Development Projects](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.vscode-remote-extensionpack).
-- Added config for startup behaviour.
+- Added config for startup behaviour (always, empty workspace, never).
 - Editing and rearranging projects groups directly on the dashboard.
 - Option for storing projects in the User Settings (to be synced via [Settings Sync](https://marketplace.visualstudio.com/items?itemName=Shan.code-settings-sync)).
+- Setting for removing the big '+' button, but added a smaller one next to the project group name.
 
 ### Changed
 - Default option for color is now 'Random', as most people use colors. :-)
 - Editing a project via UI now also prompts for editing its path.
 - Reduced number of message from the extension.
+- Temporary file for editing is now safely placed in the [Global storage path](https://code.visualstudio.com/updates/v1_31#_global-storage-path). This also removed the need for the custom temp file location setting.
+- Indicated Dashboard as "ui"-type extension, so that it works without installing if a remote workspace (SSH, WSL, Container) is opened in VSCode.
 
 ### Fixed
 - Fixed some exceptions thrown when user cancelled any input (by pressing esc or unfocusing the window).
