@@ -1,5 +1,6 @@
 'use strict';
 
+import * as vscode from 'vscode';
 import { SSH_REMOTE_PREFIX } from "./constants";
 
 export class ProjectGroup {
@@ -36,9 +37,8 @@ export class Project {
     }
 }
 
-export interface GroupOrder {
-    groupId: string;
-    projectIds: string[];
+export function getRemoteType(project: Project): ProjectRemoteType {
+    return Project.prototype.getRemoteType.call(project);
 }
 
 function generateRandomId(prepend: string = null) {
@@ -49,6 +49,16 @@ function generateRandomId(prepend: string = null) {
     }
 
     return prepend + Math.random().toString(36).substr(2, 9) + Date.now().toString(36);
+}
+
+export interface GroupOrder {
+    groupId: string;
+    projectIds: string[];
+}
+
+export interface DashboardInfos {
+    relevantExtensionsInstalls: { remoteSSH },
+    config: vscode.WorkspaceConfiguration,
 }
 
 export enum ProjectRemoteType {

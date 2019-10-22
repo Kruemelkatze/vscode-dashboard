@@ -1,11 +1,9 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { Project, ProjectGroup } from "./models";
-import { FITTY_OPTIONS } from './constants';
+import { Project, ProjectGroup, getRemoteType, ProjectRemoteType, DashboardInfos } from "./models";
+import { FITTY_OPTIONS, REMOTE_REGEX } from './constants';
 
-export function getDashboardContent(context: vscode.ExtensionContext, webviewPanel: vscode.WebviewPanel, projectGroups: ProjectGroup[]): string {
-    var config = vscode.workspace.getConfiguration('dashboard')
-    
+export function getDashboardContent(context: vscode.ExtensionContext, webviewPanel: vscode.WebviewPanel, projectGroups: ProjectGroup[], infos: DashboardInfos): string {
     var stylesPath = getMediaResource(context, webviewPanel, 'styles.css');
     var fittyPath = getMediaResource(context, webviewPanel, 'fitty.min.js');
     var dragulaPath = getMediaResource(context, webviewPanel, 'dragula.min.js');
@@ -24,15 +22,15 @@ export function getDashboardContent(context: vscode.ExtensionContext, webviewPan
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link rel="stylesheet" type="text/css" href="${stylesPath}">
         <title>Dashboard</title>
-        ${getCustomStyle(config)}
+        ${getCustomStyle(infos.config)}
     </head>
     <body>
-        <div class="projects-wrapper ${!config.displayProjectPath ? 'hide-project-path' : ''}">
+        <div class="projects-wrapper ${!infos.config.displayProjectPath ? 'hide-project-path' : ''}">
             ${groups.length ?
-                groups.map(group => getProjectGroupSection(group, groups.length, config)).join('\n')
-                :
-                getNoProjectsDiv()
-            }
+            groups.map(group => getProjectGroupSection(group, groups.length, infos)).join('\n')
+            :
+            getNoProjectsDiv()
+        }
 
             ${getTempProjectGroupSection(groups.length)}
         </div>
@@ -53,10 +51,10 @@ export function getDashboardContent(context: vscode.ExtensionContext, webviewPan
 </html>`;
 }
 
-function getProjectGroupSection(projectGroup: ProjectGroup, totalGroupCount: number, config : vscode.WorkspaceConfiguration) {
+function getProjectGroupSection(projectGroup: ProjectGroup, totalGroupCount: number, infos: DashboardInfos) {
     // Apply changes to HTML here also to getTempProjectGroupSection
 
-    var showAddButton = config.showAddProjectButtonTile;
+    var showAddButton = infos.config.showAddProjectButtonTile;
 
     return `
 <div class="projects-group" data-group-id="${projectGroup.id}">
@@ -72,7 +70,7 @@ function getProjectGroupSection(projectGroup: ProjectGroup, totalGroupCount: num
         </div>
     </div>
     <div class="projects-group-list">
-        ${projectGroup.projects.map(getProjectDiv).join('\n')}
+        ${projectGroup.projects.map(p => getProjectDiv(p, infos)).join('\n')}
         ${showAddButton ? getAddProjectDiv(projectGroup.id) : ""}
     </div>       
 </div>`;
@@ -92,8 +90,13 @@ function getTempProjectGroupSection(totalGroupCount: number) {
 </div>`;
 }
 
-function getProjectDiv(project: Project) {
+function getProjectDiv(project: Project, infos: DashboardInfos) {
     var borderStyle = `background: ${project.color};`
+    var remoteType = getRemoteType(project);
+    var trimmedPath = (project.path || '').replace(REMOTE_REGEX, '');
+
+    var isRemote = remoteType !== ProjectRemoteType.None;
+    var remoteExError = isRemote && !infos.relevantExtensionsInstalls.remoteSSH;
 
     return `
 <div class="project-container">
@@ -111,8 +114,9 @@ function getProjectDiv(project: Project) {
             </h2>
         </div>
         <p class="project-path-info">
+            ${isRemote ? `<span class="remote-icon ${remoteExError ? 'error-icon' : ''}" title="${remoteExError ? 'Remote Development extension is not installed' : 'Remote Project'}">${getRemoteIcon()}</span>` : ''}
             ${project.isGitRepo ? `<span class="git-icon" title="Git Repository">${getGitSvgIcon()}</span>` : ''}
-            <span class="project-path" title="${project.path}">${project.path}</span>
+            <span class="project-path" title="${trimmedPath}">${trimmedPath}</span>
         </p>
     </div>
 </div>`
@@ -298,7 +302,7 @@ window.onload = () => {
             groupOrders,
         });
     }
-};`;    
+};`;
 }
 
 // This was way easier to include and style than a file
@@ -349,9 +353,17 @@ function getAddIcon() {
 `;
 }
 
+function getRemoteIcon() {
+    return `
+<svg viewBox="0 0 640 512">
+    <path d="M257.981 272.971L63.638 467.314c-9.373 9.373-24.569 9.373-33.941 0L7.029 444.647c-9.357-9.357-9.375-24.522-.04-33.901L161.011 256 6.99 101.255c-9.335-9.379-9.317-24.544.04-33.901l22.667-22.667c9.373-9.373 24.569-9.373 33.941 0L257.981 239.03c9.373 9.372 9.373 24.568 0 33.941zM640 456v-32c0-13.255-10.745-24-24-24H312c-13.255 0-24 10.745-24 24v32c0 13.255 10.745 24 24 24h304c13.255 0 24-10.745 24-24z"></path>
+</svg>
+`;
+}
+
 function getMediaResource(context: vscode.ExtensionContext, webviewPanel: vscode.WebviewPanel, name: string) {
     let resource = vscode.Uri.file(path.join(context.extensionPath, 'media', name));
     resource = webviewPanel.webview.asWebviewUri(resource);
-    
+
     return resource;
 }

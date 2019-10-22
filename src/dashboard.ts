@@ -1,17 +1,21 @@
 'use strict';
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { Project, GroupOrder, ProjectGroup, ProjectRemoteType } from './models';
+import { Project, GroupOrder, ProjectGroup, ProjectRemoteType, getRemoteType, DashboardInfos } from './models';
 import { getProjects, addProject, removeProject, saveProjects, writeTextFile, getProject, addProjectGroup, getProjectsFlat, migrateDataIfNeeded, getProjectAndGroup, updateProject, getProjectsGroup, updateProjectGroup, removeProjectsGroup } from './projectService';
 import { getDashboardContent } from './webviewContent';
 import { USE_PROJECT_COLOR, PREDEFINED_COLORS, StartupOptions, USER_CANCELED, FixedColorOptions, RelevantExtensions, SSH_REGEX, REMOTE_REGEX, SSH_REMOTE_PREFIX } from './constants';
 import { execSync } from 'child_process';
+import { lstatSync } from 'fs';
 
 export function activate(context: vscode.ExtensionContext) {
     var instance: vscode.WebviewPanel = null;
 
-    const relevantExtensionsInstalls = {
-        remoteSSH: false,
+    const dashboardInfos: DashboardInfos = {
+        relevantExtensionsInstalls: {
+            remoteSSH: false,
+        },
+        config: vscode.workspace.getConfiguration('dashboard'),
     };
 
     const openCommand = vscode.commands.registerCommand('dashboard.open', () => {
@@ -39,10 +43,10 @@ export function activate(context: vscode.ExtensionContext) {
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~ Functions ~~~~~~~~~~~~~~~~~~~~~~~~~
     async function startUp() {
-        for (let exName in relevantExtensionsInstalls) {
+        for (let exName in dashboardInfos.relevantExtensionsInstalls) {
             let exId = RelevantExtensions[exName];
             let installed = vscode.extensions.getExtension(exId) !== undefined;
-            relevantExtensionsInstalls[exName] = installed;
+            dashboardInfos.relevantExtensionsInstalls[exName] = installed;
         }
 
         let migrated = await migrateDataIfNeeded(context);
@@ -54,8 +58,7 @@ export function activate(context: vscode.ExtensionContext) {
     }
 
     function showDashboardOnOpenIfNeeded() {
-        var config = vscode.workspace.getConfiguration('dashboard');
-        var { openOnStartup } = config;
+        var { openOnStartup } = dashboardInfos.config;
 
         var open = false;
 
@@ -86,7 +89,7 @@ export function activate(context: vscode.ExtensionContext) {
         var projects = getProjects(context);
 
         if (instance) {
-            instance.webview.html = getDashboardContent(context, instance, projects);
+            instance.webview.html = getDashboardContent(context, instance, projects, dashboardInfos);
             instance.reveal(columnToShowIn);
         } else {
             var panel = vscode.window.createWebviewPanel(
@@ -102,7 +105,7 @@ export function activate(context: vscode.ExtensionContext) {
             );
             panel.iconPath = vscode.Uri.file("");
 
-            panel.webview.html = getDashboardContent(context, panel, projects);
+            panel.webview.html = getDashboardContent(context, panel, projects, dashboardInfos);
 
             // Reset when the current panel is closed
             panel.onDidDispose(() => {
@@ -192,7 +195,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     async function openProject(project: Project, openInNewWindow: boolean): Promise<void> {
         // project is parsed from JSON at runtime, so its not an instance of Project
-        let remoteType = Project.prototype.getRemoteType.call(project);
+        let remoteType = getRemoteType(project);
         let projectPath = (project.path || '').trim();
 
         let uri: vscode.Uri;
@@ -387,7 +390,7 @@ export function activate(context: vscode.ExtensionContext) {
         let projectTypePicks = [
             { id: 'dir', label: 'Folder Project' },
             { id: 'file', label: 'File or Multi-Root Project' },
-            { id: 'ssh', label: 'SSH Target' },
+            { id: 'ssh', label: `SSH Target ${!dashboardInfos.relevantExtensionsInstalls.remoteSSH ? '(Remote Development extension is not installed)' : ''}` },
         ];
 
         let selectedProjectTypePick = await vscode.window.showQuickPick(projectTypePicks, {
@@ -692,7 +695,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     function isFolderGitRepo(fPath: string) {
         try {
-            fPath = path.dirname(fPath);
+            fPath = lstatSync(fPath).isDirectory() ? fPath : path.dirname(fPath);
             var test = execSync(`cd ${fPath} && git rev-parse --is-inside-work-tree`, { encoding: 'utf8' });
             return !!test;
         } catch (e) {
