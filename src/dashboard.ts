@@ -169,8 +169,14 @@ export function activate(context: vscode.ExtensionContext) {
             value: group.groupName || undefined,
             valueSelection: group.groupName ? [0, group.groupName.length] : undefined,
             placeHolder: 'Project Group Name',
-            ignoreFocusOut: true
+            ignoreFocusOut: true,
+            validateInput:  (val: string) => val ? '' : 'A Group Name must be provided.',
         });
+
+        if (groupName == null) {
+            //throw new Error(USER_CANCELED);
+            return
+        }
 
         group.groupName = groupName;
         await updateProjectGroup(context, projectGroupId, group);
@@ -372,13 +378,15 @@ export function activate(context: vscode.ExtensionContext) {
 
         projectGroupId = selectedProjectGroupPick.id;
         if (projectGroupId === 'Add') {
-            // If there is no default group, allow name to be empty
-            let validateInput = projectGroups.length === 0 ? undefined : (val: string) => val ? '' : 'A Group Name must be provided.';
             let newGroupName = await vscode.window.showInputBox({
                 placeHolder: 'New Project Group Name',
                 ignoreFocusOut: true,
-                validateInput,
+                validateInput:  (val: string) => val ? '' : 'A Group Name must be provided.',
             });
+
+            if (newGroupName == null) {
+                throw new Error(USER_CANCELED);
+            }
 
             projectGroupId = (await addProjectGroup(context, newGroupName)).id;
         }

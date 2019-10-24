@@ -1,6 +1,13 @@
 # Change Log
 All notable changes to the "dashboard" extension will be documented in this file. It follows the [Keep a Changelog](http://keepachangelog.com/) recommendations.
 
+## [1.5.1] 2019-10-24
+### Changed
+- Project group name is now mandatory, as the group name is always displayed. So enforcing a name makes sense.
+
+### Fixed
+- Escape/Unfocus on entering group name now cancels the add/edit action instead of having an unnamed group.
+
 ## [1.5] 2019-10-22
 ### Added
 - Support for [Remote Development Projects](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.vscode-remote-extensionpack).
