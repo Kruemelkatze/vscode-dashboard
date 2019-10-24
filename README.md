@@ -15,7 +15,7 @@ Projects and project groups can be added, edited, deleted and reordered **direct
 ## Good to know
 * You can **edit** and **reorder** projects and project groups directly on the dashboard.
 * **Emojis** may (or may not, depending on your preference) be good icons for projects. You can add them by pressing WIN + . (under Windows) while naming the project.
-* **Gradients** can also be used as project color.
+* **Gradients** can also be used as project color. You can add them using CSS Gradient functions like linear-gradient and radial-gradient.
 * Only **colors** defined by the theme were used. So the dashboard should always blend nicely into your VSCode design. If not, you can customize them in the settings.
 * vscode-dashboard automatically detects if a project is a **Git repository**. If so, this is indicated by an icon.
 
