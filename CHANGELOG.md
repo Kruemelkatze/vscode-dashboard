@@ -1,6 +1,10 @@
 # Change Log
 All notable changes to the "dashboard" extension will be documented in this file. It follows the [Keep a Changelog](http://keepachangelog.com/) recommendations.
 
+## [1.5.2] 2019-10-25
+### Fixed
+- Dashboard settings are now correctly fetched without restarting.
+
 ## [1.5.1] 2019-10-24
 ### Changed
 - Project group name is now mandatory, as the group name is always displayed. So enforcing a name makes sense.

@@ -15,7 +15,7 @@ export function activate(context: vscode.ExtensionContext) {
         relevantExtensionsInstalls: {
             remoteSSH: false,
         },
-        config: vscode.workspace.getConfiguration('dashboard'),
+        get config() { return vscode.workspace.getConfiguration('dashboard') },
     };
 
     const openCommand = vscode.commands.registerCommand('dashboard.open', () => {
