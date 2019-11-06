@@ -192,7 +192,7 @@ function onInsideProjectClick(e, projectDiv) {
     if (onTriggerProjectAction(e.target, dataId))
         return;
 
-    var newWindow = !!e.ctrlKey;
+    var newWindow = e.ctrlKey || e.metaKey;
     onProjectClicked(dataId, newWindow);
 }
 
