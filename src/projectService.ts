@@ -1,7 +1,6 @@
 "use strict";
 import * as fs from 'fs';
 import * as path from 'path';
-import * as mkdirp from 'mkdirp';
 import * as vscode from 'vscode';
 
 import { Project, ProjectGroup } from "./models";
@@ -71,7 +70,7 @@ export function getProjectsGroup(context: vscode.ExtensionContext, projectGroupI
 // ~~~~~~~~~~~~~~~~~~~~~~~~~ SAVE Projects ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 export function saveProjects(context: vscode.ExtensionContext, projectGroups: ProjectGroup[], noSanitize = false): Thenable<void> {
-    if (!noSanitize){
+    if (!noSanitize) {
         projectGroups = sanitizeProjectGroups(projectGroups);
     }
 
@@ -195,30 +194,19 @@ export function deleteFile(filePath: string) {
     });
 }
 
-export function writeTextFile(filePath: string, data: string): Promise<void> {
-    return writeFile(filePath, data, 'utf8');
+export function writeTextFile(filePath: string, data: string) {
+    writeFile(filePath, data, 'utf8');
 }
 
-function writeFile(filePath: string, data: any, encoding: string = undefined): Promise<void> {
+function writeFile(filePath: string, data: any, encoding: string = undefined) {
     filePath = path.normalize(filePath);
-    var folder = path.dirname(filePath);
 
-    return new Promise((resolve, reject) => {
-        mkdirp(folder, (err) => {
-            if (err) {
-                console.error(err);
-                reject(err);
-            } else {
-                try {
-                    fs.writeFileSync(filePath, data, encoding);
-                    resolve();
-                } catch (error) {
-                    console.error(error);
-                    reject(error);
-                }
-            }
-        });
-    });
+    var dir = path.dirname(filePath);
+    if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir);
+    }
+
+    fs.writeFileSync(filePath, data, encoding);
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~ STORAGE ~~~~~~~~~~~~~~~~~~~~~~~~~

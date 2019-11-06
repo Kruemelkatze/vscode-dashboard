@@ -53,7 +53,7 @@ export function activate(context: vscode.ExtensionContext) {
         if (migrated) {
             vscode.window.showInformationMessage("Migrated Dashboard Projects after changing Settings.");
         }
-    
+
         showDashboardOnOpenIfNeeded();
     }
 
@@ -62,7 +62,7 @@ export function activate(context: vscode.ExtensionContext) {
 
         var open = false;
 
-        switch(openOnStartup) {
+        switch (openOnStartup) {
             case StartupOptions.always:
                 open = true;
                 break;
@@ -78,7 +78,7 @@ export function activate(context: vscode.ExtensionContext) {
                 open = noOpenEditorsOrWorkspaces;
                 break;
         }
-    
+
         if (open) {
             showDashboard();
         }
@@ -124,7 +124,7 @@ export function activate(context: vscode.ExtensionContext) {
                             break;
                         }
 
-                        await openProject(project, newWindow);                        
+                        await openProject(project, newWindow);
                         break;
                     case 'add-project':
                         projectGroupId = e.projectGroupId as string;
@@ -170,7 +170,7 @@ export function activate(context: vscode.ExtensionContext) {
             valueSelection: group.groupName ? [0, group.groupName.length] : undefined,
             placeHolder: 'Project Group Name',
             ignoreFocusOut: true,
-            validateInput:  (val: string) => val ? '' : 'A Group Name must be provided.',
+            validateInput: (val: string) => val ? '' : 'A Group Name must be provided.',
         });
 
         if (groupName == null) {
@@ -180,10 +180,10 @@ export function activate(context: vscode.ExtensionContext) {
 
         group.groupName = groupName;
         await updateProjectGroup(context, projectGroupId, group);
-        
+
         showDashboard();
     }
-    
+
     async function deleteProjectsGroup(projectGroupId: string) {
         var group = getProjectsGroup(context, projectGroupId);
         if (group == null) {
@@ -234,13 +234,13 @@ export function activate(context: vscode.ExtensionContext) {
             [project, selectedGroupId] = await queryProjectFields(projectGroupId);
             await addProject(context, project, selectedGroupId);
         } catch (error) {
-            if (error.message !== USER_CANCELED){
+            if (error.message !== USER_CANCELED) {
                 vscode.window.showErrorMessage(`An error occured while adding the project.`);
             }
-            
+
             return;
         }
-        
+
         showDashboard();
     }
 
@@ -255,17 +255,17 @@ export function activate(context: vscode.ExtensionContext) {
             [editedProject, selectedGroupId] = await queryProjectFields(group.id, project);
             await updateProject(context, projectId, editedProject);
         } catch (error) {
-            if (error.message !== USER_CANCELED){
+            if (error.message !== USER_CANCELED) {
                 vscode.window.showErrorMessage(`An error occured while updating project ${project.name}.`);
-            }      
-            
+            }
+
             return;
         }
 
         showDashboard();
     }
 
-    async function queryProjectFields(projectGroupId: string = null, projectTemplate: Project = null) : Promise<[Project, string]> {   
+    async function queryProjectFields(projectGroupId: string = null, projectTemplate: Project = null): Promise<[Project, string]> {
         // For editing a project: Ignore Group selection and take it from template
         var selectedGroupId: string, projectPath: string;
         var isEditing = projectTemplate != null && projectGroupId != null;
@@ -282,7 +282,7 @@ export function activate(context: vscode.ExtensionContext) {
 
         var defaultProjectName = projectTemplate ? projectTemplate.name : null;
         defaultProjectName = defaultProjectName || getLastPartOfPath(projectPath).replace(/\.code-workspace$/g, '');
-    
+
         // Name
         var projectName = await vscode.window.showInputBox({
             value: defaultProjectName || undefined,
@@ -301,7 +301,7 @@ export function activate(context: vscode.ExtensionContext) {
             let updatePathPicks = [
                 {
                     id: false,
-                    label: "Keep Path", 
+                    label: "Keep Path",
                 },
                 {
                     id: true,
@@ -312,7 +312,7 @@ export function activate(context: vscode.ExtensionContext) {
                 placeHolder: "Edit Path?"
             });
 
-            if (updatePath == null){
+            if (updatePath == null) {
                 throw new Error(USER_CANCELED);
             }
 
@@ -322,7 +322,7 @@ export function activate(context: vscode.ExtensionContext) {
         }
 
         // Color
-        var color = await queryProjectColor(projectTemplate);        
+        var color = await queryProjectColor(projectTemplate);
 
         //Test if Git Repo
         let isGitRepo = isFolderGitRepo(projectPath);
@@ -372,7 +372,7 @@ export function activate(context: vscode.ExtensionContext) {
             placeHolder: "Project Group"
         });
 
-        if (selectedProjectGroupPick == null){
+        if (selectedProjectGroupPick == null) {
             throw new Error(USER_CANCELED);
         }
 
@@ -381,7 +381,7 @@ export function activate(context: vscode.ExtensionContext) {
             let newGroupName = await vscode.window.showInputBox({
                 placeHolder: 'New Project Group Name',
                 ignoreFocusOut: true,
-                validateInput:  (val: string) => val ? '' : 'A Group Name must be provided.',
+                validateInput: (val: string) => val ? '' : 'A Group Name must be provided.',
             });
 
             if (newGroupName == null) {
@@ -409,11 +409,11 @@ export function activate(context: vscode.ExtensionContext) {
             throw new Error(USER_CANCELED);
         }
 
-        if (defaultPath != null){
+        if (defaultPath != null) {
             defaultPath = defaultPath.replace(REMOTE_REGEX, ''); // 'Trim vscode-remote://REMOTE_TYPE+'
         }
 
-        switch(selectedProjectTypePick.id){
+        switch (selectedProjectTypePick.id) {
             case 'dir':
                 return await getPathFromPicker(true, defaultPath);
             case 'file':
@@ -470,10 +470,10 @@ export function activate(context: vscode.ExtensionContext) {
             return null;
         }
 
-        if (projectTemplate != null){
+        if (projectTemplate != null) {
             color = projectTemplate.color;
         }
-        
+
         // Colors are keyed by label, not by value
         // I tried to key them by their value, but the selected QuickPick was always undefined,
         // even when sanitizing the values (to alphanumeric only)
@@ -507,7 +507,7 @@ export function activate(context: vscode.ExtensionContext) {
             placeHolder: 'Project Color',
         });
 
-        if (selectedColorPick == null){
+        if (selectedColorPick == null) {
             throw new Error(USER_CANCELED);
         }
 
@@ -518,7 +518,7 @@ export function activate(context: vscode.ExtensionContext) {
                     ignoreFocusOut: true,
                     prompt: "Any color name, value or gradient.",
                 });
-               
+
                 color = (customColor || "").replace(/[;"]/g, "").trim();
                 break;
             case FixedColorOptions.none:
@@ -558,10 +558,10 @@ export function activate(context: vscode.ExtensionContext) {
         var projects = getProjects(context);
         const tempFilePath = getProjectsTempFilePath();
         try {
-            await writeTextFile(tempFilePath, JSON.stringify(projects, null, 4));
-        } catch(e) {
+            writeTextFile(tempFilePath, JSON.stringify(projects, null, 4));
+        } catch (e) {
             vscode.window.showErrorMessage(`Can not write temporary project file under ${tempFilePath}
-            ${e.message ? ': ' + e.message : '.' }`);
+            ${e.message ? ': ' + e.message : '.'}`);
             return;
         }
 
@@ -587,7 +587,7 @@ export function activate(context: vscode.ExtensionContext) {
                 var jsonIsInvalid = false;
                 if (Array.isArray(updatedProjectGroups)) {
                     for (let group of updatedProjectGroups) {
-                        if (group.name && ! group.groupName) {
+                        if (group.name && !group.groupName) {
                             // One of the testers produced a group with any groupName
                             // We could not reproduce that, but this may be a result from updating legacy groups
                             // This should fix that issue
@@ -661,17 +661,17 @@ export function activate(context: vscode.ExtensionContext) {
         // Map projects by id for easier access
         var projectMap = new Map<string, Project>();
         for (let group of projectGroups) {
-            if (group.projects == null){
+            if (group.projects == null) {
                 continue;
             }
-            
+
             for (let project of group.projects) {
                 projectMap.set(project.id, project);
             }
         }
 
         // Build new, reordered projects group array
-        var reorderedProjectGroups: ProjectGroup[] = [];        
+        var reorderedProjectGroups: ProjectGroup[] = [];
         for (let { groupId, projectIds } of groupOrders) {
             let group = projectGroups.find(g => g.id === groupId);
             if (group == null) {
@@ -686,7 +686,7 @@ export function activate(context: vscode.ExtensionContext) {
         showDashboard();
     }
 
-    async function deleteProject(projectId: string){
+    async function deleteProject(projectId: string) {
         var project = getProject(context, projectId);
         if (project == null) {
             return;
@@ -717,7 +717,7 @@ export function activate(context: vscode.ExtensionContext) {
     }
 
     function getLastPartOfPath(path: string): string {
-        if (!path){
+        if (!path) {
             return "";
         }
         // get last folder of filename of path/remote
