@@ -1,6 +1,13 @@
 # Change Log
 All notable changes to the "dashboard" extension will be documented in this file. It follows the [Keep a Changelog](http://keepachangelog.com/) recommendations.
 
+## [1.5.3] 2019-11-06
+### Fixed
+- Cmd + click for opening in new window on Mac. 
+
+### Internal
+- Extension package is now significantly smaller.
+
 ## [1.5.2] 2019-10-25
 ### Fixed
 - Dashboard settings are now correctly fetched without restarting.
