@@ -1,7 +1,7 @@
 .vscode/**
 .vscode-test/**
-out/test/**
-out/**/*.map
+out/**
+dist/**/*.map
 src/**
 gulpfile.js
 .gitignore
@@ -10,3 +10,4 @@ vsc-extension-quickstart.md
 tslint.json
 DemoProjects.json
 media/*.scss
+webpack.config.json
