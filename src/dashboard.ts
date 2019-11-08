@@ -236,6 +236,7 @@ export function activate(context: vscode.ExtensionContext) {
         } catch (error) {
             if (error.message !== USER_CANCELED) {
                 vscode.window.showErrorMessage(`An error occured while adding the project.`);
+                throw error; // Rethrow error to make vscode log it
             }
 
             return;
