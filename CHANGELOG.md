@@ -1,6 +1,10 @@
 # Change Log
 All notable changes to the "dashboard" extension will be documented in this file. It follows the [Keep a Changelog](http://keepachangelog.com/) recommendations.
 
+## [1.5.5] 2019-11-08
+### Fixed
+- Fixed all css transitions firing on opening dashboard, triggered by a bug in the Chromium version used by VSCode 1.40.0.
+
 ## [1.5.4] 2019-11-08
 ### Fixed
 - Fixed error on opening file/folder dialog on VSCode 1.40.0

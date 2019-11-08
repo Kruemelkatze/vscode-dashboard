@@ -24,7 +24,7 @@ export function getDashboardContent(context: vscode.ExtensionContext, webviewPan
         <title>Dashboard</title>
         ${getCustomStyle(infos.config)}
     </head>
-    <body>
+    <body class="preload">
         <div class="projects-wrapper ${!infos.config.displayProjectPath ? 'hide-project-path' : ''}">
             ${groups.length ?
             groups.map(group => getProjectGroupSection(group, groups.length, infos)).join('\n')
@@ -266,6 +266,8 @@ document
 function dragAndDropScripts(projectsContainerSelector: string, projectsGroupsContainerSelector: string) {
     return `
 window.onload = () => {
+    document.body.classList.remove("preload");
+
     var projectsContainers = document.querySelectorAll('${projectsContainerSelector}');
     var projectDrake = dragula([].slice.call(projectsContainers), {
         moves: function (el, source, handle, sibling) {

@@ -1,4 +1,4 @@
-@import '../node_modules/dragula/dist/dragula.min.css';
+@import "../node_modules/dragula/dist/dragula.min.css";
 
 // MIXINS
 @mixin actions($size: 1em, $spacing: 0.3em) {
@@ -7,7 +7,7 @@
         fill: var(--dashboard-foreground);
         margin-right: $spacing;
     }
-    
+
     :hover > svg {
         filter: brightness(150%);
     }
@@ -37,26 +37,32 @@ $projectIconSize: 20px;
 
 body {
     user-select: none;
+
+    // See https://stackoverflow.com/questions/14389566/stop-css-transition-from-firing-on-page-load
+    // Suggested fixes with css preload or <script> </script> do not work, as vscode injects javascript directly under <head>
+    &.preload * {
+        transition: none !important;
+    }
 }
 
 // RULES
 
-.projects-group {    
+.projects-group {
     margin-top: $defaultPadding * 1.5;
 
     &.temp-group {
         pointer-events: none;
         opacity: 0;
-        transition: opacity ease-in-out 200ms; 
+        transition: opacity ease-in-out 200ms;
 
         .drop-signal {
             width: $columnWidth - 19px;
             align-self: stretch;
             margin-top: $defaultPadding;
-            background:  var(--dashboard-project-card-bg);
+            background: var(--dashboard-project-card-bg);
             opacity: 0.2;
 
-            &:not(:only-child){
+            &:not(:only-child) {
                 display: none;
             }
         }
@@ -79,7 +85,7 @@ body {
     }
 
     .projects-group-actions {
-        transition: opacity 200ms ease-in-out 0.5s;     
+        transition: opacity 200ms ease-in-out 0.5s;
         opacity: 0;
         pointer-events: none;
 
@@ -110,8 +116,9 @@ body {
     }
 }
 
-@if($useAddProjectOpacity) {
-    .projects-group:hover .add-project, .projects-group-title:hover + .projects-group .add-project{
+@if ($useAddProjectOpacity) {
+    .projects-group:hover .add-project,
+    .projects-group-title:hover + .projects-group .add-project {
         opacity: 0.6;
     }
 }
@@ -124,7 +131,6 @@ body {
         width: $columnWidth / 2;
     }
 }
-
 
 body .project {
     cursor: pointer;
@@ -197,23 +203,24 @@ body .project {
             fill: var(--vscode-gitDecoration-deletedResourceForeground);
         }
     }
-    
+
     .git-icon {
-        @extend .project-icon;        
+        @extend .project-icon;
         margin: -2px 6px -4px 0;
     }
 
     .remote-icon {
-        @extend .project-icon;        
+        @extend .project-icon;
         margin: 0 6px -4px 0;
     }
 
-    &.add-project, &.no-projects {
+    &.add-project,
+    &.no-projects {
         min-height: 96px;
         background: none;
         font-size: 1.5em;
         opacity: if($useAddProjectOpacity, 0, 0.6);
-        transition: opacity ease-in-out 100ms;     
+        transition: opacity ease-in-out 100ms;
 
         &:hover {
             opacity: 1;
@@ -235,7 +242,7 @@ body .project {
 
     .project-actions {
         margin-top: calc(-2em - #{$borderTopSize});
-        transition: margin-top linear 0.2s;
+        transition: margin-top ease-in-out 0.2s;
         transition-delay: 0.5s;
 
         @include actions(1.2em);
@@ -246,11 +253,10 @@ body .project {
     }
 }
 
-
 // CUSTOM CONFIGURATION
 .hide-project-path .project {
     padding: (1.5 * $defaultPadding) $defaultPadding;
-    
+
     .project-path-info {
         display: none;
     }
@@ -272,9 +278,10 @@ body .project {
         cursor: grabbing !important;
     }
 
-    .project-actions-wrapper, .projects-group-actions {
+    .project-actions-wrapper,
+    .projects-group-actions {
         display: none !important;
-    }    
+    }
 }
 
 .project-dragging .projects-group.temp-group {
