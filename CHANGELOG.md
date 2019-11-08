@@ -1,7 +1,7 @@
 # Change Log
 All notable changes to the "dashboard" extension will be documented in this file. It follows the [Keep a Changelog](http://keepachangelog.com/) recommendations.
 
-## [1.5.5] 2019-11-08
+## [1.5.5] 2019-11-09
 ### Fixed
 - Fixed all css transitions firing on opening dashboard, triggered by a bug in the Chromium version used by VSCode 1.40.0.
 
