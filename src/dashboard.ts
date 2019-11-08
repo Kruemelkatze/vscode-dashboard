@@ -427,7 +427,7 @@ export function activate(context: vscode.ExtensionContext) {
     }
 
     async function getPathFromPicker(folderProject: boolean, defaultPath: string = null): Promise<string> {
-        var defaultUri: vscode.Uri = null;
+        var defaultUri: vscode.Uri = undefined;
         if (defaultPath) {
             defaultUri = vscode.Uri.parse(defaultPath);
         }
