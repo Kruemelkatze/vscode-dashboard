@@ -2,7 +2,7 @@
     "name": "vscode-dashboard",
     "displayName": "Dashboard",
     "description": "Organize your workspaces in a speed-dial manner.",
-    "version": "1.5.3",
+    "version": "1.5.4",
     "publisher": "kruemelkatze",
     "icon": "media/extension_icon.png",
     "engines": {
@@ -67,6 +67,7 @@
                 "dashboard.openOnStartup": {
                     "type": "string",
                     "default": "empty workspace",
+                    "markdownDescription": "Note: The ```empty workspace``` option takes only effect if [Workbench: Startup Editor](#workbench.startupEditor) is to ```none``` or a ```welcomePage``` option.",
                     "enum": [
                         "always",
                         "empty workspace",
