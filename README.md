@@ -1,6 +1,6 @@
-# vscode-dashboard
+# VSCode Project Dashboard
 
-**vscode-dashboard** is a Visual Studio Code extension that lets you organize your projects in a speed-dial like manner. Pin your frequently visited **folders**, **files** or **SSH remotes** onto a dashboard to access them quickly.
+**VSCode Project Dashboard** is a Visual Studio Code extension that lets you organize your projects in a speed-dial like manner. Pin your frequently visited **folders**, **files** or **SSH remotes** onto a dashboard to access them quickly.
 
 ![demo-screenshot](screenshot.png)
 
@@ -17,11 +17,11 @@ Projects and project groups can be added, edited, deleted and reordered **direct
 * **Emojis** may (or may not, depending on your preference) be good icons for projects. You can add them by pressing WIN + . (under Windows) while naming the project.
 * **Gradients** can also be used as project color. You can add them using CSS Gradient functions like linear-gradient and radial-gradient.
 * Only **colors** defined by the theme were used. So the dashboard should always blend nicely into your VSCode design. If not, you can customize them in the settings.
-* vscode-dashboard automatically detects if a project is a **Git repository**. If so, this is indicated by an icon.
+* The extension automatically detects if a project is a **Git repository**. If so, this is indicated by an icon.
 
 ## Configuration
 
-The dashboard can be configured and customized using the vscode configuration:
+The dashboard can be configured and customized using the VSCode configuration:
 
 * Projects are stored in the globalState by default (saved on machine), but can be set to be saved in the settings (to be synced via [Settings Sync](https://marketplace.visualstudio.com/items?itemName=Shan.code-settings-sync)) instead. Note that by doing so, you remove the possiblity of having varying dashboards on your synced devices.
 * Startup behaviour (open always, on empty editor, or never)

@@ -1,5 +1,12 @@
 # Change Log
-All notable changes to the "dashboard" extension will be documented in this file. It follows the [Keep a Changelog](http://keepachangelog.com/) recommendations.
+All notable changes to the "Project Dashboard" extension will be documented in this file. It follows the [Keep a Changelog](http://keepachangelog.com/) recommendations.
+
+## [1.6.0] 2020-04-xx
+### Changed
+
+### Added
+
+### Fixed
 
 ## [1.5.5] 2019-11-09
 ### Fixed
