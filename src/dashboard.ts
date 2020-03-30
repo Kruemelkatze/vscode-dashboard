@@ -94,7 +94,7 @@ export function activate(context: vscode.ExtensionContext) {
         } else {
             var panel = vscode.window.createWebviewPanel(
                 "dashboard",
-                "Dashboard",
+                "Project Dashboard",
                 vscode.ViewColumn.One,
                 {
                     enableScripts: true,
