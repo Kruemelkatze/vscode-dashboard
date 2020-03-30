@@ -23,12 +23,14 @@
     --dashboard-project-card-bg: var(--vscode-tab-inactiveBackground);
     --dashboard-foreground: var(--vscode-editor-foreground);
     --dashboard-path: var(--vscode-descriptionForeground);
+
+    --column-width: 350px;
 }
 
 $useAddProjectOpacity: true;
 
 $projectListMinHeight: 163px;
-$columnWidth: 350px;
+// $columnWidth: 350px;
 $borderTopSize: 7px;
 $defaultPadding: 20px;
 $projectHeaderSize: 40px; // This has also be adjusted in constants.ts for fitty
@@ -56,7 +58,7 @@ body {
         transition: opacity ease-in-out 200ms;
 
         .drop-signal {
-            width: $columnWidth - 19px;
+            width: calc(var(--column-width) - 19px);
             align-self: stretch;
             margin-top: $defaultPadding;
             background: var(--dashboard-project-card-bg);
@@ -73,7 +75,7 @@ body {
     }
 
     .projects-group-title {
-        min-width: $columnWidth - 19px;
+        min-width: calc(var(--column-width) - 19px);
         display: inline-block;
         font-size: $projectHeaderSize / 2;
         font-weight: 200;
@@ -125,10 +127,10 @@ body {
 
 .project-container {
     display: inline-block;
-    width: $columnWidth;
+    width: var(--column-width);
 
     &.slim {
-        width: $columnWidth / 2;
+        width: calc(var(--column-width) / 2);
     }
 }
 

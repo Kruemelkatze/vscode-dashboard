@@ -145,7 +145,7 @@ function getAddProjectDiv(projectGroupId: string) {
 }
 
 function getCustomStyle(config: vscode.WorkspaceConfiguration) {
-    var { customProjectCardBackground, customProjectNameColor, customProjectPathColor } = config;
+    var { customProjectCardBackground, customProjectNameColor, customProjectPathColor, projectTileWidth } = config;
 
     // Nested Template Strings, hooray! \o/
     return `
@@ -154,6 +154,7 @@ function getCustomStyle(config: vscode.WorkspaceConfiguration) {
         ${customProjectCardBackground && customProjectCardBackground.trim() ? `--dashboard-project-card-bg: ${customProjectCardBackground};` : ''}
         ${customProjectNameColor && customProjectNameColor.trim() ? `--dashboard-foreground: ${customProjectNameColor};` : ''}
         ${customProjectPathColor && customProjectPathColor.trim() ? `--dashboard-path: ${customProjectPathColor};` : ''}
+        ${projectTileWidth && !isNaN(+projectTileWidth) ? `--column-width: ${projectTileWidth}px;` : ''}
     }
 </style>`;
 }
