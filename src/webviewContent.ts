@@ -79,7 +79,7 @@ function getProjectGroupSection(projectGroup: ProjectGroup, totalGroupCount: num
 function getTempProjectGroupSection(totalGroupCount: number) {
     return `
 <div class="projects-group" id="tempGroup">
-    <div class="projects-group-title">
+    <div class="projects-group-title" data-action="add-projects-group">
         <span>${getAddIcon()} New Project Group</span>
     </div>
     <div class="projects-group-list">
@@ -243,6 +243,13 @@ document.addEventListener('click', function(e) {
     if (!e.target)
         return;
 
+    if (e.target.closest('[data-action="add-projects-group"]')) {
+        vscode.postMessage({
+            type: 'add-projects-group'
+        });
+        return;
+    }
+
     var projectDiv = e.target.closest('.project');
     if (projectDiv) {
         onInsideProjectClick(e, projectDiv);
@@ -250,14 +257,7 @@ document.addEventListener('click', function(e) {
     }
     
     var projectsGroupDiv = e.target.closest('.projects-group');
-    if (projectsGroupDiv) {
-        if (projectsGroupDiv.id === "tempGroup") {
-            vscode.postMessage({
-                type: 'add-projects-group'
-            });
-            return;
-        }
-
+    if (projectsGroupDiv) {      
         onInsideProjectsGroupClick(e, projectsGroupDiv);
         return;
     }    

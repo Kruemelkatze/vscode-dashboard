@@ -328,7 +328,7 @@ export function activate(context: vscode.ExtensionContext) {
             projectPath = projectTemplate.path;
         } else {
             // New
-            selectedGroupId = await queryProjectGroup(projectGroupId, true);
+            selectedGroupId = projectGroupId != null ? projectGroupId : await queryProjectGroup(projectGroupId, true);
             projectPath = await queryProjectPath();
         }
 
