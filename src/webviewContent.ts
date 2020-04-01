@@ -251,6 +251,13 @@ document.addEventListener('click', function(e) {
     
     var projectsGroupDiv = e.target.closest('.projects-group');
     if (projectsGroupDiv) {
+        if (projectsGroupDiv.id === "tempGroup") {
+            vscode.postMessage({
+                type: 'add-projects-group'
+            });
+            return;
+        }
+
         onInsideProjectsGroupClick(e, projectsGroupDiv);
         return;
     }    

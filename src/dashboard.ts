@@ -138,7 +138,7 @@ export function activate(context: vscode.ExtensionContext) {
                         break;
                     case 'add-project':
                         projectGroupId = e.projectGroupId as string;
-                        await vscode.commands.executeCommand("dashboard.addProject", projectGroupId);
+                        await addProjectPerCommand(projectGroupId);
                         break;
                     case 'reordered-projects':
                         let groupOrders = e.groupOrders as GroupOrder[];
@@ -160,7 +160,9 @@ export function activate(context: vscode.ExtensionContext) {
                         projectGroupId = e.projectGroupId as string;
                         await deleteProjectsGroup(projectGroupId);
                         break;
-
+                    case 'add-projects-group':
+                        await addProjectGroupPerCommand();
+                        break;
                 }
             });
 
