@@ -66,21 +66,7 @@ body {
         svg {
             width: 0.75em;
             fill: var(--dashboard-foreground);
-        }
-        
-        .drop-signal {
-            transition: opacity ease-in-out 200ms;
-            pointer-events: none;
-            opacity: 0;
-            width: calc(var(--column-width) - 19px);
-            align-self: stretch;
-            margin-top: $defaultPadding;
-            background: var(--dashboard-project-card-bg);
-
-            &:not(:only-child) {
-                display: none;
-            }
-        }
+        }              
     }
 
     &:first-child {
@@ -128,6 +114,20 @@ body {
 
         margin-top: -10px;
         min-height: $projectListMinHeight;
+    }
+
+    .drop-signal {
+        transition: opacity ease-in-out 200ms;
+        pointer-events: none;
+        opacity: 0;
+        width: calc(var(--column-width) - 19px);
+        align-self: stretch;
+        margin-top: $defaultPadding;
+        background: var(--dashboard-project-card-bg);
+
+        &:not(:only-child) {
+            display: none;
+        }
     }
 }
 
@@ -299,7 +299,7 @@ body .project {
     }
 }
 
-.project-dragging .projects-group#tempGroup {
+.project-dragging .projects-group {
     .drop-signal {
         opacity: 0.2;
         pointer-events: all;

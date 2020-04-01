@@ -70,6 +70,7 @@ function getProjectGroupSection(projectGroup: ProjectGroup, totalGroupCount: num
         </div>
     </div>
     <div class="projects-group-list">
+        <div class="drop-signal"></div>
         ${projectGroup.projects.map(p => getProjectDiv(p, infos)).join('\n')}
         ${showAddButton ? getAddProjectDiv(projectGroup.id) : ""}
     </div>       
