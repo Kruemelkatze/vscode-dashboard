@@ -2,7 +2,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { Project, GroupOrder, ProjectGroup, ProjectRemoteType, getRemoteType, DashboardInfos } from './models';
-import { getProjects, addProject, removeProject, saveProjects, writeTextFile, getProject, addProjectGroup, getProjectsFlat, migrateDataIfNeeded, getProjectAndGroup, updateProject, getProjectsGroup, updateProjectGroup, removeProjectsGroup } from './projectService';
+import { getProjects, addProject, removeProject, saveProjectGroups, writeTextFile, getProject, addProjectGroup, getProjectsFlat, migrateDataIfNeeded, getProjectAndGroup, updateProject, getProjectsGroup, updateProjectGroup, removeProjectsGroup } from './projectService';
 import { getDashboardContent } from './webviewContent';
 import { USE_PROJECT_COLOR, PREDEFINED_COLORS, StartupOptions, USER_CANCELED, FixedColorOptions, RelevantExtensions, SSH_REGEX, REMOTE_REGEX, SSH_REMOTE_PREFIX } from './constants';
 import { execSync } from 'child_process';
@@ -22,8 +22,8 @@ export function activate(context: vscode.ExtensionContext) {
         showDashboard();
     });
 
-    const addProjectCommand = vscode.commands.registerCommand('dashboard.addProject', async (projectGroupId: string = null) => {
-        await addProjectPerCommand(projectGroupId);
+    const addProjectCommand = vscode.commands.registerCommand('dashboard.addProject', async () => {
+        await addProjectPerCommand();
     });
 
     const removeProjectCommand = vscode.commands.registerCommand('dashboard.removeProject', async () => {
@@ -34,10 +34,20 @@ export function activate(context: vscode.ExtensionContext) {
         await editProjectsManuallyPerCommand();
     });
 
+    const addProjectGroupCommand = vscode.commands.registerCommand('dashboard.addProjectGroup', async () => {
+        await addProjectGroupPerCommand();
+    });
+
+    const removeProjectGroupCommand = vscode.commands.registerCommand('dashboard.removeProjectGroup', async () => {
+        await removeProjectsGroupPerCommand();
+    });
+
     context.subscriptions.push(openCommand);
     context.subscriptions.push(addProjectCommand);
     context.subscriptions.push(removeProjectCommand);
     context.subscriptions.push(editProjectsManuallyCommand);
+    context.subscriptions.push(addProjectGroupCommand);
+    context.subscriptions.push(removeProjectGroupCommand);
 
     startUp();
 
@@ -158,30 +168,69 @@ export function activate(context: vscode.ExtensionContext) {
         }
     }
 
+    async function addProjectGroupPerCommand() {
+        var groupName;
+        
+        try {
+            groupName = await queryProjectGroupFields();            
+        } catch (error) {
+            if (error.message !== USER_CANCELED) {
+                vscode.window.showErrorMessage(`An error occured while adding the project group.`);
+                throw error; // Rethrow error to make vscode log it
+            }
+
+            return;
+        }
+
+        var group = await addProjectGroup(context, groupName);
+        showDashboard();
+    }
+
     async function editProjectsGroup(projectGroupId: string) {
         var group = getProjectsGroup(context, projectGroupId);
         if (group == null) {
             return;
         }
 
+        var groupName;
+
+        try {
+            groupName = await queryProjectGroupFields();
+        } catch (error) {
+            if (error.message !== USER_CANCELED) {
+                vscode.window.showErrorMessage(`An error occured while editing the project group.`);
+                throw error; // Rethrow error to make vscode log it
+            }
+
+            return;
+        }
+
         // Name
+        group.groupName = groupName;
+        await updateProjectGroup(context, projectGroupId, group);
+
+        showDashboard();
+    }
+
+    async function queryProjectGroupFields(defaultText: string = null): Promise<string> {
         var groupName = await vscode.window.showInputBox({
-            value: group.groupName || undefined,
-            valueSelection: group.groupName ? [0, group.groupName.length] : undefined,
+            value: defaultText || undefined,
+            valueSelection: defaultText ? [0, defaultText.length] : undefined,
             placeHolder: 'Project Group Name',
             ignoreFocusOut: true,
             validateInput: (val: string) => val ? '' : 'A Group Name must be provided.',
         });
 
         if (groupName == null) {
-            //throw new Error(USER_CANCELED);
-            return
+            throw new Error(USER_CANCELED);
         }
 
-        group.groupName = groupName;
-        await updateProjectGroup(context, projectGroupId, group);
+        return groupName;
+    }
 
-        showDashboard();
+    async function removeProjectsGroupPerCommand() {
+        var projectGroupId = await queryProjectGroup();
+        deleteProjectsGroup(projectGroupId);
     }
 
     async function deleteProjectsGroup(projectGroupId: string) {
@@ -277,7 +326,7 @@ export function activate(context: vscode.ExtensionContext) {
             projectPath = projectTemplate.path;
         } else {
             // New
-            selectedGroupId = await queryProjectGroup(projectGroupId);
+            selectedGroupId = await queryProjectGroup(projectGroupId, true);
             projectPath = await queryProjectPath();
         }
 
@@ -335,8 +384,8 @@ export function activate(context: vscode.ExtensionContext) {
 
         return [project, selectedGroupId];
     }
-
-    async function queryProjectGroup(projectGroupId: string): Promise<string> {
+   
+    async function queryProjectGroup(projectGroupId: string = null, optionForAdding: boolean = false): Promise<string> {
         var projectGroups = getProjects(context);
 
         // Reorder array to set given group to front (to quickly select it).
@@ -364,10 +413,13 @@ export function activate(context: vscode.ExtensionContext) {
             }
         });
 
-        projectGroupPicks.push({
-            id: "Add",
-            label: "Add new Project Group",
-        })
+        if (optionForAdding) {
+            projectGroupPicks.push({
+                id: "Add",
+                label: "Add new Project Group",
+            });
+        }
+
 
         let selectedProjectGroupPick = await vscode.window.showQuickPick(projectGroupPicks, {
             placeHolder: "Project Group"
@@ -625,7 +677,7 @@ export function activate(context: vscode.ExtensionContext) {
 
                 updatedProjectGroups = updatedProjectGroups.filter(g => !g._delete);
 
-                await saveProjects(context, updatedProjectGroups);
+                await saveProjectGroups(context, updatedProjectGroups);
                 showDashboard();
 
                 subscriptions.forEach(s => s.dispose());
@@ -648,6 +700,21 @@ export function activate(context: vscode.ExtensionContext) {
         //     }
         // });
         // subscriptions.push(closeSubscription);
+    }
+
+    async function deleteProject(projectId: string) {
+        var project = getProject(context, projectId);
+        if (project == null) {
+            return;
+        }
+
+        let accepted = await vscode.window.showWarningMessage(`Delete ${project.name}?`, { modal: true }, 'Delete');
+        if (!accepted) {
+            return;
+        }
+
+        await removeProject(context, projectId);
+        showDashboard();
     }
 
     async function reorderProjectGroups(groupOrders: GroupOrder[]) {
@@ -683,22 +750,7 @@ export function activate(context: vscode.ExtensionContext) {
             reorderedProjectGroups.push(group);
         }
 
-        await saveProjects(context, reorderedProjectGroups);
-        showDashboard();
-    }
-
-    async function deleteProject(projectId: string) {
-        var project = getProject(context, projectId);
-        if (project == null) {
-            return;
-        }
-
-        let accepted = await vscode.window.showWarningMessage(`Delete ${project.name}?`, { modal: true }, 'Delete');
-        if (!accepted) {
-            return;
-        }
-
-        await removeProject(context, projectId);
+        await saveProjectGroups(context, reorderedProjectGroups);
         showDashboard();
     }
 

@@ -11,11 +11,16 @@ function useSettingsStorage(): boolean {
 }
 
 function sanitizeProjectGroups(projectGroups: ProjectGroup[]): ProjectGroup[] {
-    if (!Array.isArray(projectGroups)) {
-        return [];
+    let groups = Array.isArray(projectGroups) ? projectGroups : [];
+
+    // Fill id, should only happen if user removes id manually. But better be safe than sorry.
+    for (let g of groups) {
+        if (!g.id) {
+            g.id = ProjectGroup.getRandomId();
+        }
     }
 
-    return projectGroups.filter(g => g && g.id && g.projects && g.projects.length);
+    return groups;
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~ GET Projects ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -69,15 +74,14 @@ export function getProjectsGroup(context: vscode.ExtensionContext, projectGroupI
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~ SAVE Projects ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-export function saveProjects(context: vscode.ExtensionContext, projectGroups: ProjectGroup[], noSanitize = false): Thenable<void> {
-    if (!noSanitize) {
-        projectGroups = sanitizeProjectGroups(projectGroups);
-    }
+export function saveProjectGroups(context: vscode.ExtensionContext, projectGroups: ProjectGroup[]): Thenable<void> {
+    projectGroups = sanitizeProjectGroups(projectGroups);
+
 
     if (useSettingsStorage()) {
-        return saveProjectsInSettings(context, projectGroups);
+        return saveProjectGroupsInSettings(context, projectGroups);
     } else {
-        return saveProjectsInGlobalState(context, projectGroups);
+        return saveProjectGroupsInGlobalState(context, projectGroups);
     }
 }
 
@@ -90,7 +94,7 @@ export async function addProjectGroup(context: vscode.ExtensionContext, groupNam
 
     let newProjectGroup = new ProjectGroup(groupName, projects);
     projectGroups.push(newProjectGroup);
-    await saveProjects(context, projectGroups, true);
+    await saveProjectGroups(context, projectGroups);
     return newProjectGroup;
 }
 
@@ -121,7 +125,7 @@ export async function addProject(context: vscode.ExtensionContext, project: Proj
         projectGroup.projects.push(project);
     }
 
-    saveProjects(context, projectGroups);
+    saveProjectGroups(context, projectGroups);
     return projectGroups;
 }
 
@@ -139,7 +143,7 @@ export async function updateProject(context: vscode.ExtensionContext, projectId:
         }
     }
 
-    saveProjects(context, projectGroups);
+    saveProjectGroups(context, projectGroups);
 }
 
 export async function updateProjectGroup(context: vscode.ExtensionContext, projectsGroupId: string, updatedProjectGroup: ProjectGroup) {
@@ -153,7 +157,7 @@ export async function updateProjectGroup(context: vscode.ExtensionContext, proje
         Object.assign(group, updatedProjectGroup, { id: projectsGroupId });
     }
 
-    saveProjects(context, projectGroups);
+    saveProjectGroups(context, projectGroups);
 }
 
 export async function removeProject(context: vscode.ExtensionContext, projectId: string): Promise<ProjectGroup[]> {
@@ -170,7 +174,7 @@ export async function removeProject(context: vscode.ExtensionContext, projectId:
             break;
         }
     }
-    await saveProjects(context, projectGroups);
+    await saveProjectGroups(context, projectGroups);
     return projectGroups;
 }
 
@@ -178,7 +182,7 @@ export async function removeProjectsGroup(context: vscode.ExtensionContext, proj
     let projectGroups = getProjects(context);
 
     projectGroups = projectGroups.filter(g => g.id !== projectsGroupId);
-    await saveProjects(context, projectGroups);
+    await saveProjectGroups(context, projectGroups);
 
     return projectGroups;
 }
@@ -230,11 +234,11 @@ function getProjectsFromSettings(context: vscode.ExtensionContext, unsafe: boole
     return projectGroups;
 }
 
-function saveProjectsInGlobalState(context: vscode.ExtensionContext, projectGroups: ProjectGroup[]): Thenable<void> {
+function saveProjectGroupsInGlobalState(context: vscode.ExtensionContext, projectGroups: ProjectGroup[]): Thenable<void> {
     return context.globalState.update("projects", projectGroups);
 }
 
-function saveProjectsInSettings(context: vscode.ExtensionContext, projectGroups: ProjectGroup[]): Thenable<void> {
+function saveProjectGroupsInSettings(context: vscode.ExtensionContext, projectGroups: ProjectGroup[]): Thenable<void> {
     var config = vscode.workspace.getConfiguration('dashboard');
     return config.update("projectData", projectGroups, vscode.ConfigurationTarget.Global);
 }
@@ -251,16 +255,16 @@ export async function migrateDataIfNeeded(context: vscode.ExtensionContext) {
         toMigrate = projectsInSettings == null && projectsInGlobalState != null;
 
         if (toMigrate) {
-            await saveProjectsInSettings(context, projectsInGlobalState);
-            await saveProjectsInGlobalState(context, null);
+            await saveProjectGroupsInSettings(context, projectsInGlobalState);
+            await saveProjectGroupsInGlobalState(context, null);
         }
     } else {
         // Migrate from Settings To Global State
         toMigrate = projectsInGlobalState == null && projectsInSettings != null;
 
         if (toMigrate) {
-            await saveProjectsInGlobalState(context, projectsInSettings);
-            await saveProjectsInSettings(context, null);
+            await saveProjectGroupsInGlobalState(context, projectsInSettings);
+            await saveProjectGroupsInSettings(context, null);
         }
     }
 

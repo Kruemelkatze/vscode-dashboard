@@ -13,6 +13,10 @@ export class ProjectGroup {
         this.groupName = groupName;
         this.projects = projects || [];
     }
+
+    static getRandomId(prepend: string = null) {
+        return generateRandomId(prepend);
+    }
 }
 
 export class Project {
@@ -28,12 +32,16 @@ export class Project {
         this.path = path;
     }
 
-    getRemoteType() : ProjectRemoteType {
-        if (this.path && this.path.startsWith(SSH_REMOTE_PREFIX)){
+    getRemoteType(): ProjectRemoteType {
+        if (this.path && this.path.startsWith(SSH_REMOTE_PREFIX)) {
             return ProjectRemoteType.SSH;
         }
 
         return ProjectRemoteType.None;
+    }
+
+    static getRandomId(prepend: string = null) {
+        return generateRandomId(prepend);
     }
 }
 
