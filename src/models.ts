@@ -6,6 +6,7 @@ import { SSH_REMOTE_PREFIX } from "./constants";
 export class ProjectGroup {
     id: string;
     groupName: string;
+    collapsed: boolean;
     projects: Project[];
 
     constructor(groupName: string, projects: Project[] = null) {

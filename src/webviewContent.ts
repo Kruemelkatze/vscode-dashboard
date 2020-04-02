@@ -57,9 +57,12 @@ function getProjectGroupSection(projectGroup: ProjectGroup, totalGroupCount: num
     var showAddButton = infos.config.showAddProjectButtonTile;
 
     return `
-<div class="projects-group" data-group-id="${projectGroup.id}">
+<div class="projects-group ${projectGroup.collapsed ? 'collapsed' : ''}" data-group-id="${projectGroup.id}">
     <div class="projects-group-title">
-        <span data-drag-group>${projectGroup.groupName || "Unnamed Project Group"}</span>
+        <span class="project-group-title-text" data-action="collapse" data-drag-group>
+            <span class="collapse-icon" title="Open/Collapse Project Group">${getCollapseIcon()}</span>
+            ${projectGroup.groupName || "Unnamed Project Group"}
+        </span>
         <div class="projects-group-actions right">
             <span data-action="add" title="Add Project">${getAddIcon()}</span>
         </div>
@@ -215,6 +218,10 @@ function onInsideProjectsGroupClick(e, projectsGroupDiv) {
         });
 
         return;
+    }
+
+    if (action === "collapse") {
+        projectsGroupDiv.classList.toggle("collapsed");
     }
 
     vscode.postMessage({
@@ -378,6 +385,14 @@ function getRemoteIcon() {
 <svg viewBox="0 0 640 512">
     <path d="M257.981 272.971L63.638 467.314c-9.373 9.373-24.569 9.373-33.941 0L7.029 444.647c-9.357-9.357-9.375-24.522-.04-33.901L161.011 256 6.99 101.255c-9.335-9.379-9.317-24.544.04-33.901l22.667-22.667c9.373-9.373 24.569-9.373 33.941 0L257.981 239.03c9.373 9.372 9.373 24.568 0 33.941zM640 456v-32c0-13.255-10.745-24-24-24H312c-13.255 0-24 10.745-24 24v32c0 13.255 10.745 24 24 24h304c13.255 0 24-10.745 24-24z"></path>
 </svg>
+`;
+}
+
+function getCollapseIcon() {
+    return `
+<svg viewBox="0 0 320 512">
+    <path d="M143 352.3L7 216.3c-9.4-9.4-9.4-24.6 0-33.9l22.6-22.6c9.4-9.4 24.6-9.4 33.9 0l96.4 96.4 96.4-96.4c9.4-9.4 24.6-9.4 33.9 0l22.6 22.6c9.4 9.4 9.4 24.6 0 33.9l-136 136c-9.2 9.4-24.4 9.4-33.8 0z"></path>
+</svg>  
 `;
 }
 

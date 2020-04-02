@@ -163,6 +163,10 @@ export function activate(context: vscode.ExtensionContext) {
                     case 'add-projects-group':
                         await addProjectGroupPerCommand();
                         break;
+                    case 'collapse-projects-group':
+                        projectGroupId = e.projectGroupId as string;
+                        await collapseProjectsGroup(projectGroupId);
+                        break;
                 }
             });
 
@@ -248,6 +252,18 @@ export function activate(context: vscode.ExtensionContext) {
 
         await removeProjectsGroup(context, projectGroupId);
         showDashboard();
+    }
+
+    async function collapseProjectsGroup(projectGroupId: string) {
+        var group = getProjectsGroup(context, projectGroupId);
+        if (group == null) {
+            return;
+        }
+       
+        group.collapsed = !group.collapsed;
+        await updateProjectGroup(context, projectGroupId, group);
+
+        //showDashboard(); // No need to repaint for that
     }
 
     async function openProject(project: Project, openInNewWindow: boolean): Promise<void> {
