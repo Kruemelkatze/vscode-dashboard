@@ -57,7 +57,7 @@ function getProjectGroupSection(projectGroup: ProjectGroup, totalGroupCount: num
     var showAddButton = infos.config.showAddProjectButtonTile;
 
     return `
-<div class="projects-group ${projectGroup.collapsed ? 'collapsed' : ''}" data-group-id="${projectGroup.id}">
+<div class="projects-group ${projectGroup.collapsed ? 'collapsed' : ''} ${projectGroup.projects.length === 0 ? 'no-projects' : ''}" data-group-id="${projectGroup.id}">
     <div class="projects-group-title">
         <span class="project-group-title-text" data-action="collapse" data-drag-group>
             <span class="collapse-icon" title="Open/Collapse Project Group">${getCollapseIcon()}</span>
@@ -108,6 +108,7 @@ function getProjectDiv(project: Project, infos: DashboardInfos) {
         <div class="project-border" style="${borderStyle}"></div>
         <div class="project-actions-wrapper">
             <div class="project-actions">
+                <span data-action="color" title="Edit Color">${getPaletteIcon()}</span>
                 <span data-action="edit" title="Edit Project">${getEditIcon()}</span>
                 <span data-action="delete" title="Remove Project">${getDeleteIcon()}</span>
             </div>
@@ -139,13 +140,13 @@ function getNoProjectsDiv() {
 
 function getAddProjectDiv(projectGroupId: string) {
     return `
-<div class="project-container slim last" data-nodrag>
+<span class="project-container slim last" data-nodrag>
     <div class="project add-project" data-action="add-project" data-project-group-id="${projectGroupId}">
         <h2 class="add-project-header">
             +
         </h2>
     </div>
-</div>`
+</span>`
 }
 
 function getCustomStyle(config: vscode.WorkspaceConfiguration) {
@@ -393,6 +394,14 @@ function getCollapseIcon() {
 <svg viewBox="0 0 320 512">
     <path d="M143 352.3L7 216.3c-9.4-9.4-9.4-24.6 0-33.9l22.6-22.6c9.4-9.4 24.6-9.4 33.9 0l96.4 96.4 96.4-96.4c9.4-9.4 24.6-9.4 33.9 0l22.6 22.6c9.4 9.4 9.4 24.6 0 33.9l-136 136c-9.2 9.4-24.4 9.4-33.8 0z"></path>
 </svg>  
+`;
+}
+
+function getPaletteIcon() {
+    return `
+<svg viewBox="0 0 512 512">
+    <path d="M204.3 5C104.9 24.4 24.8 104.3 5.2 203.4c-37 187 131.7 326.4 258.8 306.7 41.2-6.4 61.4-54.6 42.5-91.7-23.1-45.4 9.9-98.4 60.9-98.4h79.7c35.8 0 64.8-29.6 64.9-65.3C511.5 97.1 368.1-26.9 204.3 5zM96 320c-17.7 0-32-14.3-32-32s14.3-32 32-32 32 14.3 32 32-14.3 32-32 32zm32-128c-17.7 0-32-14.3-32-32s14.3-32 32-32 32 14.3 32 32-14.3 32-32 32zm128-64c-17.7 0-32-14.3-32-32s14.3-32 32-32 32 14.3 32 32-14.3 32-32 32zm128 64c-17.7 0-32-14.3-32-32s14.3-32 32-32 32 14.3 32 32-14.3 32-32 32z"></path>
+</svg>
 `;
 }
 

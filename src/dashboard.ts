@@ -2,7 +2,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { Project, GroupOrder, ProjectGroup, ProjectRemoteType, getRemoteType, DashboardInfos } from './models';
-import { getProjects, addProject, removeProject, saveProjectGroups, writeTextFile, getProject, addProjectGroup, getProjectsFlat, migrateDataIfNeeded, getProjectAndGroup, updateProject, getProjectsGroup, updateProjectGroup, removeProjectsGroup } from './projectService';
+import { getProjects, addProject, removeProject, saveProjectGroups, writeTextFile, getProject, addProjectGroup, getProjectsFlat, migrateDataIfNeeded, getProjectAndGroup, updateProject, getProjectsGroup, updateProjectGroup, removeProjectsGroup, getRecentColors, getColorName, getRandomColor } from './projectService';
 import { getDashboardContent } from './webviewContent';
 import { USE_PROJECT_COLOR, PREDEFINED_COLORS, StartupOptions, USER_CANCELED, FixedColorOptions, RelevantExtensions, SSH_REGEX, REMOTE_REGEX, SSH_REMOTE_PREFIX } from './constants';
 import { execSync } from 'child_process';
@@ -165,6 +165,10 @@ export function activate(context: vscode.ExtensionContext) {
                     case 'edit-project':
                         projectId = e.projectId as string;
                         await editProject(projectId);
+                        break;
+                    case 'color-project':
+                        projectId = e.projectId as string;
+                        await editProjectColor(projectId);
                         break;
                     case 'edit-projects-group':
                         projectGroupId = e.projectGroupId as string;
@@ -339,6 +343,28 @@ export function activate(context: vscode.ExtensionContext) {
         } catch (error) {
             if (error.message !== USER_CANCELED) {
                 vscode.window.showErrorMessage(`An error occured while updating project ${project.name}.`);
+                throw error;
+            }
+
+            return;
+        }
+
+        showDashboard();
+    }
+
+    async function editProjectColor(projectId: string) {
+        var [project, group] = getProjectAndGroup(context, projectId);
+        if (project == null || group == null) {
+            return;
+        }
+
+        try {
+            project.color = await queryProjectColor(project);
+            await updateProject(context, projectId, project);
+        } catch (error) {
+            if (error.message !== USER_CANCELED) {
+                vscode.window.showErrorMessage(`An error occured while updating project ${project.name}.`);
+                throw error;
             }
 
             return;
@@ -404,7 +430,7 @@ export function activate(context: vscode.ExtensionContext) {
         }
 
         // Color
-        var color = await queryProjectColor(projectTemplate);
+        var color = isEditing ? projectTemplate.color : await queryProjectColor(projectTemplate);
 
         //Test if Git Repo
         let isGitRepo = isFolderGitRepo(projectPath);
@@ -549,6 +575,24 @@ export function activate(context: vscode.ExtensionContext) {
         return remotePath.trim();
     }
 
+    function buildColorText(colorCode: string, colorName: string = null): string {
+        if (colorCode == null) {
+            return "";
+        }
+
+        // If color is predefined, use this label only.
+        let predefColor = PREDEFINED_COLORS.find(c => c.value === colorCode);
+        if (predefColor) {
+            return predefColor.label;
+        }
+
+        // If it has a color, aggregate colorCode and name
+        colorName = colorName || getColorName(colorCode);
+        let colorText = colorName ? `${colorName}    (${colorCode})` : colorCode;
+
+        return colorText;
+    }
+
     async function queryProjectColor(projectTemplate: Project = null): Promise<string> {
         var color: string = null;
         if (!USE_PROJECT_COLOR) {
@@ -566,26 +610,25 @@ export function activate(context: vscode.ExtensionContext) {
             id: c.label,
             label: c.label,
         }));
-        colorPicks.unshift({ id: FixedColorOptions.random, label: 'Random' });
+        colorPicks.unshift({ id: FixedColorOptions.random, label: 'Random Color' });
+        colorPicks.unshift({ id: FixedColorOptions.custom, label: '> Custom Color' });
+        colorPicks.unshift({ id: FixedColorOptions.recent, label: '> Recent Colors' });
         colorPicks.push({ id: FixedColorOptions.none, label: 'None' });
-        colorPicks.push({ id: FixedColorOptions.custom, label: 'Custom Color' });
 
         if (projectTemplate && projectTemplate.color) {
             // Get existing color name by value
             let color = PREDEFINED_COLORS.find(c => c.value === projectTemplate.color);
             let existingEntryIdx = !color ? -1 : colorPicks.findIndex(p => p.id === color.label);
-            // If color is already in quicklist
+
+            // If color is already in quicklist, remove it
             if (existingEntryIdx !== -1) {
-                // Push to top
-                let entry = colorPicks.splice(existingEntryIdx, 1)[0];
-                colorPicks.unshift(entry);
-            } else {
-                // Insert new
-                colorPicks.unshift({
-                    id: projectTemplate.color,
-                    label: `${projectTemplate.color} (previous value)`,
-                });
+                colorPicks.splice(existingEntryIdx, 1)[0];
             }
+
+            colorPicks.unshift({
+                id: projectTemplate.color,
+                label: `Current: ${buildColorText(projectTemplate.color)}`,
+            });
         }
 
         let selectedColorPick = await vscode.window.showQuickPick(colorPicks, {
@@ -606,12 +649,29 @@ export function activate(context: vscode.ExtensionContext) {
 
                 color = (customColor || "").replace(/[;"]/g, "").trim();
                 break;
+            case FixedColorOptions.recent:
+                let recentColors = getRecentColors(context);
+                let recentColorPicks = recentColors.map(([code, name]) => ({
+                    id: code,
+                    label: buildColorText(code, name),
+                }));
+
+                let selectedRecentColor = await vscode.window.showQuickPick(recentColorPicks, {
+                    placeHolder: recentColorPicks.length ? 'Recent Color' : 'No colors have recently been used.',
+                    ignoreFocusOut: true,
+                });
+
+                if (selectedRecentColor == null) {
+                    throw new Error(USER_CANCELED);
+                }
+
+                color = selectedRecentColor.id;
+                break;
             case FixedColorOptions.none:
                 color = null;
                 break;
             case FixedColorOptions.random:
-                let randomColor = PREDEFINED_COLORS[Math.floor(Math.random() * PREDEFINED_COLORS.length)];
-                color = randomColor.value;
+                color = getRandomColor();                
                 break;
             default:
                 // PredefinedColor

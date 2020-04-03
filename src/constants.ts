@@ -7,6 +7,10 @@ export const PREDEFINED_COLORS = [
     { label: 'Dark Blue', value: 'var(--vscode-gitDecoration-conflictingResourceForeground)' },
     { label: 'Light Blue', value: 'var(--vscode-gitDecoration-submoduleResourceForeground)' },
 ];
+
+export const PROJECTS_KEY = 'projects';
+export const RECENT_COLORS_KEY = 'recentColors';
+
 export const FITTY_OPTIONS = {
     maxSize: '40',
     // minSize: '20', // Apparently, fitty has a problem with our setup and will overflow text if minSize is set...
@@ -29,6 +33,7 @@ export const FixedColorOptions = Object.freeze({
     random: 'Random',
     none: 'None',
     custom: 'Custom',
+    recent: 'Recent',
 });
 
 export const RelevantExtensions = Object.freeze({

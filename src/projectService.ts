@@ -3,8 +3,11 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 
+import { uniqBy, find } from 'lodash';
+
+import * as ntc from './ntc';
 import { Project, ProjectGroup } from "./models";
-import { ADD_NEW_PROJECT_TO_FRONT } from "./constants";
+import { ADD_NEW_PROJECT_TO_FRONT, PROJECTS_KEY, RECENT_COLORS_KEY, PREDEFINED_COLORS } from "./constants";
 
 function useSettingsStorage(): boolean {
     return vscode.workspace.getConfiguration('dashboard').get('storeProjectsInSettings');
@@ -21,6 +24,114 @@ function sanitizeProjectGroups(projectGroups: ProjectGroup[]): ProjectGroup[] {
     }
 
     return groups;
+}
+
+// ~~~~~~~~~~~~~~~~~~~~~~~~~ COLORS ~~~~~~~~~~~~~~~~~~~~~~~~~
+export function getRecentColors(context: vscode.ExtensionContext): string[][] {
+    return useSettingsStorage() ? getColorsFromSettings(context) : getColorsFromGlobalState(context);
+}
+
+export function addRecentColor(context: vscode.ExtensionContext, colorCode: string) {
+    if (!colorCode) {
+        return;
+    }
+
+    // Get a name for the color, if possible (hex, rgb or rgba);
+    var colorName = getColorName(colorCode);
+    var colorDef = [colorCode, colorName];
+
+    var colors = getRecentColors(context);
+    colors.unshift(colorDef);
+
+    // Remove duplicate names (except empty entries)
+    colors = uniqBy(colors, d => d[1] || Math.random());
+
+    var maxColorCount = vscode.workspace.getConfiguration('dashboard').get('recentColorsToRemember') as number;
+    colors = colors.slice(0, maxColorCount);
+
+    if (useSettingsStorage()) {
+        return saveColorsInSettings(context, colors);
+    } else {
+        return saveColorsInGlobalState(context, colors);
+    }
+}
+
+export function getColorName(colorCode: string) {
+    try {
+        if (colorCode) {
+            var predefColor = find(PREDEFINED_COLORS, c => c.value === colorCode);
+            if (predefColor) {
+                return predefColor.label;
+            }
+        }
+
+        var colorHex = colorStringToHex(colorCode);
+        var colorName = null;;
+
+        if (colorHex) {
+            var colorMatch = ntc.default.name(colorCode);
+            colorName = colorMatch[1] && !colorMatch[1].includes(':') ? colorMatch[1] : null;
+        }
+
+        return colorName;
+    } catch (e) {
+        return null;
+    }
+}
+
+export function getRandomColor(predefinedOnly: false = false) {
+    if (predefinedOnly) {
+        let predefColor = PREDEFINED_COLORS[Math.floor(Math.random() * PREDEFINED_COLORS.length)];
+        return predefColor.value;
+    }
+
+    var randomColorEntry = ntc.default.random();
+    return "#" + randomColorEntry[0];
+}
+
+function colorStringToHex(colorString: string) {
+    if (!colorString) {
+        return null;
+    }
+
+    colorString = colorString.trim();
+
+    if (colorString[0] === '#') {
+        return colorString.substr(0, 7);
+    }
+
+    if (/rgba?\(/.test(colorString)) {
+        try {
+            return rgbToHex(colorString);
+        } catch (e) {
+            return null;
+        }
+    }
+
+    return null;
+}
+
+function rgbToHex(rgb: string): string {
+    // Credits to https://css-tricks.com/converting-color-spaces-in-javascript/
+
+    // Choose correct separator
+    let sep = rgb.indexOf(",") > -1 ? "," : " ";
+    let leftParenthesis = rgb.indexOf("(");
+    // Turn "rgb(r,g,b)" into [r,g,b]
+    var split = rgb.substr(leftParenthesis + 1).split(")")[0].split(sep);
+
+    let r = (+split[0]).toString(16),
+        g = (+split[1]).toString(16),
+        b = (+split[2]).toString(16);
+
+    if (r.length == 1)
+        r = "0" + r;
+    if (g.length == 1)
+        g = "0" + g;
+    if (b.length == 1)
+        b = "0" + b;
+
+    return "#" + r + g + b;
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~ GET Projects ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -125,7 +236,14 @@ export async function addProject(context: vscode.ExtensionContext, project: Proj
         projectGroup.projects.push(project);
     }
 
-    saveProjectGroups(context, projectGroups);
+    // Add to recent colors
+    try {
+        await addRecentColor(context, project.color);
+    } catch (e) {
+        console.error(e);
+    }
+
+    await saveProjectGroups(context, projectGroups);
     return projectGroups;
 }
 
@@ -143,7 +261,14 @@ export async function updateProject(context: vscode.ExtensionContext, projectId:
         }
     }
 
-    saveProjectGroups(context, projectGroups);
+
+    // Add to recent colors
+    try {
+        await addRecentColor(context, updatedProject.color);
+    } catch (e) {
+        console.error(e);
+    }
+    await saveProjectGroups(context, projectGroups);
 }
 
 export async function updateProjectGroup(context: vscode.ExtensionContext, projectsGroupId: string, updatedProjectGroup: ProjectGroup) {
@@ -157,7 +282,7 @@ export async function updateProjectGroup(context: vscode.ExtensionContext, proje
         Object.assign(group, updatedProjectGroup, { id: projectsGroupId });
     }
 
-    saveProjectGroups(context, projectGroups);
+    await saveProjectGroups(context, projectGroups);
 }
 
 export async function removeProject(context: vscode.ExtensionContext, projectId: string): Promise<ProjectGroup[]> {
@@ -215,7 +340,7 @@ function writeFile(filePath: string, data: any, encoding: string = undefined) {
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~ STORAGE ~~~~~~~~~~~~~~~~~~~~~~~~~
 function getProjectsFromGlobalState(context: vscode.ExtensionContext, unsafe: boolean = false): ProjectGroup[] {
-    var projectGroups = context.globalState.get("projects") as ProjectGroup[];
+    var projectGroups = context.globalState.get(PROJECTS_KEY) as ProjectGroup[];
 
     if (projectGroups == null && !unsafe) {
         projectGroups = [];
@@ -235,12 +360,29 @@ function getProjectsFromSettings(context: vscode.ExtensionContext, unsafe: boole
 }
 
 function saveProjectGroupsInGlobalState(context: vscode.ExtensionContext, projectGroups: ProjectGroup[]): Thenable<void> {
-    return context.globalState.update("projects", projectGroups);
+    return context.globalState.update(PROJECTS_KEY, projectGroups);
 }
 
 function saveProjectGroupsInSettings(context: vscode.ExtensionContext, projectGroups: ProjectGroup[]): Thenable<void> {
     var config = vscode.workspace.getConfiguration('dashboard');
     return config.update("projectData", projectGroups, vscode.ConfigurationTarget.Global);
+}
+
+function getColorsFromGlobalState(context: vscode.ExtensionContext): string[][] {
+    return context.globalState.get(RECENT_COLORS_KEY) as string[][] || [];
+}
+
+function getColorsFromSettings(context: vscode.ExtensionContext): string[][] {
+    return vscode.workspace.getConfiguration('dashboard').get(RECENT_COLORS_KEY) as string[][] || [];
+}
+
+function saveColorsInGlobalState(context: vscode.ExtensionContext, colors: string[][]): Thenable<void> {
+    return context.globalState.update(RECENT_COLORS_KEY, colors);
+}
+
+function saveColorsInSettings(context: vscode.ExtensionContext, colors: string[][]): Thenable<void> {
+    var config = vscode.workspace.getConfiguration('dashboard');
+    return config.update(RECENT_COLORS_KEY, colors, vscode.ConfigurationTarget.Global);
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~ Model Migration ~~~~~~~~~~~~~~~~~~~~~~~~~
