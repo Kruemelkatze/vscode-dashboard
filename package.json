@@ -2,7 +2,7 @@
     "name": "vscode-dashboard",
     "displayName": "Project Dashboard",
     "description": "Organize your workspaces in a speed-dial manner.",
-    "version": "1.5.5",
+    "version": "2.0.0",
     "publisher": "kruemelkatze",
     "icon": "media/extension_icon.png",
     "engines": {
