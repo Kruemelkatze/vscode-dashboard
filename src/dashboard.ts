@@ -49,9 +49,26 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(addProjectGroupCommand);
     context.subscriptions.push(removeProjectGroupCommand);
 
+    vscode.workspace.onDidChangeConfiguration(event => {
+        if (event.affectsConfiguration("dashboard")) {
+            checkDataMigration(true);
+        }
+    });
+
     startUp();
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~ Functions ~~~~~~~~~~~~~~~~~~~~~~~~~
+    async function checkDataMigration(openDashboardAfterMigrate: boolean = false) {
+        let migrated = await migrateDataIfNeeded(context);
+        if (migrated) {
+            vscode.window.showInformationMessage("Migrated Dashboard Projects after changing Settings.");
+
+            if (openDashboardAfterMigrate) {
+                showDashboard();
+            }
+        }
+    }
+
     async function startUp() {
         for (let exName in dashboardInfos.relevantExtensionsInstalls) {
             let exId = RelevantExtensions[exName];
@@ -59,10 +76,7 @@ export function activate(context: vscode.ExtensionContext) {
             dashboardInfos.relevantExtensionsInstalls[exName] = installed;
         }
 
-        let migrated = await migrateDataIfNeeded(context);
-        if (migrated) {
-            vscode.window.showInformationMessage("Migrated Dashboard Projects after changing Settings.");
-        }
+        await checkDataMigration();
 
         showDashboardOnOpenIfNeeded();
     }
@@ -176,9 +190,9 @@ export function activate(context: vscode.ExtensionContext) {
 
     async function addProjectGroupPerCommand() {
         var groupName;
-        
+
         try {
-            groupName = await queryProjectGroupFields();            
+            groupName = await queryProjectGroupFields();
         } catch (error) {
             if (error.message !== USER_CANCELED) {
                 vscode.window.showErrorMessage(`An error occured while adding the project group.`);
@@ -259,7 +273,7 @@ export function activate(context: vscode.ExtensionContext) {
         if (group == null) {
             return;
         }
-       
+
         group.collapsed = !group.collapsed;
         await updateProjectGroup(context, projectGroupId, group);
 
@@ -402,7 +416,7 @@ export function activate(context: vscode.ExtensionContext) {
 
         return [project, selectedGroupId];
     }
-   
+
     async function queryProjectGroup(projectGroupId: string = null, optionForAdding: boolean = false): Promise<string> {
         var projectGroups = getProjects(context);
 
