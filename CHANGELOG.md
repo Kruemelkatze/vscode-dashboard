@@ -29,6 +29,10 @@ All notable changes to the "Project Dashboard" extension will be documented in t
 
 -   Changing the data source (globalState or user settings) now directly migrates the data and updates the dashboard.
 
+### Internal
+
+-   Refactored Webview
+
 ## [1.5.5] 2019-11-09
 
 ### Fixed
