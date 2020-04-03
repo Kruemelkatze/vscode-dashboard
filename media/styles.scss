@@ -37,6 +37,9 @@ $projectHeaderSize: 40px; // This has also be adjusted in constants.ts for fitty
 $projectHeaderMinHeight: 53px; // To be constant even with fitted font size
 $projectIconSize: 20px;
 
+$defaultTransition: 150ms ease-in-out;
+$actionTransitionDelay: 250ms;
+
 body {
     user-select: none;
 
@@ -68,7 +71,7 @@ body {
     &#tempGroup {
         
         .projects-group-title {
-            transition: opacity ease-in-out 200ms;
+            transition: opacity $defaultTransition;
             opacity: 0.5;
 
             &:hover {
@@ -103,14 +106,14 @@ body {
             padding-right: 2px;
             
             svg {
-                transition: transform 150ms ease-in-out;
+                transition: transform $defaultTransition;
                 margin-bottom: -2px;
             }
         }
     }
 
     .projects-group-actions {
-        transition: opacity 200ms ease-in-out 0.5s;
+        transition: opacity $defaultTransition $actionTransitionDelay;
         opacity: 0;
         pointer-events: none;
 
@@ -142,7 +145,7 @@ body {
     }
 
     .drop-signal {
-        transition: opacity ease-in-out 200ms;
+        transition: opacity $defaultTransition;
         pointer-events: none;
         opacity: 0;
         width: calc(var(--column-width) - 19px);
@@ -264,7 +267,7 @@ body .project {
         background: none;
         font-size: 1.5em;
         opacity: if($useAddProjectOpacity, 0, 0.6);
-        transition: opacity ease-in-out 100ms;
+        transition: opacity $defaultTransition;
 
         &:hover {
             opacity: 1;
@@ -286,8 +289,7 @@ body .project {
 
     .project-actions {
         margin-top: calc(-2em - #{$borderTopSize});
-        transition: margin-top ease-in-out 0.2s;
-        transition-delay: 0.5s;
+        transition: margin-top $defaultTransition $actionTransitionDelay;
 
         @include actions(1.2em);
     }
