@@ -3,7 +3,7 @@
 import * as vscode from 'vscode';
 import { SSH_REMOTE_PREFIX } from "./constants";
 
-export class ProjectGroup {
+export class Group {
     id: string;
     groupName: string;
     collapsed: boolean;

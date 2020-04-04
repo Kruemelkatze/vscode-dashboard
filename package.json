@@ -27,6 +27,14 @@
                 "title": "Project Dashboard: Open"
             },
             {
+                "command": "dashboard.addGroup",
+                "title": "Project Dashboard: Add Group"
+            },
+            {
+                "command": "dashboard.removeGroup",
+                "title": "Project Dashboard: Remove Group"
+            },
+            {
                 "command": "dashboard.addProject",
                 "title": "Project Dashboard: Add Project"
             },
@@ -37,14 +45,6 @@
             {
                 "command": "dashboard.editProjects",
                 "title": "Project Dashboard: Edit Projects"
-            },
-            {
-                "command": "dashboard.addProjectGroup",
-                "title": "Project Dashboard: Add Project Group"
-            },
-            {
-                "command": "dashboard.removeProjectGroup",
-                "title": "Project Dashboard: Remove Project Group"
             }
         ],
         "keybindings": [
@@ -98,7 +98,7 @@
                 },
                 "dashboard.showAddProjectButtonTile": {
                     "type": "boolean",
-                    "markdownDescription": "If set to ```false```, the dedicated '+' tile is hidden inside project groups. Projects can be added by using the actions when hovering the group name.",
+                    "markdownDescription": "If set to ```false```, the dedicated '+' tile is hidden inside groups. Projects can be added by using the actions when hovering the group name.",
                     "default": true
                 },
                 "dashboard.customProjectCardBackground": {

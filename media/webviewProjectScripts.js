@@ -16,11 +16,11 @@ function initProjects() {
         if (!projectDiv)
             return;
 
-        var projectGroupId = projectDiv.getAttribute("data-project-group-id");
+        var groupId = projectDiv.getAttribute("data-group-id");
 
         window.vscode.postMessage({
             type: 'add-project',
-            projectGroupId,
+            groupId,
         });
     }
 
@@ -36,8 +36,8 @@ function initProjects() {
         onProjectClicked(dataId, newWindow);
     }
 
-    function onInsideProjectsGroupClick(e, projectsGroupDiv) {
-        var groupId = projectsGroupDiv.getAttribute("data-group-id");
+    function onInsideGroupClick(e, groupDiv) {
+        var groupId = groupDiv.getAttribute("data-group-id");
         if (groupId == null)
             return;
 
@@ -49,19 +49,19 @@ function initProjects() {
         if (action === "add") {
             window.vscode.postMessage({
                 type: 'add-project',
-                projectGroupId: groupId,
+                groupId: groupId,
             });
 
             return;
         }
 
         if (action === "collapse") {
-            projectsGroupDiv.classList.toggle("collapsed");
+            groupDiv.classList.toggle("collapsed");
         }
 
         window.vscode.postMessage({
-            type: action + '-projects-group',
-            projectGroupId: groupId,
+            type: action + '-group',
+            groupId: groupId,
         });
     }
 
@@ -86,9 +86,9 @@ function initProjects() {
         if (!e.target)
             return;
 
-        if (e.target.closest('[data-action="add-projects-group"]')) {
+        if (e.target.closest('[data-action="add-group"]')) {
             window.vscode.postMessage({
-                type: 'add-projects-group'
+                type: 'add-group'
             });
             return;
         }
@@ -99,9 +99,9 @@ function initProjects() {
             return;
         }
 
-        var projectsGroupDiv = e.target.closest('.projects-group');
-        if (projectsGroupDiv) {
-            onInsideProjectsGroupClick(e, projectsGroupDiv);
+        var groupDiv = e.target.closest('.group');
+        if (groupDiv) {
+            onInsideGroupClick(e, groupDiv);
             return;
         }
     });

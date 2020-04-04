@@ -8,11 +8,11 @@
 
 The dashboard is a dedicated UI that can be opened using a command or **_ctrl + F1_** and configured to open automatically. Clicking a project opens it in the current window, while **_ctrl + click_** (**_cmd + click_** on Mac) opens it in a new window.
 
-Projects are separated into lists and can be assigned a color to find them quickly. Managing the groups and projects is done **directly on the dashboard**.
+Projects are separated into groups and can be assigned a color to find them quickly. Managing the groups and projects is done **directly on the dashboard**.
 
 ## Good to know
 
--   You can **edit** and **reorder** projects and project groups directly on the dashboard.
+-   You can **edit** and **reorder** projects and groups directly on the dashboard.
 -   **Emojis** may (or may not, depending on your preference) be good icons for projects. You can add them by pressing WIN + . (under Windows) while naming the project.
 -   You can use **gradients** as project color, via CSS Gradient functions like linear-gradient and radial-gradient.
 -   Only **colors** defined by the theme were used. So the dashboard should always blend nicely into your VSCode design. If not, you can customize them in the settings.

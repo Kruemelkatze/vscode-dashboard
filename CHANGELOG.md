@@ -8,8 +8,8 @@ All notable changes to the "Project Dashboard" extension will be documented in t
 
 -   Renamed extension to **Project Dashboard**.
 -   Project and Group Management
-    -   Empty project groups are no longer removed.
-    -   Project groups can now be added by a dedicated button.
+    -   Empty groups are no longer removed.
+    -   Groups can now be added by a dedicated button.
     -   When adding a project using any + button in the group, user is now longer prompted to select a group.
     -   Editing project no longer includes editing the color. For this, a dedicated action was added.
 -   Colors
@@ -18,7 +18,7 @@ All notable changes to the "Project Dashboard" extension will be documented in t
 
 ### Added
 
--   Project groups can be collapsed
+-   Groups can be collapsed
 -   Colors
     -   Project color can now be changed directly from the dashboard without going through the whole project editing phase.
     -   Selection for recently used colors.
@@ -65,7 +65,7 @@ All notable changes to the "Project Dashboard" extension will be documented in t
 
 ### Changed
 
--   Project group name is now mandatory, as the group name is always displayed. So enforcing a name makes sense.
+-   Group name is now mandatory, as the group name is always displayed. So enforcing a name makes sense.
 
 ### Fixed
 
@@ -79,7 +79,7 @@ All notable changes to the "Project Dashboard" extension will be documented in t
 -   Added config for startup behaviour (always, empty workspace, never).
 -   Editing and rearranging projects groups directly on the dashboard.
 -   Option for storing projects in the User Settings (to be synced via [Settings Sync](https://marketplace.visualstudio.com/items?itemName=Shan.code-settings-sync)).
--   Setting for removing the big '+' button, but added a smaller one next to the project group name.
+-   Setting for removing the big '+' button, but added a smaller one next to the group name.
 
 ### Changed
 
@@ -98,7 +98,7 @@ All notable changes to the "Project Dashboard" extension will be documented in t
 
 ### Fixed
 
--   Fixed issue that nothing shows on the dashboard, if a user updates from 1.2.0 to 1.4.0 with only an empty, unnamed project group.
+-   Fixed issue that nothing shows on the dashboard, if a user updates from 1.2.0 to 1.4.0 with only an empty, unnamed group.
 
 ## [1.4] 2019-07-07
 
@@ -135,13 +135,13 @@ All notable changes to the "Project Dashboard" extension will be documented in t
 
 ### Added
 
--   Project Groups
+-   Groups
 -   Color Customization Options in settings
 -   Detect if project is a Git repository. If so, display an icon.
 
 ### Changed
 
--   When adding a project, a project group has to be selected.
+-   When adding a project, a group has to be selected.
 
 ## [1.1] 2018-09-25
 

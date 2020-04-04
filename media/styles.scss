@@ -59,12 +59,12 @@ body {
 
 // RULES
 
-.projects-group {
+.group {
     margin-top: $defaultPadding * 0.5;
     overflow: hidden;
 
     &.collapsed {
-        .projects-group-list {
+        .group-list {
             height: 0;
             min-height: 0;
             margin-top: 0;
@@ -76,7 +76,7 @@ body {
     }
 
     &#tempGroup {
-        .projects-group-title {
+        .group-title {
             transition: opacity $defaultTransition;
             opacity: 0.5;
 
@@ -95,7 +95,7 @@ body {
         margin-top: $defaultPadding / 2;
     }
 
-    .projects-group-title {
+    .group-title {
         min-width: calc(var(--column-width) - 19px);
         display: inline-block;
         font-size: $projectHeaderSize / 2;
@@ -118,7 +118,7 @@ body {
         }
     }
 
-    .projects-group-actions {
+    .group-actions {
         transition: opacity $defaultTransition $actionTransitionDelay;
         opacity: 0;
         pointer-events: none;
@@ -135,12 +135,12 @@ body {
         }
     }
 
-    .projects-group-title:hover .projects-group-actions {
+    .group-title:hover .group-actions {
         opacity: 1;
         pointer-events: all;
     }
 
-    .projects-group-list {
+    .group-list {
         display: flex;
         flex-wrap: wrap;
         align-items: flex-start;
@@ -170,8 +170,8 @@ body {
 }
 
 @if ($useAddProjectOpacity) {
-    .projects-group:hover .add-project,
-    .projects-group-title:hover + .projects-group .add-project {
+    .group:hover .add-project,
+    .group-title:hover + .group .add-project {
         opacity: 0.6;
     }
 }
@@ -332,12 +332,12 @@ body .project {
     }
 
     .project-actions-wrapper,
-    .projects-group-actions {
+    .group-actions {
         display: none !important;
     }
 }
 
-.project-dragging .projects-group {
+.project-dragging .group {
     .drop-signal {
         opacity: 0.2;
         pointer-events: all;
@@ -345,7 +345,7 @@ body .project {
         height: auto;
     }
 
-    .projects-group-title {
+    .group-title {
         opacity: 1;
     }
 }

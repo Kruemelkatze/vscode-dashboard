@@ -1,8 +1,8 @@
 'use strict';
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { Project, GroupOrder, ProjectGroup, ProjectRemoteType, getRemoteType, DashboardInfos } from './models';
-import { getProjects, addProject, removeProject, saveProjectGroups, writeTextFile, getProject, addProjectGroup, getProjectsFlat, migrateDataIfNeeded, getProjectAndGroup, updateProject, getProjectsGroup, updateProjectGroup, removeProjectsGroup, getRecentColors, getColorName, getRandomColor } from './projectService';
+import { Project, GroupOrder, Group, ProjectRemoteType, getRemoteType, DashboardInfos } from './models';
+import { getProjects, addProject, removeProject, saveGroups, writeTextFile, getProject, addGroup, getProjectsFlat, migrateDataIfNeeded, getProjectAndGroup, updateProject, getGroup, updateGroup, removeGroup, getRecentColors, getColorName, getRandomColor } from './projectService';
 import { getDashboardContent } from './webview/webviewContent';
 import { USE_PROJECT_COLOR, PREDEFINED_COLORS, StartupOptions, USER_CANCELED, FixedColorOptions, RelevantExtensions, SSH_REGEX, REMOTE_REGEX, SSH_REMOTE_PREFIX } from './constants';
 import { execSync } from 'child_process';
@@ -34,20 +34,20 @@ export function activate(context: vscode.ExtensionContext) {
         await editProjectsManuallyPerCommand();
     });
 
-    const addProjectGroupCommand = vscode.commands.registerCommand('dashboard.addProjectGroup', async () => {
-        await addProjectGroupPerCommand();
+    const addGroupCommand = vscode.commands.registerCommand('dashboard.addGroup', async () => {
+        await addGroupPerCommand();
     });
 
-    const removeProjectGroupCommand = vscode.commands.registerCommand('dashboard.removeProjectGroup', async () => {
-        await removeProjectsGroupPerCommand();
+    const removeGroupCommand = vscode.commands.registerCommand('dashboard.removeGroup', async () => {
+        await removeGroupPerCommand();
     });
 
     context.subscriptions.push(openCommand);
     context.subscriptions.push(addProjectCommand);
     context.subscriptions.push(removeProjectCommand);
     context.subscriptions.push(editProjectsManuallyCommand);
-    context.subscriptions.push(addProjectGroupCommand);
-    context.subscriptions.push(removeProjectGroupCommand);
+    context.subscriptions.push(addGroupCommand);
+    context.subscriptions.push(removeGroupCommand);
 
     vscode.workspace.onDidChangeConfiguration(event => {
         if (event.affectsConfiguration("dashboard")) {
@@ -137,7 +137,7 @@ export function activate(context: vscode.ExtensionContext) {
             }, null, context.subscriptions);
 
             panel.webview.onDidReceiveMessage(async (e) => {
-                let projectId: string, projectGroupId: string;
+                let projectId: string, groupId: string;
                 switch (e.type) {
                     case 'selected-project':
                         projectId = e.projectId as string;
@@ -151,12 +151,12 @@ export function activate(context: vscode.ExtensionContext) {
                         await openProject(project, newWindow);
                         break;
                     case 'add-project':
-                        projectGroupId = e.projectGroupId as string;
-                        await addProjectPerCommand(projectGroupId);
+                        groupId = e.groupId as string;
+                        await addProjectPerCommand(groupId);
                         break;
                     case 'reordered-projects':
                         let groupOrders = e.groupOrders as GroupOrder[];
-                        await reorderProjectGroups(groupOrders);
+                        await reorderGroups(groupOrders);
                         break;
                     case 'delete-project':
                         projectId = e.projectId as string;
@@ -170,20 +170,20 @@ export function activate(context: vscode.ExtensionContext) {
                         projectId = e.projectId as string;
                         await editProjectColor(projectId);
                         break;
-                    case 'edit-projects-group':
-                        projectGroupId = e.projectGroupId as string;
-                        await editProjectsGroup(projectGroupId);
+                    case 'edit-group':
+                        groupId = e.groupId as string;
+                        await editGroup(groupId);
                         break;
-                    case 'delete-projects-group':
-                        projectGroupId = e.projectGroupId as string;
-                        await deleteProjectsGroup(projectGroupId);
+                    case 'delete-group':
+                        groupId = e.groupId as string;
+                        await deleteGroup(groupId);
                         break;
-                    case 'add-projects-group':
-                        await addProjectGroupPerCommand();
+                    case 'add-group':
+                        await addGroupPerCommand();
                         break;
-                    case 'collapse-projects-group':
-                        projectGroupId = e.projectGroupId as string;
-                        await collapseProjectsGroup(projectGroupId);
+                    case 'collapse-group':
+                        groupId = e.groupId as string;
+                        await collapseGroup(groupId);
                         break;
                 }
             });
@@ -192,26 +192,26 @@ export function activate(context: vscode.ExtensionContext) {
         }
     }
 
-    async function addProjectGroupPerCommand() {
+    async function addGroupPerCommand() {
         var groupName;
 
         try {
-            groupName = await queryProjectGroupFields();
+            groupName = await queryGroupFields();
         } catch (error) {
             if (error.message !== USER_CANCELED) {
-                vscode.window.showErrorMessage(`An error occured while adding the project group.`);
+                vscode.window.showErrorMessage(`An error occured while adding the group.`);
                 throw error; // Rethrow error to make vscode log it
             }
 
             return;
         }
 
-        var group = await addProjectGroup(context, groupName);
+        var group = await addGroup(context, groupName);
         showDashboard();
     }
 
-    async function editProjectsGroup(projectGroupId: string) {
-        var group = getProjectsGroup(context, projectGroupId);
+    async function editGroup(groupId: string) {
+        var group = getGroup(context, groupId);
         if (group == null) {
             return;
         }
@@ -219,10 +219,10 @@ export function activate(context: vscode.ExtensionContext) {
         var groupName;
 
         try {
-            groupName = await queryProjectGroupFields();
+            groupName = await queryGroupFields();
         } catch (error) {
             if (error.message !== USER_CANCELED) {
-                vscode.window.showErrorMessage(`An error occured while editing the project group.`);
+                vscode.window.showErrorMessage(`An error occured while editing the group.`);
                 throw error; // Rethrow error to make vscode log it
             }
 
@@ -231,16 +231,16 @@ export function activate(context: vscode.ExtensionContext) {
 
         // Name
         group.groupName = groupName;
-        await updateProjectGroup(context, projectGroupId, group);
+        await updateGroup(context, groupId, group);
 
         showDashboard();
     }
 
-    async function queryProjectGroupFields(defaultText: string = null): Promise<string> {
+    async function queryGroupFields(defaultText: string = null): Promise<string> {
         var groupName = await vscode.window.showInputBox({
             value: defaultText || undefined,
             valueSelection: defaultText ? [0, defaultText.length] : undefined,
-            placeHolder: 'Project Group Name',
+            placeHolder: 'Group Name',
             ignoreFocusOut: true,
             validateInput: (val: string) => val ? '' : 'A Group Name must be provided.',
         });
@@ -252,13 +252,13 @@ export function activate(context: vscode.ExtensionContext) {
         return groupName;
     }
 
-    async function removeProjectsGroupPerCommand() {
-        var [projectGroupId, newlyCreated] = await queryProjectGroup();
-        deleteProjectsGroup(projectGroupId);
+    async function removeGroupPerCommand() {
+        var [groupId, newlyCreated] = await queryGroup();
+        deleteGroup(groupId);
     }
 
-    async function deleteProjectsGroup(projectGroupId: string) {
-        var group = getProjectsGroup(context, projectGroupId);
+    async function deleteGroup(groupId: string) {
+        var group = getGroup(context, groupId);
         if (group == null) {
             return;
         }
@@ -268,18 +268,18 @@ export function activate(context: vscode.ExtensionContext) {
             return;
         }
 
-        await removeProjectsGroup(context, projectGroupId);
+        await removeGroup(context, groupId);
         showDashboard();
     }
 
-    async function collapseProjectsGroup(projectGroupId: string) {
-        var group = getProjectsGroup(context, projectGroupId);
+    async function collapseGroup(groupId: string) {
+        var group = getGroup(context, groupId);
         if (group == null) {
             return;
         }
 
         group.collapsed = !group.collapsed;
-        await updateProjectGroup(context, projectGroupId, group);
+        await updateGroup(context, groupId, group);
 
         //showDashboard(); // No need to repaint for that
     }
@@ -312,11 +312,11 @@ export function activate(context: vscode.ExtensionContext) {
         }
     }
 
-    async function addProjectPerCommand(projectGroupId: string = null) {
+    async function addProjectPerCommand(groupId: string = null) {
         var project: Project, selectedGroupId: string;
 
         try {
-            [project, selectedGroupId] = await queryProjectFields(projectGroupId);
+            [project, selectedGroupId] = await queryProjectFields(groupId);
             await addProject(context, project, selectedGroupId);
         } catch (error) {
             if (error.message !== USER_CANCELED) {
@@ -373,23 +373,23 @@ export function activate(context: vscode.ExtensionContext) {
         showDashboard();
     }
 
-    async function queryProjectFields(projectGroupId: string = null, projectTemplate: Project = null): Promise<[Project, string]> {
+    async function queryProjectFields(groupId: string = null, projectTemplate: Project = null): Promise<[Project, string]> {
         // For editing a project: Ignore Group selection and take it from template
         var selectedGroupId: string, projectPath: string;
-        var isEditing = projectTemplate != null && projectGroupId != null;
+        var isEditing = projectTemplate != null && groupId != null;
         var groupWasNewlyCreated = false;
 
         try {
             if (isEditing) {
                 // Editing
-                selectedGroupId = projectGroupId;
+                selectedGroupId = groupId;
                 projectPath = projectTemplate.path;
             } else {
                 // New
-                if (projectGroupId != null) {
-                    selectedGroupId = projectGroupId;
+                if (groupId != null) {
+                    selectedGroupId = groupId;
                 } else {
-                    [selectedGroupId, groupWasNewlyCreated] = await queryProjectGroup(projectGroupId, true);
+                    [selectedGroupId, groupWasNewlyCreated] = await queryGroup(groupId, true);
                 }
                 projectPath = await queryProjectPath();
             }
@@ -408,7 +408,7 @@ export function activate(context: vscode.ExtensionContext) {
 
             if (!projectName) {
                 if (groupWasNewlyCreated) {
-                    await removeProjectsGroup(context, selectedGroupId, true);
+                    await removeGroup(context, selectedGroupId, true);
                 }
                 throw new Error(USER_CANCELED);
             }
@@ -453,32 +453,32 @@ export function activate(context: vscode.ExtensionContext) {
         } catch (e) {
             // Cleanup
             if (groupWasNewlyCreated) {
-                await removeProjectsGroup(context, selectedGroupId, true);
+                await removeGroup(context, selectedGroupId, true);
             }
 
             throw e;
         }
     }
 
-    async function queryProjectGroup(projectGroupId: string = null, optionForAdding: boolean = false): Promise<[string, boolean]> {
-        var projectGroups = getProjects(context);
+    async function queryGroup(groupId: string = null, optionForAdding: boolean = false): Promise<[string, boolean]> {
+        var groups = getProjects(context);
 
-        if (optionForAdding && !projectGroups.length) {
-            projectGroupId = 'Add';
+        if (optionForAdding && !groups.length) {
+            groupId = 'Add';
         } else {
             // Reorder array to set given group to front (to quickly select it).
-            let orderedProjectGroups = projectGroups;
-            if (projectGroupId != null) {
-                let idx = projectGroups.findIndex(g => g.id === projectGroupId);
+            let orderedGroups = groups;
+            if (groupId != null) {
+                let idx = groups.findIndex(g => g.id === groupId);
                 if (idx != null) {
-                    orderedProjectGroups = projectGroups.slice();
-                    let group = orderedProjectGroups.splice(idx, 1);
-                    orderedProjectGroups.unshift(...group);
+                    orderedGroups = groups.slice();
+                    let group = orderedGroups.splice(idx, 1);
+                    orderedGroups.unshift(...group);
                 }
             }
 
             let defaultGroupSet = false;
-            let projectGroupPicks = orderedProjectGroups.map(group => {
+            let groupPicks = orderedGroups.map(group => {
                 let label = group.groupName;
                 if (!label) {
                     label = defaultGroupSet ? 'Unnamed Group' : 'Default Group';
@@ -492,29 +492,29 @@ export function activate(context: vscode.ExtensionContext) {
             });
 
             if (optionForAdding) {
-                projectGroupPicks.push({
+                groupPicks.push({
                     id: "Add",
-                    label: "Add new Project Group",
+                    label: "Add new Group",
                 });
             }
 
 
-            let selectedProjectGroupPick = await vscode.window.showQuickPick(projectGroupPicks, {
-                placeHolder: "Project Group"
+            let selectedGroupPick = await vscode.window.showQuickPick(groupPicks, {
+                placeHolder: "Group"
             });
 
-            if (selectedProjectGroupPick == null) {
+            if (selectedGroupPick == null) {
                 throw new Error(USER_CANCELED);
             }
 
-            projectGroupId = selectedProjectGroupPick.id;
+            groupId = selectedGroupPick.id;
 
         }
 
         var newlyCreated = false;
-        if (projectGroupId === 'Add') {
+        if (groupId === 'Add') {
             let newGroupName = await vscode.window.showInputBox({
-                placeHolder: 'New Project Group Name',
+                placeHolder: 'New Group Name',
                 ignoreFocusOut: true,
                 validateInput: (val: string) => val ? '' : 'A Group Name must be provided.',
             });
@@ -523,11 +523,11 @@ export function activate(context: vscode.ExtensionContext) {
                 throw new Error(USER_CANCELED);
             }
 
-            projectGroupId = (await addProjectGroup(context, newGroupName)).id;
+            groupId = (await addGroup(context, newGroupName)).id;
             newlyCreated = true;
         }
 
-        return [projectGroupId, newlyCreated];
+        return [groupId, newlyCreated];
     }
 
     async function queryProjectPath(defaultPath: string = null): Promise<string> {
@@ -761,10 +761,10 @@ export function activate(context: vscode.ExtensionContext) {
         var subscriptions: vscode.Disposable[] = [];
         var editSubscription = vscode.workspace.onWillSaveTextDocument(async (e) => {
             if (e.document == editProjectsDocument) {
-                let updatedProjectGroups;
+                let updatedGroups;
                 try {
                     var text = e.document.getText() || "[]";
-                    updatedProjectGroups = JSON.parse(text);
+                    updatedGroups = JSON.parse(text);
                 } catch (ex) {
                     vscode.window.showErrorMessage("Edited Projects File can not be parsed.")
                     return;
@@ -772,8 +772,8 @@ export function activate(context: vscode.ExtensionContext) {
 
                 // Validate and Cleanup
                 var jsonIsInvalid = false;
-                if (Array.isArray(updatedProjectGroups)) {
-                    for (let group of updatedProjectGroups) {
+                if (Array.isArray(updatedGroups)) {
+                    for (let group of updatedGroups) {
                         if (group.name && !group.groupName) {
                             // One of the testers produced a group with any groupName
                             // We could not reproduce that, but this may be a result from updating legacy groups
@@ -809,9 +809,9 @@ export function activate(context: vscode.ExtensionContext) {
                     return;
                 }
 
-                updatedProjectGroups = updatedProjectGroups.filter(g => !g._delete);
+                updatedGroups = updatedGroups.filter(g => !g._delete);
 
-                await saveProjectGroups(context, updatedProjectGroups);
+                await saveGroups(context, updatedGroups);
                 showDashboard();
 
                 subscriptions.forEach(s => s.dispose());
@@ -851,8 +851,8 @@ export function activate(context: vscode.ExtensionContext) {
         showDashboard();
     }
 
-    async function reorderProjectGroups(groupOrders: GroupOrder[]) {
-        var projectGroups = getProjects(context);
+    async function reorderGroups(groupOrders: GroupOrder[]) {
+        var groups = getProjects(context);
 
         if (groupOrders == null) {
             vscode.window.showInformationMessage('Invalid Argument passed to Reordering Projects.');
@@ -862,7 +862,7 @@ export function activate(context: vscode.ExtensionContext) {
 
         // Map projects by id for easier access
         var projectMap = new Map<string, Project>();
-        for (let group of projectGroups) {
+        for (let group of groups) {
             if (group.projects == null) {
                 continue;
             }
@@ -873,18 +873,18 @@ export function activate(context: vscode.ExtensionContext) {
         }
 
         // Build new, reordered projects group array
-        var reorderedProjectGroups: ProjectGroup[] = [];
+        var reorderedGroups: Group[] = [];
         for (let { groupId, projectIds } of groupOrders) {
-            let group = projectGroups.find(g => g.id === groupId);
+            let group = groups.find(g => g.id === groupId);
             if (group == null) {
-                group = new ProjectGroup("Project Group #" + (reorderedProjectGroups.length + 1));
+                group = new Group("Group #" + (reorderedGroups.length + 1));
             }
 
             group.projects = projectIds.map(pid => projectMap.get(pid)).filter(p => p != null);
-            reorderedProjectGroups.push(group);
+            reorderedGroups.push(group);
         }
 
-        await saveProjectGroups(context, reorderedProjectGroups);
+        await saveGroups(context, reorderedGroups);
         showDashboard();
     }
 

@@ -1,11 +1,11 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 
-import { Project, ProjectGroup, getRemoteType, ProjectRemoteType, DashboardInfos } from "../models";
+import { Project, Group, getRemoteType, ProjectRemoteType, DashboardInfos } from "../models";
 import { FITTY_OPTIONS, REMOTE_REGEX } from '../constants';
 import * as Icons from './webviewIcons';
 
-export function getDashboardContent(context: vscode.ExtensionContext, webviewPanel: vscode.WebviewPanel, projectGroups: ProjectGroup[], infos: DashboardInfos): string {
+export function getDashboardContent(context: vscode.ExtensionContext, webviewPanel: vscode.WebviewPanel, groups: Group[], infos: DashboardInfos): string {
     var stylesPath = getMediaResource(context, webviewPanel, 'styles.css');
     var fittyPath = getMediaResource(context, webviewPanel, 'fitty.min.js');
     var dragulaPath = getMediaResource(context, webviewPanel, 'dragula.min.js');
@@ -27,17 +27,17 @@ export function getDashboardContent(context: vscode.ExtensionContext, webviewPan
         <title>Dashboard</title>
         ${getCustomStyle(infos.config)}
     </head>
-    <body class="preload ${!projectGroups.length ? 'dashboard-empty' : ''}">
+    <body class="preload ${!groups.length ? 'dashboard-empty' : ''}">
         <div class="">
-            <div class="projects-wrapper ${!infos.config.displayProjectPath ? 'hide-project-path' : ''}">
-        ${projectGroups.length ?
-            projectGroups.map(group => getProjectGroupSection(group, projectGroups.length, infos)).join('\n')
+            <div class="groups-wrapper ${!infos.config.displayProjectPath ? 'hide-project-path' : ''}">
+        ${groups.length ?
+            groups.map(group => getGroupSection(group, groups.length, infos)).join('\n')
             :
             getNoProjectsDiv()
         }
             </div>
 
-            ${getTempProjectGroupSection(projectGroups.length)}
+            ${getTempGroupSection(groups.length)}
         </div>
     </body>
 
@@ -63,42 +63,42 @@ export function getDashboardContent(context: vscode.ExtensionContext, webviewPan
 </html>`;
 }
 
-function getProjectGroupSection(projectGroup: ProjectGroup, totalGroupCount: number, infos: DashboardInfos) {
-    // Apply changes to HTML here also to getTempProjectGroupSection
+function getGroupSection(group: Group, totalGroupCount: number, infos: DashboardInfos) {
+    // Apply changes to HTML here also to getTempGroupSection
 
     var showAddButton = infos.config.showAddProjectButtonTile;
 
     return `
-<div class="projects-group ${projectGroup.collapsed ? 'collapsed' : ''} ${projectGroup.projects.length === 0 ? 'no-projects' : ''}" data-group-id="${projectGroup.id}">
-    <div class="projects-group-title">
-        <span class="project-group-title-text" data-action="collapse" data-drag-group>
-            <span class="collapse-icon" title="Open/Collapse Project Group">${Icons.collapse}</span>
-            ${projectGroup.groupName || "Unnamed Project Group"}
+<div class="group ${group.collapsed ? 'collapsed' : ''} ${group.projects.length === 0 ? 'no-projects' : ''}" data-group-id="${group.id}">
+    <div class="group-title">
+        <span class="group-title-text" data-action="collapse" data-drag-group>
+            <span class="collapse-icon" title="Open/Collapse Group">${Icons.collapse}</span>
+            ${group.groupName || "Unnamed Group"}
         </span>
-        <div class="projects-group-actions right">
+        <div class="group-actions right">
             <span data-action="add" title="Add Project">${Icons.add}</span>
         </div>
-        <div class="projects-group-actions left">
+        <div class="group-actions left">
             <!-- <span data-action="drag">${Icons.drag}</span> -->
-            <span data-action="edit" title="Edit Project Group">${Icons.edit}</span>
-            <span data-action="delete" title="Remove Project Group">${Icons.remove}</span>
+            <span data-action="edit" title="Edit Group">${Icons.edit}</span>
+            <span data-action="delete" title="Remove Group">${Icons.remove}</span>
         </div>
     </div>
-    <div class="projects-group-list">
+    <div class="group-list">
         <div class="drop-signal"></div>
-        ${projectGroup.projects.map(p => getProjectDiv(p, infos)).join('\n')}
-        ${showAddButton ? getAddProjectDiv(projectGroup.id) : ""}
+        ${group.projects.map(p => getProjectDiv(p, infos)).join('\n')}
+        ${showAddButton ? getAddProjectDiv(group.id) : ""}
     </div>       
 </div>`;
 }
 
-function getTempProjectGroupSection(totalGroupCount: number) {
+function getTempGroupSection(totalGroupCount: number) {
     return `
-<div class="projects-group" id="tempGroup">
-    <div class="projects-group-title" data-action="add-projects-group">
-        <span>${Icons.add} New Project Group</span>
+<div class="group" id="tempGroup">
+    <div class="group-title" data-action="add-group">
+        <span>${Icons.add} New Group</span>
     </div>
-    <div class="projects-group-list">
+    <div class="group-list">
         <div class="drop-signal"></div>
     </div>       
 </div>     
@@ -150,10 +150,10 @@ function getNoProjectsDiv() {
 </div>`
 }
 
-function getAddProjectDiv(projectGroupId: string) {
+function getAddProjectDiv(groupId: string) {
     return `
 <span class="project-container slim last" data-nodrag>
-    <div class="project add-project" data-action="add-project" data-project-group-id="${projectGroupId}">
+    <div class="project add-project" data-action="add-project" data-group-id="${groupId}">
         <h2 class="add-project-header">
             +
         </h2>
