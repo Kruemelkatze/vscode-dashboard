@@ -303,10 +303,10 @@ export async function removeProject(context: vscode.ExtensionContext, projectId:
     return projectGroups;
 }
 
-export async function removeProjectsGroup(context: vscode.ExtensionContext, projectsGroupId: string): Promise<ProjectGroup[]> {
+export async function removeProjectsGroup(context: vscode.ExtensionContext, projectsGroupId: string, testIfEmpty: boolean = false): Promise<ProjectGroup[]> {
     let projectGroups = getProjects(context);
 
-    projectGroups = projectGroups.filter(g => g.id !== projectsGroupId);
+    projectGroups = projectGroups.filter(g => g.id !== projectsGroupId || (testIfEmpty && g.projects.length));
     await saveProjectGroups(context, projectGroups);
 
     return projectGroups;

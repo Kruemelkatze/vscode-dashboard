@@ -27,10 +27,10 @@ export function getDashboardContent(context: vscode.ExtensionContext, webviewPan
         <title>Dashboard</title>
         ${getCustomStyle(infos.config)}
     </head>
-    <body class="preload">
-        <div class="${!infos.config.displayProjectPath ? 'hide-project-path' : ''}">
-            <div class="projects-wrapper">
-                ${projectGroups.length ?
+    <body class="preload ${!projectGroups.length ? 'dashboard-empty' : ''}">
+        <div class="">
+            <div class="projects-wrapper ${!infos.config.displayProjectPath ? 'hide-project-path' : ''}">
+        ${projectGroups.length ?
             projectGroups.map(group => getProjectGroupSection(group, projectGroups.length, infos)).join('\n')
             :
             getNoProjectsDiv()

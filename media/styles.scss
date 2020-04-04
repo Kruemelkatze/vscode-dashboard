@@ -48,6 +48,12 @@ body {
     &.preload * {
         transition: none !important;
     }
+
+    &.dashboard-empty {
+        #tempGroup {
+            display: none;
+        }
+    }
 }
 
 // RULES
