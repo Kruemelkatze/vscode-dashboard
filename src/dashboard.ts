@@ -2,14 +2,20 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { Project, GroupOrder, Group, ProjectRemoteType, getRemoteType, DashboardInfos } from './models';
-import { getProjects, addProject, removeProject, saveGroups, writeTextFile, getProject, addGroup, getProjectsFlat, migrateDataIfNeeded, getProjectAndGroup, updateProject, getGroup, updateGroup, removeGroup, getRecentColors, getColorName, getRandomColor } from './projectService';
 import { getDashboardContent } from './webview/webviewContent';
 import { USE_PROJECT_COLOR, PREDEFINED_COLORS, StartupOptions, USER_CANCELED, FixedColorOptions, RelevantExtensions, SSH_REGEX, REMOTE_REGEX, SSH_REMOTE_PREFIX } from './constants';
 import { execSync } from 'child_process';
 import { lstatSync } from 'fs';
 
+import ColorService from './services/colorService';
+import ProjectService from './services/projectService';
+import FileService from './services/fileService';
+
 export function activate(context: vscode.ExtensionContext) {
     var instance: vscode.WebviewPanel = null;
+    const colorService = new ColorService(context);
+    const projectService = new ProjectService(context, colorService);
+    const fileService = new FileService(context);
 
     const dashboardInfos: DashboardInfos = {
         relevantExtensionsInstalls: {
@@ -59,7 +65,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~ Functions ~~~~~~~~~~~~~~~~~~~~~~~~~
     async function checkDataMigration(openDashboardAfterMigrate: boolean = false) {
-        let migrated = await migrateDataIfNeeded(context);
+        let migrated = await projectService.migrateDataIfNeeded();
         if (migrated) {
             vscode.window.showInformationMessage("Migrated Dashboard Projects after changing Settings.");
 
@@ -110,7 +116,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     function showDashboard() {
         var columnToShowIn = vscode.window.activeTextEditor ? vscode.window.activeTextEditor.viewColumn : null;
-        var projects = getProjects(context);
+        var projects = projectService.getGroups();
 
         if (instance) {
             instance.webview.html = getDashboardContent(context, instance, projects, dashboardInfos);
@@ -142,7 +148,7 @@ export function activate(context: vscode.ExtensionContext) {
                     case 'selected-project':
                         projectId = e.projectId as string;
                         let newWindow = e.newWindow as boolean;
-                        let project = getProject(context, projectId);
+                        let project = projectService.getProject(projectId);
                         if (project == null) {
                             vscode.window.showWarningMessage("Selected Project not found.");
                             break;
@@ -206,12 +212,12 @@ export function activate(context: vscode.ExtensionContext) {
             return;
         }
 
-        var group = await addGroup(context, groupName);
+        await projectService.addGroup(groupName);
         showDashboard();
     }
 
     async function editGroup(groupId: string) {
-        var group = getGroup(context, groupId);
+        var group = projectService.getGroup(groupId);
         if (group == null) {
             return;
         }
@@ -231,7 +237,7 @@ export function activate(context: vscode.ExtensionContext) {
 
         // Name
         group.groupName = groupName;
-        await updateGroup(context, groupId, group);
+        await projectService.updateGroup(groupId, group);
 
         showDashboard();
     }
@@ -258,7 +264,7 @@ export function activate(context: vscode.ExtensionContext) {
     }
 
     async function deleteGroup(groupId: string) {
-        var group = getGroup(context, groupId);
+        var group = projectService.getGroup(groupId);
         if (group == null) {
             return;
         }
@@ -268,18 +274,18 @@ export function activate(context: vscode.ExtensionContext) {
             return;
         }
 
-        await removeGroup(context, groupId);
+        await projectService.removeGroup(groupId);
         showDashboard();
     }
 
     async function collapseGroup(groupId: string) {
-        var group = getGroup(context, groupId);
+        var group = projectService.getGroup(groupId);
         if (group == null) {
             return;
         }
 
         group.collapsed = !group.collapsed;
-        await updateGroup(context, groupId, group);
+        await projectService.updateGroup(groupId, group);
 
         //showDashboard(); // No need to repaint for that
     }
@@ -317,7 +323,7 @@ export function activate(context: vscode.ExtensionContext) {
 
         try {
             [project, selectedGroupId] = await queryProjectFields(groupId);
-            await addProject(context, project, selectedGroupId);
+            await projectService.addProject(project, selectedGroupId);
         } catch (error) {
             if (error.message !== USER_CANCELED) {
                 vscode.window.showErrorMessage(`An error occured while adding the project.`);
@@ -331,7 +337,7 @@ export function activate(context: vscode.ExtensionContext) {
     }
 
     async function editProject(projectId: string) {
-        var [project, group] = getProjectAndGroup(context, projectId);
+        var [project, group] = projectService.getProjectAndGroup(projectId);
         if (project == null || group == null) {
             return;
         }
@@ -339,7 +345,7 @@ export function activate(context: vscode.ExtensionContext) {
         var editedProject: Project, selectedGroupId: string;
         try {
             [editedProject, selectedGroupId] = await queryProjectFields(group.id, project);
-            await updateProject(context, projectId, editedProject);
+            await projectService.updateProject(projectId, editedProject);
         } catch (error) {
             if (error.message !== USER_CANCELED) {
                 vscode.window.showErrorMessage(`An error occured while updating project ${project.name}.`);
@@ -353,14 +359,14 @@ export function activate(context: vscode.ExtensionContext) {
     }
 
     async function editProjectColor(projectId: string) {
-        var [project, group] = getProjectAndGroup(context, projectId);
+        var [project, group] = projectService.getProjectAndGroup(projectId);
         if (project == null || group == null) {
             return;
         }
 
         try {
             project.color = await queryProjectColor(project);
-            await updateProject(context, projectId, project);
+            await projectService.updateProject(projectId, project);
         } catch (error) {
             if (error.message !== USER_CANCELED) {
                 vscode.window.showErrorMessage(`An error occured while updating project ${project.name}.`);
@@ -408,7 +414,7 @@ export function activate(context: vscode.ExtensionContext) {
 
             if (!projectName) {
                 if (groupWasNewlyCreated) {
-                    await removeGroup(context, selectedGroupId, true);
+                    await projectService.removeGroup(selectedGroupId, true);
                 }
                 throw new Error(USER_CANCELED);
             }
@@ -453,7 +459,7 @@ export function activate(context: vscode.ExtensionContext) {
         } catch (e) {
             // Cleanup
             if (groupWasNewlyCreated) {
-                await removeGroup(context, selectedGroupId, true);
+                await projectService.removeGroup(selectedGroupId, true);
             }
 
             throw e;
@@ -461,7 +467,7 @@ export function activate(context: vscode.ExtensionContext) {
     }
 
     async function queryGroup(groupId: string = null, optionForAdding: boolean = false): Promise<[string, boolean]> {
-        var groups = getProjects(context);
+        var groups = projectService.getGroups();
 
         if (optionForAdding && !groups.length) {
             groupId = 'Add';
@@ -523,7 +529,7 @@ export function activate(context: vscode.ExtensionContext) {
                 throw new Error(USER_CANCELED);
             }
 
-            groupId = (await addGroup(context, newGroupName)).id;
+            groupId = (await projectService.addGroup(newGroupName)).id;
             newlyCreated = true;
         }
 
@@ -612,7 +618,7 @@ export function activate(context: vscode.ExtensionContext) {
         }
 
         // If it has a color, aggregate colorCode and name
-        colorName = colorName || getColorName(colorCode);
+        colorName = colorName || colorService.getColorName(colorCode);
         let colorText = colorName ? `${colorName}    (${colorCode})` : colorCode;
 
         return colorText;
@@ -686,7 +692,7 @@ export function activate(context: vscode.ExtensionContext) {
                     color = (customColor || "").replace(/[;"]/g, "").trim();
                     break;
                 case FixedColorOptions.recent:
-                    let recentColors = getRecentColors(context);
+                    let recentColors = colorService.getRecentColors();
                     let recentColorPicks = recentColors.map(([code, name]) => ({
                         id: code,
                         label: buildColorText(code, name),
@@ -712,7 +718,7 @@ export function activate(context: vscode.ExtensionContext) {
                 case FixedColorOptions.none:
                     return null; // Only case to allow null color
                 case FixedColorOptions.random:
-                    color = getRandomColor();
+                    color = colorService.getRandomColor();
                     break;
                 default:
                     // PredefinedColor
@@ -729,7 +735,7 @@ export function activate(context: vscode.ExtensionContext) {
     }
 
     async function removeProjectPerCommand() {
-        var projects = getProjectsFlat(context);
+        var projects = projectService.getProjectsFlat();
         let projectPicks = projects.map(p => ({ id: p.id, label: p.name }));
 
         let selectedProjectPick = await vscode.window.showQuickPick(projectPicks);
@@ -737,15 +743,15 @@ export function activate(context: vscode.ExtensionContext) {
         if (selectedProjectPick == null)
             return;
 
-        await removeProject(context, selectedProjectPick.id)
+        await projectService.removeProject(selectedProjectPick.id)
         showDashboard();
     }
 
     async function editProjectsManuallyPerCommand() {
-        var projects = getProjects(context);
-        const tempFilePath = getProjectsTempFilePath();
+        var projects = projectService.getGroups();
+        const tempFilePath = getGroupsTempFilePath();
         try {
-            writeTextFile(tempFilePath, JSON.stringify(projects, null, 4));
+            fileService.writeTextFile(tempFilePath, JSON.stringify(projects, null, 4));
         } catch (e) {
             vscode.window.showErrorMessage(`Can not write temporary project file under ${tempFilePath}
             ${e.message ? ': ' + e.message : '.'}`);
@@ -811,7 +817,7 @@ export function activate(context: vscode.ExtensionContext) {
 
                 updatedGroups = updatedGroups.filter(g => !g._delete);
 
-                await saveGroups(context, updatedGroups);
+                await projectService.saveGroups(updatedGroups);
                 showDashboard();
 
                 subscriptions.forEach(s => s.dispose());
@@ -837,7 +843,7 @@ export function activate(context: vscode.ExtensionContext) {
     }
 
     async function deleteProject(projectId: string) {
-        var project = getProject(context, projectId);
+        var project = projectService.getProject(projectId);
         if (project == null) {
             return;
         }
@@ -847,12 +853,12 @@ export function activate(context: vscode.ExtensionContext) {
             return;
         }
 
-        await removeProject(context, projectId);
+        await projectService.removeProject(projectId);
         showDashboard();
     }
 
     async function reorderGroups(groupOrders: GroupOrder[]) {
-        var groups = getProjects(context);
+        var groups = projectService.getGroups();
 
         if (groupOrders == null) {
             vscode.window.showInformationMessage('Invalid Argument passed to Reordering Projects.');
@@ -884,7 +890,7 @@ export function activate(context: vscode.ExtensionContext) {
             reorderedGroups.push(group);
         }
 
-        await saveGroups(context, reorderedGroups);
+        await projectService.saveGroups(reorderedGroups);
         showDashboard();
     }
 
@@ -898,7 +904,7 @@ export function activate(context: vscode.ExtensionContext) {
         }
     }
 
-    function getProjectsTempFilePath(): string {
+    function getGroupsTempFilePath(): string {
         var savePath = context.globalStoragePath;
         return `${savePath}/Dashboard Projects.json`;
     }
