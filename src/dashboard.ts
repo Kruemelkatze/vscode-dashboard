@@ -692,6 +692,11 @@ export function activate(context: vscode.ExtensionContext) {
                         label: buildColorText(code, name),
                     }));
 
+                    recentColorPicks.unshift({
+                        id: null,
+                        label: "(Back)",
+                    })
+
                     let selectedRecentColor = await vscode.window.showQuickPick(recentColorPicks, {
                         placeHolder: recentColorPicks.length ? 'Recent Color' : 'No colors have recently been used.',
                         ignoreFocusOut: true,
