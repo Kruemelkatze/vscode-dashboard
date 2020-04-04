@@ -12,7 +12,8 @@
         filter: brightness(150%);
     }
 
-    &[data-action], [data-action] {
+    &[data-action],
+    [data-action] {
         cursor: pointer;
     }
 }
@@ -69,13 +70,12 @@ body {
             margin-top: 0;
         }
 
-        .collapse-icon svg{
+        .collapse-icon svg {
             transform: rotate(-90deg);
         }
     }
 
     &#tempGroup {
-        
         .projects-group-title {
             transition: opacity $defaultTransition;
             opacity: 0.5;
@@ -84,11 +84,11 @@ body {
                 opacity: 1;
             }
         }
-        
+
         svg {
             width: 0.75em;
             fill: var(--dashboard-foreground);
-        }              
+        }
     }
 
     &:first-child {
@@ -110,7 +110,7 @@ body {
             @include actions(0.6em, 0);
 
             padding-right: 2px;
-            
+
             svg {
                 transition: transform $defaultTransition;
                 margin-bottom: -2px;
@@ -161,7 +161,7 @@ body {
 
         position: absolute;
         top: $defaultPadding / 2;
-        height: calc(100% - #{1.5*$defaultPadding});
+        height: calc(100% - #{1.5 * $defaultPadding});
 
         &:not(:only-of-type) {
             display: none;
@@ -181,7 +181,8 @@ body {
     width: var(--column-width);
 
     &.slim {
-        width: calc(var(--column-width) / 2);
+        width: calc(var(--column-width) / 5);
+        min-width: 40px;
     }
 }
 
@@ -194,7 +195,7 @@ body .project {
     justify-content: center;
     align-items: center;
 
-    margin:  0 $defaultPadding $defaultPadding 0;
+    margin: 0 $defaultPadding $defaultPadding 0;
     padding: $defaultPadding;
     padding-top: $defaultPadding + $borderTopSize;
 
