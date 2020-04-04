@@ -121,7 +121,7 @@ All notable changes to the "Project Dashboard" extension will be documented in t
 -   Editing functionality directly on Dashboard
     -   Reordering by drag & drop
     -   Edit button
-    -   Delete button
+    -   Remove button
 -   Setting for editing project temp file location
 -   Prefill project name from selected path
 -   `displayProjectPath` setting

@@ -164,9 +164,9 @@ export function activate(context: vscode.ExtensionContext) {
                         let groupOrders = e.groupOrders as GroupOrder[];
                         await reorderGroups(groupOrders);
                         break;
-                    case 'delete-project':
+                    case 'remove-project':
                         projectId = e.projectId as string;
-                        await deleteProject(projectId);
+                        await removeProject(projectId);
                         break;
                     case 'edit-project':
                         projectId = e.projectId as string;
@@ -180,9 +180,9 @@ export function activate(context: vscode.ExtensionContext) {
                         groupId = e.groupId as string;
                         await editGroup(groupId);
                         break;
-                    case 'delete-group':
+                    case 'remove-group':
                         groupId = e.groupId as string;
-                        await deleteGroup(groupId);
+                        await removeGroup(groupId);
                         break;
                     case 'add-group':
                         await addGroupPerCommand();
@@ -260,16 +260,16 @@ export function activate(context: vscode.ExtensionContext) {
 
     async function removeGroupPerCommand() {
         var [groupId, newlyCreated] = await queryGroup();
-        deleteGroup(groupId);
+        removeGroup(groupId);
     }
 
-    async function deleteGroup(groupId: string) {
+    async function removeGroup(groupId: string) {
         var group = projectService.getGroup(groupId);
         if (group == null) {
             return;
         }
 
-        let accepted = await vscode.window.showWarningMessage(`Delete ${group.groupName}?`, { modal: true }, 'Delete');
+        let accepted = await vscode.window.showWarningMessage(`Remove ${group.groupName}?`, { modal: true }, 'Remove');
         if (!accepted) {
             return;
         }
@@ -821,7 +821,6 @@ export function activate(context: vscode.ExtensionContext) {
                 showDashboard();
 
                 subscriptions.forEach(s => s.dispose());
-                // await deleteFile(tempFilePath); // Deleting file does not make sense, as the file gets immidiately saved again after this listener
 
                 // Select and close our document editor
                 vscode.window.showTextDocument(e.document);
@@ -829,26 +828,15 @@ export function activate(context: vscode.ExtensionContext) {
             }
         });
         subscriptions.push(editSubscription);
-
-        // onDidCloseTextDocument is not called if a file without any changes is closed
-        // If the projects are not edited, but the file is closed, we cannot remove the temp file.
-        // --> Use a fixed name for the temp file, so that we have at most 1 zombie file lying around
-        // var closeSubscription = vscode.workspace.onDidCloseTextDocument(document => {
-        //     if (document == editProjectsDocument) {
-        //         subscriptions.forEach(s => s.dispose());
-        //         deleteFile(tempFilePath);
-        //     }
-        // });
-        // subscriptions.push(closeSubscription);
     }
 
-    async function deleteProject(projectId: string) {
+    async function removeProject(projectId: string) {
         var project = projectService.getProject(projectId);
         if (project == null) {
             return;
         }
 
-        let accepted = await vscode.window.showWarningMessage(`Delete ${project.name}?`, { modal: true }, 'Delete');
+        let accepted = await vscode.window.showWarningMessage(`Remove ${project.name}?`, { modal: true }, 'Remove');
         if (!accepted) {
             return;
         }

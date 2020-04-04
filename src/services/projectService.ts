@@ -163,9 +163,6 @@ export default class ProjectService extends BaseService {
 
             if (index !== -1) {
                 group.projects.splice(index, 1);
-                if (group.projects.length === 0) {
-                    groups.splice(i, 1);
-                }
                 break;
             }
         }

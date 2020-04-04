@@ -4,7 +4,7 @@ import * as path from 'path';
 
 export default class FileService extends BaseService {
 
-    deleteFile(filePath: string) {
+    removeFile(filePath: string) {
         filePath = path.normalize(filePath);
         //Promise to keep all file modifications returning a Promise
         return new Promise((resolve, reject) => {

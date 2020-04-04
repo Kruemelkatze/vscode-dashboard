@@ -81,7 +81,7 @@ function getGroupSection(group: Group, totalGroupCount: number, infos: Dashboard
         <div class="group-actions left">
             <!-- <span data-action="drag">${Icons.drag}</span> -->
             <span data-action="edit" title="Edit Group">${Icons.edit}</span>
-            <span data-action="delete" title="Remove Group">${Icons.remove}</span>
+            <span data-action="remove" title="Remove Group">${Icons.remove}</span>
         </div>
     </div>
     <div class="group-list">
@@ -122,7 +122,7 @@ function getProjectDiv(project: Project, infos: DashboardInfos) {
             <div class="project-actions">
                 <span data-action="color" title="Edit Color">${Icons.palette}</span>
                 <span data-action="edit" title="Edit Project">${Icons.edit}</span>
-                <span data-action="delete" title="Remove Project">${Icons.remove}</span>
+                <span data-action="remove" title="Remove Project">${Icons.remove}</span>
             </div>
         </div>
         <div class="fitty-container">
