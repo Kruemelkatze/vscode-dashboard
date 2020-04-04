@@ -638,26 +638,35 @@ export function activate(context: vscode.ExtensionContext) {
         colorPicks.unshift({ id: FixedColorOptions.random, label: 'Random Color' });
         colorPicks.unshift({ id: FixedColorOptions.custom, label: '> Custom Color' });
         colorPicks.unshift({ id: FixedColorOptions.recent, label: '> Recent Colors' });
-        colorPicks.push({ id: FixedColorOptions.none, label: 'None' });
-
-        if (projectTemplate && projectTemplate.color) {
-            // Get existing color name by value
-            let color = PREDEFINED_COLORS.find(c => c.value === projectTemplate.color);
-            let existingEntryIdx = !color ? -1 : colorPicks.findIndex(p => p.id === color.label);
-
-            // If color is already in quicklist, remove it
-            if (existingEntryIdx !== -1) {
-                colorPicks.splice(existingEntryIdx, 1)[0];
-            }
-
-            colorPicks.unshift({
-                id: projectTemplate.color,
-                label: `Current: ${buildColorText(projectTemplate.color)}`,
-            });
+        if (!projectTemplate || projectTemplate.color) {
+            colorPicks.push({ id: FixedColorOptions.none, label: 'None' });
         }
 
-        while (color != null) {
+        if (projectTemplate) {
+            if (!projectTemplate.color) {
+                colorPicks.unshift({
+                    id: FixedColorOptions.none,
+                    label: `Current: None`,
+                });
+            } else {
+                // Get existing color name by value
+                let color = PREDEFINED_COLORS.find(c => c.value === projectTemplate.color);
+                let existingEntryIdx = !color ? -1 : colorPicks.findIndex(p => p.id === color.label);
 
+                // If color is already in quicklist, remove it
+                if (existingEntryIdx !== -1) {
+                    colorPicks.splice(existingEntryIdx, 1)[0];
+                }
+
+                colorPicks.unshift({
+                    id: projectTemplate.color,
+                    label: `Current: ${buildColorText(projectTemplate.color)}`,
+                });
+            }
+        }
+
+        do {
+            color = null;
             let selectedColorPick = await vscode.window.showQuickPick(colorPicks, {
                 placeHolder: 'Project Color',
             });
@@ -702,14 +711,14 @@ export function activate(context: vscode.ExtensionContext) {
                     break;
                 default:
                     // PredefinedColor
-                    let predefinedColor = PREDEFINED_COLORS.find(c => c.label == selectedColorPick.id);
+                    let predefinedColor = PREDEFINED_COLORS.find(c => c.label == selectedColorPick.id || c.value == selectedColorPick.id);
                     if (predefinedColor != null) {
                         color = predefinedColor.value;
                     } else {
                         color = selectedColorPick.id;
                     }
             }
-        }
+        } while (!color);
 
         return color;
     }
