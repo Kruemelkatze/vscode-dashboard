@@ -13,6 +13,8 @@ export function getDashboardContent(context: vscode.ExtensionContext, webviewPan
     var projectScriptsPath = getMediaResource(context, webviewPanel, 'webviewProjectScripts.js');
     var dndScriptsPath = getMediaResource(context, webviewPanel, 'webviewDnDScripts.js');
 
+    var customCss = infos.config.get('customCss') || "";
+
     return `
 <!DOCTYPE html>
     <html lang="en">
@@ -24,6 +26,10 @@ export function getDashboardContent(context: vscode.ExtensionContext, webviewPan
         />
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link rel="stylesheet" type="text/css" href="${stylesPath}">
+        <style>
+            /* Custom CSS from configuration */
+            ${customCss}
+        </style>
         <title>Dashboard</title>
         ${getCustomStyle(infos.config)}
     </head>

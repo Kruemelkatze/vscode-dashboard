@@ -63,6 +63,11 @@
                     "markdownDescription": "Stores the dashboard data if the ```dashboard.storeProjectsInSettings``` option is set to ```true```. The raw data can be edited by using the command ```Dashboard: Edit Projects```.",
                     "default": null
                 },
+                "dashboard.customCss": {
+                    "type": "string",
+                    "markdownDescription": "Custom CSS rules to be injected into the dashboard can be placed here. Note that this will not be sanitized!",
+                    "default": null
+                },
                 "dashboard.recentColors": {
                     "type": "array",
                     "markdownDescription": "Stores the recently used colors if the ```dashboard.storeProjectsInSettings``` option is set to ```true```.",
