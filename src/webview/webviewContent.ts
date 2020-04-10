@@ -83,9 +83,6 @@ function getGroupSection(group: Group, totalGroupCount: number, infos: Dashboard
         </span>
         <div class="group-actions right">
             <span data-action="add" title="Add Project">${Icons.add}</span>
-        </div>
-        <div class="group-actions left">
-            <!-- <span data-action="drag">${Icons.drag}</span> -->
             <span data-action="edit" title="Edit Group">${Icons.edit}</span>
             <span data-action="remove" title="Remove Group">${Icons.remove}</span>
         </div>

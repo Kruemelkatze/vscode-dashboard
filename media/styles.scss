@@ -1,23 +1,5 @@
 @import "../node_modules/dragula/dist/dragula.min.css";
 
-// MIXINS
-@mixin actions($size: 1em, $spacing: 0.3em) {
-    svg {
-        width: $size;
-        fill: var(--dashboard-foreground);
-        margin-right: $spacing;
-    }
-
-    :hover > svg {
-        filter: brightness(150%);
-    }
-
-    &[data-action],
-    [data-action] {
-        cursor: pointer;
-    }
-}
-
 // GLOBALS
 
 :root {
@@ -37,9 +19,28 @@ $defaultPadding: 20px;
 $projectHeaderSize: 40px; // This has also be adjusted in constants.ts for fitty
 $projectHeaderMinHeight: 53px; // To be constant even with fitted font size
 $projectIconSize: 20px;
+$dataActionIconSize: 15.6px; // Default font size * 1.2em, in pixel to keep constant across different font sizes
 
 $defaultTransition: 150ms ease-in-out;
 $actionTransitionDelay: 250ms;
+
+// MIXINS
+@mixin actions($size: $dataActionIconSize, $spacing: $dataActionIconSize * 0.3) {
+    svg {
+        width: $size;
+        fill: var(--dashboard-foreground);
+        margin-right: $spacing;
+    }
+
+    :hover > svg {
+        filter: brightness(150%);
+    }
+
+    &[data-action],
+    [data-action] {
+        cursor: pointer;
+    }
+}
 
 body {
     user-select: none;
@@ -118,12 +119,16 @@ body {
         }
     }
 
+    .group-title-text {
+        margin-right: 2em;
+    }
+
     .group-actions {
         transition: opacity $defaultTransition $actionTransitionDelay;
         opacity: 0;
         pointer-events: none;
 
-        @include actions(0.7em, 0);
+        @include actions($dataActionIconSize - 1, 4px);
 
         &.left {
             display: inline;
@@ -133,6 +138,16 @@ body {
         &.right {
             float: right;
         }
+
+        // Custom spacing so that different icons look correctly aligned
+        [data-action="add"] svg{
+            margin-right: 2px;
+        }
+
+        :last-child svg {
+            margin-right: 6px;
+        }
+
     }
 
     .group-title:hover .group-actions {
@@ -298,7 +313,7 @@ body .project {
         margin-top: calc(-2em - #{$borderTopSize});
         transition: margin-top $defaultTransition $actionTransitionDelay;
 
-        @include actions(1.2em);
+        @include actions($dataActionIconSize);
     }
 
     &:hover .project-actions {
