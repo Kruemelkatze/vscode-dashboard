@@ -83,7 +83,7 @@
                     "default": true
                 },
                 "dashboard.projectTileWidth": {
-                    "description": "In px",
+                    "description": "In px, default: 350",
                     "type": "number",
                     "default": 350
                 },
