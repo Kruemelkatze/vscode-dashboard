@@ -215,7 +215,7 @@ body .project {
     padding: $defaultPadding;
     padding-top: $defaultPadding + $borderTopSize;
 
-    background-color: var(--dashboard-project-card-bg);
+    background: var(--dashboard-project-card-bg);
 
     .project-border {
         position: absolute;
