@@ -2,16 +2,18 @@
 
 All notable changes to the "Project Dashboard" extension will be documented in this file. It follows the [Keep a Changelog](http://keepachangelog.com/) recommendations.
 
-## [2.0.0] 2020-04-xx
+## [2.0.0] 2020-04-10
 
 ### Changed
 
 -   Renamed extension to **Project Dashboard**.
 -   Project and Group Management
+    -   'Project Groups' are now referred to as only 'Groups'.
     -   Empty groups are no longer removed.
     -   Groups can now be added by a dedicated button.
     -   When adding a project using any + button in the group, user is now longer prompted to select a group.
     -   Editing project no longer includes editing the color. For this, a dedicated action was added.
+    -   Reordered group actions to be consistent with project actions.
 -   Colors
     -   Random colors are now selected from a large array of colours, not only from the limited set of default colors.
 -   All animations have now an equal duration. Delay for actions has been lowered to 250ms.
@@ -32,6 +34,7 @@ All notable changes to the "Project Dashboard" extension will be documented in t
 ### Internal
 
 -   Refactored Webview
+-   Refactored Services
 
 ## [1.5.5] 2019-11-09
 
