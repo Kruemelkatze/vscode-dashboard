@@ -8,7 +8,9 @@
     "engines": {
         "vscode": "^1.40.0"
     },
-    "extensionKind": ["ui"],
+    "extensionKind": [
+        "ui"
+    ],
     "categories": [
         "Other"
     ],
