@@ -1,19 +1,21 @@
 @import "../node_modules/dragula/dist/dragula.min.css";
 
 // GLOBALS
+$defaultColumnWidth: 350;
 
 :root {
     --dashboard-project-card-bg: var(--vscode-tab-inactiveBackground);
     --dashboard-foreground: var(--vscode-editor-foreground);
     --dashboard-path: var(--vscode-descriptionForeground);
 
-    --column-width: 350px;
+    --column-width: #{$defaultColumnWidth}px;
 }
 
 $useAddProjectOpacity: true;
 
-$projectListMinHeight: 163px;
-// $columnWidth: 350px;
+$projectListMinHeight: calc(var(--column-width) * #{163 / $defaultColumnWidth});
+$projectCardMinHeight: calc(var(--column-width) * #{96 / $defaultColumnWidth});
+
 $borderTopSize: 7px;
 $defaultPadding: 20px;
 $projectHeaderSize: 40px; // This has also be adjusted in constants.ts for fitty
@@ -140,14 +142,13 @@ body {
         }
 
         // Custom spacing so that different icons look correctly aligned
-        [data-action="add"] svg{
+        [data-action="add"] svg {
             margin-right: 2px;
         }
 
         :last-child svg {
             margin-right: 6px;
         }
-
     }
 
     .group-title:hover .group-actions {
@@ -285,7 +286,7 @@ body .project {
 
     &.add-project,
     &.no-projects {
-        min-height: 96px;
+        height: $projectCardMinHeight;
         background: none;
         font-size: 1.5em;
         opacity: if($useAddProjectOpacity, 0, 0.6);
@@ -322,11 +323,21 @@ body .project {
 }
 
 // CUSTOM CONFIGURATION
-.hide-project-path .project {
-    padding: (1.5 * $defaultPadding) $defaultPadding;
+.hide-project-path .group {
+    .project {
+        padding: (1.5 * $defaultPadding) $defaultPadding;
 
-    .project-path-info {
-        display: none;
+        .project-path-info {
+            display: none;
+        }
+
+        &.add-project {
+            height: calc(#{$projectCardMinHeight} - 1em - 24px);
+        }
+    }
+
+    .group-list {
+        min-height: calc(#{$projectListMinHeight} - 1em - 24px);
     }
 }
 
