@@ -25,6 +25,7 @@ All notable changes to the "Project Dashboard" extension will be documented in t
     -   Project color can now be changed directly from the dashboard without going through the whole project editing phase.
     -   Selection for recently used colors.
     -   Custom colors are now named using [Name that Color](http://chir.ag/projects/name-that-color/#6195ED).
+    -   Custom Project Card background now allows for any CSS background value.
 -   Setting for project tile width.
 
 ### Fixed
