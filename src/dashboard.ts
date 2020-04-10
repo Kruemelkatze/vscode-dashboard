@@ -818,13 +818,19 @@ export function activate(context: vscode.ExtensionContext) {
                 updatedGroups = updatedGroups.filter(g => !g._delete);
 
                 await projectService.saveGroups(updatedGroups);
-                showDashboard();
 
                 subscriptions.forEach(s => s.dispose());
 
                 // Select and close our document editor
-                vscode.window.showTextDocument(e.document);
-                vscode.commands.executeCommand('workbench.action.closeActiveEditor')
+                try{
+                    await vscode.window.showTextDocument(e.document);
+                    await vscode.commands.executeCommand('workbench.action.closeActiveEditor')
+                } catch(e) {
+                    vscode.window.showErrorMessage("Could not close the edited Projects File. Please close manually.")
+                }
+
+                showDashboard();
+
             }
         });
         subscriptions.push(editSubscription);
