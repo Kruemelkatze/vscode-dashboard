@@ -225,7 +225,7 @@ export function activate(context: vscode.ExtensionContext) {
         var groupName;
 
         try {
-            groupName = await queryGroupFields();
+            groupName = await queryGroupFields(group.groupName);
         } catch (error) {
             if (error.message !== USER_CANCELED) {
                 vscode.window.showErrorMessage(`An error occured while editing the group.`);
