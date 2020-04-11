@@ -3,15 +3,20 @@
 import * as vscode from 'vscode';
 import { SSH_REMOTE_PREFIX } from "./constants";
 
-export class ProjectGroup {
+export class Group {
     id: string;
     groupName: string;
+    collapsed: boolean;
     projects: Project[];
 
     constructor(groupName: string, projects: Project[] = null) {
         this.id = generateRandomId(groupName);
         this.groupName = groupName;
         this.projects = projects || [];
+    }
+
+    static getRandomId(prepend: string = null) {
+        return generateRandomId(prepend);
     }
 }
 
@@ -28,12 +33,16 @@ export class Project {
         this.path = path;
     }
 
-    getRemoteType() : ProjectRemoteType {
-        if (this.path && this.path.startsWith(SSH_REMOTE_PREFIX)){
+    getRemoteType(): ProjectRemoteType {
+        if (this.path && this.path.startsWith(SSH_REMOTE_PREFIX)) {
             return ProjectRemoteType.SSH;
         }
 
         return ProjectRemoteType.None;
+    }
+
+    static getRandomId(prepend: string = null) {
+        return generateRandomId(prepend);
     }
 }
 

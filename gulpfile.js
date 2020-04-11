@@ -17,9 +17,19 @@ function copyNodeAssets() {
     ]).pipe(gulp.dest('media'));
 }
 
-function watch() {
+function copyWebviewAssets() {
+    return gulp.src([
+        'src/webview/*.js'
+    ]).pipe(gulp.dest('media'));
+}
+
+function watchSass() {
     return gulp.watch('media/*.scss', sassTask);
 }
 
-var build = gulp.parallel(copyNodeAssets, sassTask, watch);
+function watchJs() {
+    return gulp.watch('src/webview/*.js', copyWebviewAssets);
+}
+
+var build = gulp.parallel(copyNodeAssets, copyWebviewAssets, sassTask, watchSass, watchJs);
 gulp.task('default', build);

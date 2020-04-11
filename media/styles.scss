@@ -1,7 +1,33 @@
 @import "../node_modules/dragula/dist/dragula.min.css";
 
+// GLOBALS
+$defaultColumnWidth: 350;
+
+:root {
+    --dashboard-project-card-bg: var(--vscode-tab-inactiveBackground);
+    --dashboard-foreground: var(--vscode-editor-foreground);
+    --dashboard-path: var(--vscode-descriptionForeground);
+
+    --column-width: #{$defaultColumnWidth}px;
+}
+
+$useAddProjectOpacity: true;
+
+$projectListMinHeight: calc(var(--column-width) * #{163 / $defaultColumnWidth});
+$projectCardMinHeight: calc(var(--column-width) * #{96 / $defaultColumnWidth});
+
+$borderTopSize: 7px;
+$defaultPadding: 20px;
+$projectHeaderSize: 40px; // This has also be adjusted in constants.ts for fitty
+$projectHeaderMinHeight: 53px; // To be constant even with fitted font size
+$projectIconSize: 20px;
+$dataActionIconSize: 15.6px; // Default font size * 1.2em, in pixel to keep constant across different font sizes
+
+$defaultTransition: 150ms ease-in-out;
+$actionTransitionDelay: 250ms;
+
 // MIXINS
-@mixin actions($size: 1em, $spacing: 0.3em) {
+@mixin actions($size: $dataActionIconSize, $spacing: $dataActionIconSize * 0.3) {
     svg {
         width: $size;
         fill: var(--dashboard-foreground);
@@ -12,28 +38,11 @@
         filter: brightness(150%);
     }
 
+    &[data-action],
     [data-action] {
         cursor: pointer;
     }
 }
-
-// GLOBALS
-
-:root {
-    --dashboard-project-card-bg: var(--vscode-tab-inactiveBackground);
-    --dashboard-foreground: var(--vscode-editor-foreground);
-    --dashboard-path: var(--vscode-descriptionForeground);
-}
-
-$useAddProjectOpacity: true;
-
-$projectListMinHeight: 163px;
-$columnWidth: 350px;
-$borderTopSize: 7px;
-$defaultPadding: 20px;
-$projectHeaderSize: 40px; // This has also be adjusted in constants.ts for fitty
-$projectHeaderMinHeight: 53px; // To be constant even with fitted font size
-$projectIconSize: 20px;
 
 body {
     user-select: none;
@@ -43,28 +52,45 @@ body {
     &.preload * {
         transition: none !important;
     }
+
+    &.dashboard-empty {
+        #tempGroup {
+            display: none;
+        }
+    }
 }
 
 // RULES
 
-.projects-group {
-    margin-top: $defaultPadding * 1.5;
+.group {
+    margin-top: $defaultPadding * 0.5;
+    overflow: hidden;
 
-    &.temp-group {
-        pointer-events: none;
-        opacity: 0;
-        transition: opacity ease-in-out 200ms;
+    &.collapsed {
+        .group-list {
+            height: 0 !important;
+            min-height: 0 !important;
+            margin-top: 0;
+        }
 
-        .drop-signal {
-            width: $columnWidth - 19px;
-            align-self: stretch;
-            margin-top: $defaultPadding;
-            background: var(--dashboard-project-card-bg);
-            opacity: 0.2;
+        .collapse-icon svg {
+            transform: rotate(-90deg);
+        }
+    }
 
-            &:not(:only-child) {
-                display: none;
+    &#tempGroup {
+        .group-title {
+            transition: opacity $defaultTransition;
+            opacity: 0.5;
+
+            &:hover {
+                opacity: 1;
             }
+        }
+
+        svg {
+            width: 0.75em;
+            fill: var(--dashboard-foreground);
         }
     }
 
@@ -72,8 +98,8 @@ body {
         margin-top: $defaultPadding / 2;
     }
 
-    .projects-group-title {
-        min-width: $columnWidth - 19px;
+    .group-title {
+        min-width: calc(var(--column-width) - 19px);
         display: inline-block;
         font-size: $projectHeaderSize / 2;
         font-weight: 200;
@@ -82,14 +108,29 @@ body {
         > span {
             cursor: pointer;
         }
+
+        .collapse-icon {
+            @include actions(0.6em, 0);
+
+            padding-right: 2px;
+
+            svg {
+                transition: transform $defaultTransition;
+                margin-bottom: -2px;
+            }
+        }
     }
 
-    .projects-group-actions {
-        transition: opacity 200ms ease-in-out 0.5s;
+    .group-title-text {
+        margin-right: 2em;
+    }
+
+    .group-actions {
+        transition: opacity $defaultTransition $actionTransitionDelay;
         opacity: 0;
         pointer-events: none;
 
-        @include actions(0.7em, 0);
+        @include actions($dataActionIconSize - 1, 4px);
 
         &.left {
             display: inline;
@@ -99,36 +140,65 @@ body {
         &.right {
             float: right;
         }
+
+        // Custom spacing so that different icons look correctly aligned
+        [data-action="add"] svg {
+            margin-right: 2px;
+        }
+
+        :last-child svg {
+            margin-right: 6px;
+        }
     }
 
-    .projects-group-title:hover .projects-group-actions {
+    .group-title:hover .group-actions {
         opacity: 1;
         pointer-events: all;
     }
 
-    .projects-group-list {
+    .group-list {
         display: flex;
         flex-wrap: wrap;
         align-items: flex-start;
+        position: relative;
 
-        margin-top: -10px;
+        padding-top: $defaultPadding / 2;
         min-height: $projectListMinHeight;
+    }
+
+    .drop-signal {
+        transition: opacity $defaultTransition;
+        pointer-events: none;
+        opacity: 0;
+        width: calc(var(--column-width) - 19px);
+        align-self: stretch;
+        background: var(--dashboard-project-card-bg);
+        margin-bottom: $defaultPadding;
+
+        position: absolute;
+        top: $defaultPadding / 2;
+        height: calc(100% - #{1.5 * $defaultPadding});
+
+        &:not(:only-of-type) {
+            display: none;
+        }
     }
 }
 
 @if ($useAddProjectOpacity) {
-    .projects-group:hover .add-project,
-    .projects-group-title:hover + .projects-group .add-project {
+    .group:hover .add-project,
+    .group-title:hover + .group .add-project {
         opacity: 0.6;
     }
 }
 
 .project-container {
     display: inline-block;
-    width: $columnWidth;
+    width: var(--column-width);
 
     &.slim {
-        width: $columnWidth / 2;
+        width: calc(var(--column-width) / 5);
+        min-width: 40px;
     }
 }
 
@@ -141,11 +211,11 @@ body .project {
     justify-content: center;
     align-items: center;
 
-    margin: $defaultPadding $defaultPadding 0 0;
+    margin: 0 $defaultPadding $defaultPadding 0;
     padding: $defaultPadding;
     padding-top: $defaultPadding + $borderTopSize;
 
-    background-color: var(--dashboard-project-card-bg);
+    background: var(--dashboard-project-card-bg);
 
     .project-border {
         position: absolute;
@@ -216,11 +286,11 @@ body .project {
 
     &.add-project,
     &.no-projects {
-        min-height: 96px;
+        height: $projectCardMinHeight;
         background: none;
         font-size: 1.5em;
         opacity: if($useAddProjectOpacity, 0, 0.6);
-        transition: opacity ease-in-out 100ms;
+        transition: opacity $defaultTransition;
 
         &:hover {
             opacity: 1;
@@ -242,10 +312,9 @@ body .project {
 
     .project-actions {
         margin-top: calc(-2em - #{$borderTopSize});
-        transition: margin-top ease-in-out 0.2s;
-        transition-delay: 0.5s;
+        transition: margin-top $defaultTransition $actionTransitionDelay;
 
-        @include actions(1.2em);
+        @include actions($dataActionIconSize);
     }
 
     &:hover .project-actions {
@@ -253,12 +322,55 @@ body .project {
     }
 }
 
-// CUSTOM CONFIGURATION
-.hide-project-path .project {
-    padding: (1.5 * $defaultPadding) $defaultPadding;
+// CONTEXT MENU
+.custom-context-menu {
+    position: absolute;
+    z-index: 100;
+    display: none;
 
-    .project-path-info {
-        display: none;
+    // Values chosen to match vscode theme colors
+    padding: 11px 1px;
+    background: var(--vscode-menu-background);
+    color: var(--vscode-menu-foreground);
+    box-shadow: var(--vscode-widget-shadow) 0px 2px 3px;
+
+    &.visible {
+        display: block;
+    }
+
+    .custom-context-menu-item {
+        padding: 5px 26px;
+        
+        &:hover {
+            color: var(--vscode-menu-selectionForeground);
+            background: var(--vscode-menu-selectionBackground);
+        }
+    }
+
+    .custom-context-menu-separator {
+        border-top: 1pt solid var(--vscode-menu-separatorBackground);
+        opacity: 50%;
+        margin: 3px 10px;
+    }
+
+}
+
+// CUSTOM CONFIGURATION
+.hide-project-path .group {
+    .project {
+        padding: (1.5 * $defaultPadding) $defaultPadding;
+
+        .project-path-info {
+            display: none;
+        }
+
+        &.add-project {
+            height: calc(#{$projectCardMinHeight} - 1em - 24px);
+        }
+    }
+
+    .group-list {
+        min-height: calc(#{$projectListMinHeight} - 1em - 24px);
     }
 }
 
@@ -279,14 +391,22 @@ body .project {
     }
 
     .project-actions-wrapper,
-    .projects-group-actions {
+    .group-actions {
         display: none !important;
     }
 }
 
-.project-dragging .projects-group.temp-group {
-    pointer-events: all;
-    opacity: 1;
+.project-dragging .group {
+    .drop-signal {
+        opacity: 0.2;
+        pointer-events: all;
+        position: static;
+        height: auto;
+    }
+
+    .group-title {
+        opacity: 1;
+    }
 }
 
 .last {

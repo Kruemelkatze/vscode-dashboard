@@ -1,15 +1,21 @@
 'use strict';
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { Project, GroupOrder, ProjectGroup, ProjectRemoteType, getRemoteType, DashboardInfos } from './models';
-import { getProjects, addProject, removeProject, saveProjects, writeTextFile, getProject, addProjectGroup, getProjectsFlat, migrateDataIfNeeded, getProjectAndGroup, updateProject, getProjectsGroup, updateProjectGroup, removeProjectsGroup } from './projectService';
-import { getDashboardContent } from './webviewContent';
+import { Project, GroupOrder, Group, ProjectRemoteType, getRemoteType, DashboardInfos } from './models';
+import { getDashboardContent } from './webview/webviewContent';
 import { USE_PROJECT_COLOR, PREDEFINED_COLORS, StartupOptions, USER_CANCELED, FixedColorOptions, RelevantExtensions, SSH_REGEX, REMOTE_REGEX, SSH_REMOTE_PREFIX } from './constants';
 import { execSync } from 'child_process';
 import { lstatSync } from 'fs';
 
+import ColorService from './services/colorService';
+import ProjectService from './services/projectService';
+import FileService from './services/fileService';
+
 export function activate(context: vscode.ExtensionContext) {
     var instance: vscode.WebviewPanel = null;
+    const colorService = new ColorService(context);
+    const projectService = new ProjectService(context, colorService);
+    const fileService = new FileService(context);
 
     const dashboardInfos: DashboardInfos = {
         relevantExtensionsInstalls: {
@@ -22,8 +28,8 @@ export function activate(context: vscode.ExtensionContext) {
         showDashboard();
     });
 
-    const addProjectCommand = vscode.commands.registerCommand('dashboard.addProject', async (projectGroupId: string = null) => {
-        await addProjectPerCommand(projectGroupId);
+    const addProjectCommand = vscode.commands.registerCommand('dashboard.addProject', async () => {
+        await addProjectPerCommand();
     });
 
     const removeProjectCommand = vscode.commands.registerCommand('dashboard.removeProject', async () => {
@@ -34,14 +40,41 @@ export function activate(context: vscode.ExtensionContext) {
         await editProjectsManuallyPerCommand();
     });
 
+    const addGroupCommand = vscode.commands.registerCommand('dashboard.addGroup', async () => {
+        await addGroupPerCommand();
+    });
+
+    const removeGroupCommand = vscode.commands.registerCommand('dashboard.removeGroup', async () => {
+        await removeGroupPerCommand();
+    });
+
     context.subscriptions.push(openCommand);
     context.subscriptions.push(addProjectCommand);
     context.subscriptions.push(removeProjectCommand);
     context.subscriptions.push(editProjectsManuallyCommand);
+    context.subscriptions.push(addGroupCommand);
+    context.subscriptions.push(removeGroupCommand);
+
+    vscode.workspace.onDidChangeConfiguration(event => {
+        if (event.affectsConfiguration("dashboard")) {
+            checkDataMigration(true);
+        }
+    });
 
     startUp();
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~ Functions ~~~~~~~~~~~~~~~~~~~~~~~~~
+    async function checkDataMigration(openDashboardAfterMigrate: boolean = false) {
+        let migrated = await projectService.migrateDataIfNeeded();
+        if (migrated) {
+            vscode.window.showInformationMessage("Migrated Dashboard Projects after changing Settings.");
+
+            if (openDashboardAfterMigrate) {
+                showDashboard();
+            }
+        }
+    }
+
     async function startUp() {
         for (let exName in dashboardInfos.relevantExtensionsInstalls) {
             let exId = RelevantExtensions[exName];
@@ -49,10 +82,7 @@ export function activate(context: vscode.ExtensionContext) {
             dashboardInfos.relevantExtensionsInstalls[exName] = installed;
         }
 
-        let migrated = await migrateDataIfNeeded(context);
-        if (migrated) {
-            vscode.window.showInformationMessage("Migrated Dashboard Projects after changing Settings.");
-        }
+        await checkDataMigration();
 
         showDashboardOnOpenIfNeeded();
     }
@@ -86,7 +116,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     function showDashboard() {
         var columnToShowIn = vscode.window.activeTextEditor ? vscode.window.activeTextEditor.viewColumn : null;
-        var projects = getProjects(context);
+        var projects = projectService.getGroups();
 
         if (instance) {
             instance.webview.html = getDashboardContent(context, instance, projects, dashboardInfos);
@@ -94,7 +124,7 @@ export function activate(context: vscode.ExtensionContext) {
         } else {
             var panel = vscode.window.createWebviewPanel(
                 "dashboard",
-                "Dashboard",
+                "Project Dashboard",
                 vscode.ViewColumn.One,
                 {
                     enableScripts: true,
@@ -113,12 +143,12 @@ export function activate(context: vscode.ExtensionContext) {
             }, null, context.subscriptions);
 
             panel.webview.onDidReceiveMessage(async (e) => {
-                let projectId: string, projectGroupId: string;
+                let projectId: string, groupId: string;
                 switch (e.type) {
                     case 'selected-project':
                         projectId = e.projectId as string;
                         let newWindow = e.newWindow as boolean;
-                        let project = getProject(context, projectId);
+                        let project = projectService.getProject(projectId);
                         if (project == null) {
                             vscode.window.showWarningMessage("Selected Project not found.");
                             break;
@@ -127,30 +157,40 @@ export function activate(context: vscode.ExtensionContext) {
                         await openProject(project, newWindow);
                         break;
                     case 'add-project':
-                        projectGroupId = e.projectGroupId as string;
-                        await vscode.commands.executeCommand("dashboard.addProject", projectGroupId);
+                        groupId = e.groupId as string;
+                        await addProjectPerCommand(groupId);
                         break;
                     case 'reordered-projects':
                         let groupOrders = e.groupOrders as GroupOrder[];
-                        await reorderProjectGroups(groupOrders);
+                        await reorderGroups(groupOrders);
                         break;
-                    case 'delete-project':
+                    case 'remove-project':
                         projectId = e.projectId as string;
-                        await deleteProject(projectId);
+                        await removeProject(projectId);
                         break;
                     case 'edit-project':
                         projectId = e.projectId as string;
                         await editProject(projectId);
                         break;
-                    case 'edit-projects-group':
-                        projectGroupId = e.projectGroupId as string;
-                        await editProjectsGroup(projectGroupId);
+                    case 'color-project':
+                        projectId = e.projectId as string;
+                        await editProjectColor(projectId);
                         break;
-                    case 'delete-projects-group':
-                        projectGroupId = e.projectGroupId as string;
-                        await deleteProjectsGroup(projectGroupId);
+                    case 'edit-group':
+                        groupId = e.groupId as string;
+                        await editGroup(groupId);
                         break;
-
+                    case 'remove-group':
+                        groupId = e.groupId as string;
+                        await removeGroup(groupId);
+                        break;
+                    case 'add-group':
+                        await addGroupPerCommand();
+                        break;
+                    case 'collapse-group':
+                        groupId = e.groupId as string;
+                        await collapseGroup(groupId);
+                        break;
                 }
             });
 
@@ -158,45 +198,96 @@ export function activate(context: vscode.ExtensionContext) {
         }
     }
 
-    async function editProjectsGroup(projectGroupId: string) {
-        var group = getProjectsGroup(context, projectGroupId);
+    async function addGroupPerCommand() {
+        var groupName;
+
+        try {
+            groupName = await queryGroupFields();
+        } catch (error) {
+            if (error.message !== USER_CANCELED) {
+                vscode.window.showErrorMessage(`An error occured while adding the group.`);
+                throw error; // Rethrow error to make vscode log it
+            }
+
+            return;
+        }
+
+        await projectService.addGroup(groupName);
+        showDashboard();
+    }
+
+    async function editGroup(groupId: string) {
+        var group = projectService.getGroup(groupId);
         if (group == null) {
             return;
         }
 
+        var groupName;
+
+        try {
+            groupName = await queryGroupFields(group.groupName);
+        } catch (error) {
+            if (error.message !== USER_CANCELED) {
+                vscode.window.showErrorMessage(`An error occured while editing the group.`);
+                throw error; // Rethrow error to make vscode log it
+            }
+
+            return;
+        }
+
         // Name
+        group.groupName = groupName;
+        await projectService.updateGroup(groupId, group);
+
+        showDashboard();
+    }
+
+    async function queryGroupFields(defaultText: string = null): Promise<string> {
         var groupName = await vscode.window.showInputBox({
-            value: group.groupName || undefined,
-            valueSelection: group.groupName ? [0, group.groupName.length] : undefined,
-            placeHolder: 'Project Group Name',
+            value: defaultText || undefined,
+            valueSelection: defaultText ? [0, defaultText.length] : undefined,
+            placeHolder: 'Group Name',
             ignoreFocusOut: true,
             validateInput: (val: string) => val ? '' : 'A Group Name must be provided.',
         });
 
         if (groupName == null) {
-            //throw new Error(USER_CANCELED);
-            return
+            throw new Error(USER_CANCELED);
         }
 
-        group.groupName = groupName;
-        await updateProjectGroup(context, projectGroupId, group);
-
-        showDashboard();
+        return groupName;
     }
 
-    async function deleteProjectsGroup(projectGroupId: string) {
-        var group = getProjectsGroup(context, projectGroupId);
+    async function removeGroupPerCommand() {
+        var [groupId, newlyCreated] = await queryGroup();
+        removeGroup(groupId);
+    }
+
+    async function removeGroup(groupId: string) {
+        var group = projectService.getGroup(groupId);
         if (group == null) {
             return;
         }
 
-        let accepted = await vscode.window.showWarningMessage(`Delete ${group.groupName}?`, { modal: true }, 'Delete');
+        let accepted = await vscode.window.showWarningMessage(`Remove ${group.groupName}?`, { modal: true }, 'Remove');
         if (!accepted) {
             return;
         }
 
-        await removeProjectsGroup(context, projectGroupId);
+        await projectService.removeGroup(groupId);
         showDashboard();
+    }
+
+    async function collapseGroup(groupId: string) {
+        var group = projectService.getGroup(groupId);
+        if (group == null) {
+            return;
+        }
+
+        group.collapsed = !group.collapsed;
+        await projectService.updateGroup(groupId, group);
+
+        //showDashboard(); // No need to repaint for that
     }
 
     async function openProject(project: Project, openInNewWindow: boolean): Promise<void> {
@@ -227,12 +318,12 @@ export function activate(context: vscode.ExtensionContext) {
         }
     }
 
-    async function addProjectPerCommand(projectGroupId: string = null) {
+    async function addProjectPerCommand(groupId: string = null) {
         var project: Project, selectedGroupId: string;
 
         try {
-            [project, selectedGroupId] = await queryProjectFields(projectGroupId);
-            await addProject(context, project, selectedGroupId);
+            [project, selectedGroupId] = await queryProjectFields(groupId);
+            await projectService.addProject(project, selectedGroupId);
         } catch (error) {
             if (error.message !== USER_CANCELED) {
                 vscode.window.showErrorMessage(`An error occured while adding the project.`);
@@ -246,7 +337,7 @@ export function activate(context: vscode.ExtensionContext) {
     }
 
     async function editProject(projectId: string) {
-        var [project, group] = getProjectAndGroup(context, projectId);
+        var [project, group] = projectService.getProjectAndGroup(projectId);
         if (project == null || group == null) {
             return;
         }
@@ -254,10 +345,11 @@ export function activate(context: vscode.ExtensionContext) {
         var editedProject: Project, selectedGroupId: string;
         try {
             [editedProject, selectedGroupId] = await queryProjectFields(group.id, project);
-            await updateProject(context, projectId, editedProject);
+            await projectService.updateProject(projectId, editedProject);
         } catch (error) {
             if (error.message !== USER_CANCELED) {
                 vscode.window.showErrorMessage(`An error occured while updating project ${project.name}.`);
+                throw error;
             }
 
             return;
@@ -266,121 +358,169 @@ export function activate(context: vscode.ExtensionContext) {
         showDashboard();
     }
 
-    async function queryProjectFields(projectGroupId: string = null, projectTemplate: Project = null): Promise<[Project, string]> {
+    async function editProjectColor(projectId: string) {
+        var [project, group] = projectService.getProjectAndGroup(projectId);
+        if (project == null || group == null) {
+            return;
+        }
+
+        try {
+            project.color = await queryProjectColor(project);
+            await projectService.updateProject(projectId, project);
+        } catch (error) {
+            if (error.message !== USER_CANCELED) {
+                vscode.window.showErrorMessage(`An error occured while updating project ${project.name}.`);
+                throw error;
+            }
+
+            return;
+        }
+
+        showDashboard();
+    }
+
+    async function queryProjectFields(groupId: string = null, projectTemplate: Project = null): Promise<[Project, string]> {
         // For editing a project: Ignore Group selection and take it from template
         var selectedGroupId: string, projectPath: string;
-        var isEditing = projectTemplate != null && projectGroupId != null;
+        var isEditing = projectTemplate != null && groupId != null;
+        var groupWasNewlyCreated = false;
 
-        if (isEditing) {
-            // Editing
-            selectedGroupId = projectGroupId;
-            projectPath = projectTemplate.path;
-        } else {
-            // New
-            selectedGroupId = await queryProjectGroup(projectGroupId);
-            projectPath = await queryProjectPath();
-        }
+        try {
+            if (isEditing) {
+                // Editing
+                selectedGroupId = groupId;
+                projectPath = projectTemplate.path;
+            } else {
+                // New
+                if (groupId != null) {
+                    selectedGroupId = groupId;
+                } else {
+                    [selectedGroupId, groupWasNewlyCreated] = await queryGroup(groupId, true);
+                }
+                projectPath = await queryProjectPath();
+            }
 
-        var defaultProjectName = projectTemplate ? projectTemplate.name : null;
-        defaultProjectName = defaultProjectName || getLastPartOfPath(projectPath).replace(/\.code-workspace$/g, '');
+            var defaultProjectName = projectTemplate ? projectTemplate.name : null;
+            defaultProjectName = defaultProjectName || getLastPartOfPath(projectPath).replace(/\.code-workspace$/g, '');
 
-        // Name
-        var projectName = await vscode.window.showInputBox({
-            value: defaultProjectName || undefined,
-            valueSelection: defaultProjectName ? [0, defaultProjectName.length] : undefined,
-            placeHolder: 'Project Name',
-            ignoreFocusOut: true,
-            validateInput: (val: string) => val ? '' : 'A Project Name must be provided.',
-        });
-
-        if (!projectName) {
-            throw new Error(USER_CANCELED);
-        }
-
-        // Updating path if needed
-        if (isEditing) {
-            let updatePathPicks = [
-                {
-                    id: false,
-                    label: "Keep Path",
-                },
-                {
-                    id: true,
-                    label: "Edit Path"
-                },
-            ]
-            let updatePath = await vscode.window.showQuickPick(updatePathPicks, {
-                placeHolder: "Edit Path?"
+            // Name
+            var projectName = await vscode.window.showInputBox({
+                value: defaultProjectName || undefined,
+                valueSelection: defaultProjectName ? [0, defaultProjectName.length] : undefined,
+                placeHolder: 'Project Name',
+                ignoreFocusOut: true,
+                validateInput: (val: string) => val ? '' : 'A Project Name must be provided.',
             });
 
-            if (updatePath == null) {
+            if (!projectName) {
+                if (groupWasNewlyCreated) {
+                    await projectService.removeGroup(selectedGroupId, true);
+                }
                 throw new Error(USER_CANCELED);
             }
 
-            if (updatePath.id) {
-                projectPath = await queryProjectPath(projectPath);
+            // Updating path if needed
+            if (isEditing) {
+                let updatePathPicks = [
+                    {
+                        id: false,
+                        label: "Keep Path",
+                    },
+                    {
+                        id: true,
+                        label: "Edit Path"
+                    },
+                ]
+                let updatePath = await vscode.window.showQuickPick(updatePathPicks, {
+                    placeHolder: "Edit Path?"
+                });
+
+                if (updatePath == null) {
+                    throw new Error(USER_CANCELED);
+                }
+
+                if (updatePath.id) {
+                    projectPath = await queryProjectPath(projectPath);
+                }
             }
+
+            // Color
+            var color = isEditing ? projectTemplate.color : await queryProjectColor(projectTemplate);
+
+            //Test if Git Repo
+            let isGitRepo = isFolderGitRepo(projectPath);
+
+            // Save
+            let project = new Project(projectName, projectPath);
+            project.color = color;
+            project.isGitRepo = isGitRepo;
+
+            return [project, selectedGroupId];
+        } catch (e) {
+            // Cleanup
+            if (groupWasNewlyCreated) {
+                await projectService.removeGroup(selectedGroupId, true);
+            }
+
+            throw e;
         }
-
-        // Color
-        var color = await queryProjectColor(projectTemplate);
-
-        //Test if Git Repo
-        let isGitRepo = isFolderGitRepo(projectPath);
-
-        // Save
-        let project = new Project(projectName, projectPath);
-        project.color = color;
-        project.isGitRepo = isGitRepo;
-
-        return [project, selectedGroupId];
     }
 
-    async function queryProjectGroup(projectGroupId: string): Promise<string> {
-        var projectGroups = getProjects(context);
+    async function queryGroup(groupId: string = null, optionForAdding: boolean = false): Promise<[string, boolean]> {
+        var groups = projectService.getGroups();
 
-        // Reorder array to set given group to front (to quickly select it).
-        let orderedProjectGroups = projectGroups;
-        if (projectGroupId != null) {
-            let idx = projectGroups.findIndex(g => g.id === projectGroupId);
-            if (idx != null) {
-                orderedProjectGroups = projectGroups.slice();
-                let group = orderedProjectGroups.splice(idx, 1);
-                orderedProjectGroups.unshift(...group);
+        if (optionForAdding && !groups.length) {
+            groupId = 'Add';
+        } else {
+            // Reorder array to set given group to front (to quickly select it).
+            let orderedGroups = groups;
+            if (groupId != null) {
+                let idx = groups.findIndex(g => g.id === groupId);
+                if (idx != null) {
+                    orderedGroups = groups.slice();
+                    let group = orderedGroups.splice(idx, 1);
+                    orderedGroups.unshift(...group);
+                }
             }
+
+            let defaultGroupSet = false;
+            let groupPicks = orderedGroups.map(group => {
+                let label = group.groupName;
+                if (!label) {
+                    label = defaultGroupSet ? 'Unnamed Group' : 'Default Group';
+                    defaultGroupSet = true;
+                }
+
+                return {
+                    id: group.id,
+                    label,
+                }
+            });
+
+            if (optionForAdding) {
+                groupPicks.push({
+                    id: "Add",
+                    label: "Add new Group",
+                });
+            }
+
+
+            let selectedGroupPick = await vscode.window.showQuickPick(groupPicks, {
+                placeHolder: "Group"
+            });
+
+            if (selectedGroupPick == null) {
+                throw new Error(USER_CANCELED);
+            }
+
+            groupId = selectedGroupPick.id;
+
         }
 
-        let defaultGroupSet = false;
-        let projectGroupPicks = orderedProjectGroups.map(group => {
-            let label = group.groupName;
-            if (!label) {
-                label = defaultGroupSet ? 'Unnamed Group' : 'Default Group';
-                defaultGroupSet = true;
-            }
-
-            return {
-                id: group.id,
-                label,
-            }
-        });
-
-        projectGroupPicks.push({
-            id: "Add",
-            label: "Add new Project Group",
-        })
-
-        let selectedProjectGroupPick = await vscode.window.showQuickPick(projectGroupPicks, {
-            placeHolder: "Project Group"
-        });
-
-        if (selectedProjectGroupPick == null) {
-            throw new Error(USER_CANCELED);
-        }
-
-        projectGroupId = selectedProjectGroupPick.id;
-        if (projectGroupId === 'Add') {
+        var newlyCreated = false;
+        if (groupId === 'Add') {
             let newGroupName = await vscode.window.showInputBox({
-                placeHolder: 'New Project Group Name',
+                placeHolder: 'New Group Name',
                 ignoreFocusOut: true,
                 validateInput: (val: string) => val ? '' : 'A Group Name must be provided.',
             });
@@ -389,10 +529,11 @@ export function activate(context: vscode.ExtensionContext) {
                 throw new Error(USER_CANCELED);
             }
 
-            projectGroupId = (await addProjectGroup(context, newGroupName)).id;
+            groupId = (await projectService.addGroup(newGroupName)).id;
+            newlyCreated = true;
         }
 
-        return projectGroupId;
+        return [groupId, newlyCreated];
     }
 
     async function queryProjectPath(defaultPath: string = null): Promise<string> {
@@ -465,6 +606,24 @@ export function activate(context: vscode.ExtensionContext) {
         return remotePath.trim();
     }
 
+    function buildColorText(colorCode: string, colorName: string = null): string {
+        if (colorCode == null) {
+            return "";
+        }
+
+        // If color is predefined, use this label only.
+        let predefColor = PREDEFINED_COLORS.find(c => c.value === colorCode);
+        if (predefColor) {
+            return predefColor.label;
+        }
+
+        // If it has a color, aggregate colorCode and name
+        colorName = colorName || colorService.getColorName(colorCode);
+        let colorText = colorName ? `${colorName}    (${colorCode})` : colorCode;
+
+        return colorText;
+    }
+
     async function queryProjectColor(projectTemplate: Project = null): Promise<string> {
         var color: string = null;
         if (!USE_PROJECT_COLOR) {
@@ -482,68 +641,101 @@ export function activate(context: vscode.ExtensionContext) {
             id: c.label,
             label: c.label,
         }));
-        colorPicks.unshift({ id: FixedColorOptions.random, label: 'Random' });
-        colorPicks.push({ id: FixedColorOptions.none, label: 'None' });
-        colorPicks.push({ id: FixedColorOptions.custom, label: 'Custom Color' });
+        colorPicks.unshift({ id: FixedColorOptions.random, label: 'Random Color' });
+        colorPicks.unshift({ id: FixedColorOptions.custom, label: '> Custom Color' });
+        colorPicks.unshift({ id: FixedColorOptions.recent, label: '> Recent Colors' });
+        if (!projectTemplate || projectTemplate.color) {
+            colorPicks.push({ id: FixedColorOptions.none, label: 'None' });
+        }
 
-        if (projectTemplate && projectTemplate.color) {
-            // Get existing color name by value
-            let color = PREDEFINED_COLORS.find(c => c.value === projectTemplate.color);
-            let existingEntryIdx = !color ? -1 : colorPicks.findIndex(p => p.id === color.label);
-            // If color is already in quicklist
-            if (existingEntryIdx !== -1) {
-                // Push to top
-                let entry = colorPicks.splice(existingEntryIdx, 1)[0];
-                colorPicks.unshift(entry);
+        if (projectTemplate) {
+            if (!projectTemplate.color) {
+                colorPicks.unshift({
+                    id: FixedColorOptions.none,
+                    label: `Current: None`,
+                });
             } else {
-                // Insert new
+                // Get existing color name by value
+                let color = PREDEFINED_COLORS.find(c => c.value === projectTemplate.color);
+                let existingEntryIdx = !color ? -1 : colorPicks.findIndex(p => p.id === color.label);
+
+                // If color is already in quicklist, remove it
+                if (existingEntryIdx !== -1) {
+                    colorPicks.splice(existingEntryIdx, 1)[0];
+                }
+
                 colorPicks.unshift({
                     id: projectTemplate.color,
-                    label: `${projectTemplate.color} (previous value)`,
+                    label: `Current: ${buildColorText(projectTemplate.color)}`,
                 });
             }
         }
 
-        let selectedColorPick = await vscode.window.showQuickPick(colorPicks, {
-            placeHolder: 'Project Color',
-        });
+        do {
+            color = null;
+            let selectedColorPick = await vscode.window.showQuickPick(colorPicks, {
+                placeHolder: 'Project Color',
+            });
 
-        if (selectedColorPick == null) {
-            throw new Error(USER_CANCELED);
-        }
+            if (selectedColorPick == null) {
+                throw new Error(USER_CANCELED);
+            }
 
-        switch (selectedColorPick.id) {
-            case FixedColorOptions.custom:
-                let customColor = await vscode.window.showInputBox({
-                    placeHolder: '#cc3344   crimson   rgb(68, 145, 203)   linear-gradient(to right, gold, darkorange)',
-                    ignoreFocusOut: true,
-                    prompt: "Any color name, value or gradient.",
-                });
+            switch (selectedColorPick.id) {
+                case FixedColorOptions.custom:
+                    let customColor = await vscode.window.showInputBox({
+                        placeHolder: '#cc3344   crimson   rgb(68, 145, 203)   linear-gradient(to right, gold, darkorange)',
+                        ignoreFocusOut: true,
+                        prompt: "Any color name, value or gradient.",
+                    });
 
-                color = (customColor || "").replace(/[;"]/g, "").trim();
-                break;
-            case FixedColorOptions.none:
-                color = null;
-                break;
-            case FixedColorOptions.random:
-                let randomColor = PREDEFINED_COLORS[Math.floor(Math.random() * PREDEFINED_COLORS.length)];
-                color = randomColor.value;
-                break;
-            default:
-                // PredefinedColor
-                let predefinedColor = PREDEFINED_COLORS.find(c => c.label == selectedColorPick.id);
-                if (predefinedColor != null) {
-                    color = predefinedColor.value;
-                } else {
-                    color = selectedColorPick.id;
-                }
-        }
+                    color = (customColor || "").replace(/[;"]/g, "").trim();
+                    break;
+                case FixedColorOptions.recent:
+                    let recentColors = colorService.getRecentColors();
+                    let recentColorPicks = recentColors.map(([code, name]) => ({
+                        id: code,
+                        label: buildColorText(code, name),
+                    }));
+
+                    recentColorPicks.unshift({
+                        id: null,
+                        label: "(Back)",
+                    })
+
+                    let selectedRecentColor = await vscode.window.showQuickPick(recentColorPicks, {
+                        placeHolder: recentColorPicks.length ? 'Recent Color' : 'No colors have recently been used.',
+                        ignoreFocusOut: true,
+                    });
+
+                    // if (selectedRecentColor == null) {
+                    //     throw new Error(USER_CANCELED);
+                    // }
+                    if (selectedRecentColor != null) {
+                        color = selectedRecentColor.id;
+                    }
+                    break;
+                case FixedColorOptions.none:
+                    return null; // Only case to allow null color
+                case FixedColorOptions.random:
+                    color = colorService.getRandomColor();
+                    break;
+                default:
+                    // PredefinedColor
+                    let predefinedColor = PREDEFINED_COLORS.find(c => c.label == selectedColorPick.id || c.value == selectedColorPick.id);
+                    if (predefinedColor != null) {
+                        color = predefinedColor.value;
+                    } else {
+                        color = selectedColorPick.id;
+                    }
+            }
+        } while (!color);
 
         return color;
     }
 
     async function removeProjectPerCommand() {
-        var projects = getProjectsFlat(context);
+        var projects = projectService.getProjectsFlat();
         let projectPicks = projects.map(p => ({ id: p.id, label: p.name }));
 
         let selectedProjectPick = await vscode.window.showQuickPick(projectPicks);
@@ -551,15 +743,15 @@ export function activate(context: vscode.ExtensionContext) {
         if (selectedProjectPick == null)
             return;
 
-        await removeProject(context, selectedProjectPick.id)
+        await projectService.removeProject(selectedProjectPick.id)
         showDashboard();
     }
 
     async function editProjectsManuallyPerCommand() {
-        var projects = getProjects(context);
-        const tempFilePath = getProjectsTempFilePath();
+        var projects = projectService.getGroups();
+        const tempFilePath = getGroupsTempFilePath();
         try {
-            writeTextFile(tempFilePath, JSON.stringify(projects, null, 4));
+            fileService.writeTextFile(tempFilePath, JSON.stringify(projects, null, 4));
         } catch (e) {
             vscode.window.showErrorMessage(`Can not write temporary project file under ${tempFilePath}
             ${e.message ? ': ' + e.message : '.'}`);
@@ -575,10 +767,10 @@ export function activate(context: vscode.ExtensionContext) {
         var subscriptions: vscode.Disposable[] = [];
         var editSubscription = vscode.workspace.onWillSaveTextDocument(async (e) => {
             if (e.document == editProjectsDocument) {
-                let updatedProjectGroups;
+                let updatedGroups;
                 try {
                     var text = e.document.getText() || "[]";
-                    updatedProjectGroups = JSON.parse(text);
+                    updatedGroups = JSON.parse(text);
                 } catch (ex) {
                     vscode.window.showErrorMessage("Edited Projects File can not be parsed.")
                     return;
@@ -586,8 +778,8 @@ export function activate(context: vscode.ExtensionContext) {
 
                 // Validate and Cleanup
                 var jsonIsInvalid = false;
-                if (Array.isArray(updatedProjectGroups)) {
-                    for (let group of updatedProjectGroups) {
+                if (Array.isArray(updatedGroups)) {
+                    for (let group of updatedGroups) {
                         if (group.name && !group.groupName) {
                             // One of the testers produced a group with any groupName
                             // We could not reproduce that, but this may be a result from updating legacy groups
@@ -623,35 +815,44 @@ export function activate(context: vscode.ExtensionContext) {
                     return;
                 }
 
-                updatedProjectGroups = updatedProjectGroups.filter(g => !g._delete);
+                updatedGroups = updatedGroups.filter(g => !g._delete);
 
-                await saveProjects(context, updatedProjectGroups);
-                showDashboard();
+                await projectService.saveGroups(updatedGroups);
 
                 subscriptions.forEach(s => s.dispose());
-                // await deleteFile(tempFilePath); // Deleting file does not make sense, as the file gets immidiately saved again after this listener
 
                 // Select and close our document editor
-                vscode.window.showTextDocument(e.document);
-                vscode.commands.executeCommand('workbench.action.closeActiveEditor')
+                try{
+                    await vscode.window.showTextDocument(e.document);
+                    await vscode.commands.executeCommand('workbench.action.closeActiveEditor')
+                } catch(e) {
+                    vscode.window.showErrorMessage("Could not close the edited Projects File. Please close manually.")
+                }
+
+                showDashboard();
+
             }
         });
         subscriptions.push(editSubscription);
-
-        // onDidCloseTextDocument is not called if a file without any changes is closed
-        // If the projects are not edited, but the file is closed, we cannot remove the temp file.
-        // --> Use a fixed name for the temp file, so that we have at most 1 zombie file lying around
-        // var closeSubscription = vscode.workspace.onDidCloseTextDocument(document => {
-        //     if (document == editProjectsDocument) {
-        //         subscriptions.forEach(s => s.dispose());
-        //         deleteFile(tempFilePath);
-        //     }
-        // });
-        // subscriptions.push(closeSubscription);
     }
 
-    async function reorderProjectGroups(groupOrders: GroupOrder[]) {
-        var projectGroups = getProjects(context);
+    async function removeProject(projectId: string) {
+        var project = projectService.getProject(projectId);
+        if (project == null) {
+            return;
+        }
+
+        let accepted = await vscode.window.showWarningMessage(`Remove ${project.name}?`, { modal: true }, 'Remove');
+        if (!accepted) {
+            return;
+        }
+
+        await projectService.removeProject(projectId);
+        showDashboard();
+    }
+
+    async function reorderGroups(groupOrders: GroupOrder[]) {
+        var groups = projectService.getGroups();
 
         if (groupOrders == null) {
             vscode.window.showInformationMessage('Invalid Argument passed to Reordering Projects.');
@@ -661,7 +862,7 @@ export function activate(context: vscode.ExtensionContext) {
 
         // Map projects by id for easier access
         var projectMap = new Map<string, Project>();
-        for (let group of projectGroups) {
+        for (let group of groups) {
             if (group.projects == null) {
                 continue;
             }
@@ -672,33 +873,18 @@ export function activate(context: vscode.ExtensionContext) {
         }
 
         // Build new, reordered projects group array
-        var reorderedProjectGroups: ProjectGroup[] = [];
+        var reorderedGroups: Group[] = [];
         for (let { groupId, projectIds } of groupOrders) {
-            let group = projectGroups.find(g => g.id === groupId);
+            let group = groups.find(g => g.id === groupId);
             if (group == null) {
-                group = new ProjectGroup("Project Group #" + (reorderedProjectGroups.length + 1));
+                group = new Group("Group #" + (reorderedGroups.length + 1));
             }
 
             group.projects = projectIds.map(pid => projectMap.get(pid)).filter(p => p != null);
-            reorderedProjectGroups.push(group);
+            reorderedGroups.push(group);
         }
 
-        await saveProjects(context, reorderedProjectGroups);
-        showDashboard();
-    }
-
-    async function deleteProject(projectId: string) {
-        var project = getProject(context, projectId);
-        if (project == null) {
-            return;
-        }
-
-        let accepted = await vscode.window.showWarningMessage(`Delete ${project.name}?`, { modal: true }, 'Delete');
-        if (!accepted) {
-            return;
-        }
-
-        await removeProject(context, projectId);
+        await projectService.saveGroups(reorderedGroups);
         showDashboard();
     }
 
@@ -712,7 +898,7 @@ export function activate(context: vscode.ExtensionContext) {
         }
     }
 
-    function getProjectsTempFilePath(): string {
+    function getGroupsTempFilePath(): string {
         var savePath = context.globalStoragePath;
         return `${savePath}/Dashboard Projects.json`;
     }
