@@ -111,8 +111,8 @@ function initProjects() {
             contextMenuElement = document.getElementById("groupContextMenu");
         }
 
-        contextMenuElement.style.left = e.clientX + "px";
-        contextMenuElement.style.top = e.clientY + "px";
+        contextMenuElement.style.left = e.pageX + "px";
+        contextMenuElement.style.top = e.pageY + "px";
         contextMenuElement.classList.add("visible");
     }
 
