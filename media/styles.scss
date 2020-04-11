@@ -322,6 +322,39 @@ body .project {
     }
 }
 
+// CONTEXT MENU
+.custom-context-menu {
+    position: absolute;
+    z-index: 100;
+    display: none;
+
+    // Values chosen to match vscode theme colors
+    padding: 11px 1px;
+    background: var(--vscode-menu-background);
+    color: var(--vscode-menu-foreground);
+    box-shadow: var(--vscode-widget-shadow) 0px 2px 3px;
+
+    &.visible {
+        display: block;
+    }
+
+    .custom-context-menu-item {
+        padding: 5px 26px;
+        
+        &:hover {
+            color: var(--vscode-menu-selectionForeground);
+            background: var(--vscode-menu-selectionBackground);
+        }
+    }
+
+    .custom-context-menu-separator {
+        border-top: 1pt solid var(--vscode-menu-separatorBackground);
+        opacity: 50%;
+        margin: 3px 10px;
+    }
+
+}
+
 // CUSTOM CONFIGURATION
 .hide-project-path .group {
     .project {

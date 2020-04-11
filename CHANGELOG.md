@@ -21,6 +21,7 @@ All notable changes to the "Project Dashboard" extension will be documented in t
 ### Added
 
 -   Groups can be collapsed
+-   Context menus for projects and groups that include all actions.
 -   Colors
     -   Project color can now be changed directly from the dashboard without going through the whole project editing phase.
     -   Selection for recently used colors.

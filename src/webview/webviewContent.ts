@@ -45,6 +45,9 @@ export function getDashboardContent(context: vscode.ExtensionContext, webviewPan
 
             ${getTempGroupSection(groups.length)}
         </div>
+
+        ${getProjectContextMenu()}
+        ${getGroupContextMenu()}
     </body>
 
     <script src="${fittyPath}"></script>
@@ -162,6 +165,47 @@ function getAddProjectDiv(groupId: string) {
         </h2>
     </div>
 </span>`
+}
+
+function getProjectContextMenu() {
+    return `
+<div id="projectContextMenu" class="custom-context-menu">
+    <div class="custom-context-menu-item" data-action="open">
+        Open Project
+    </div>
+    <div class="custom-context-menu-item" data-action="open-new-window">
+        Open Project in new Window
+    </div>
+
+    <div class="custom-context-menu-separator"></div>
+    
+    <div class="custom-context-menu-item" data-action="color">
+        Edit Color
+    </div>
+    <div class="custom-context-menu-item" data-action="edit">
+        Edit Project
+    </div>
+    <div class="custom-context-menu-item" data-action="remove">
+        Remove Project
+    </div>
+</div>
+`;
+}
+
+function getGroupContextMenu() {
+    return `
+<div id="groupContextMenu" class="custom-context-menu">   
+    <div class="custom-context-menu-item" data-action="add">
+        Add Project
+    </div>
+    <div class="custom-context-menu-item" data-action="edit">
+        Edit Group
+    </div>
+    <div class="custom-context-menu-item" data-action="remove">
+        Remove Group
+    </div>
+</div>
+`;
 }
 
 function getCustomStyle(config: vscode.WorkspaceConfiguration) {

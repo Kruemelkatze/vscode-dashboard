@@ -25,7 +25,6 @@ function initDnD() {
     function onReordered() {
         // Build reordering object
         let groupElements = [...document.querySelectorAll(`${groupsContainerSelector} > [data-group-id]`)];
-        debugger
         // If a project was dropped on the Create New Group element...
         let tempGroupElement = document.querySelector('#tempGroup');
         if (tempGroupElement && tempGroupElement.querySelector("[data-id]")) {
@@ -41,8 +40,6 @@ function initDnD() {
             };
             groupOrders.push(groupOrder);
         }
-
-        console.log("onreordered")
 
         window.vscode.postMessage({
             type: 'reordered-projects',
