@@ -2,6 +2,12 @@
 
 All notable changes to the "Project Dashboard" extension will be documented in this file. It follows the [Keep a Changelog](http://keepachangelog.com/) recommendations.
 
+## [2.0.1] 2020-04-13
+
+### Fixed
+
+-   Fixed Storage Consistency.
+
 ## [2.0.1] 2020-04-11
 
 ### Fixed
