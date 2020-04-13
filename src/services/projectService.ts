@@ -183,7 +183,7 @@ export default class ProjectService extends BaseService {
     saveGroups(groups: Group[]): Thenable<void> {
         groups = this.sanitizeGroups(groups);
 
-        return this.useSettingsStorage ?
+        return this.useSettingsStorage() ?
             this.saveGroupsInSettings(groups) :
             this.saveGroupsInGlobalState(groups);
     }
@@ -230,16 +230,18 @@ export default class ProjectService extends BaseService {
 
             if (toMigrate) {
                 await this.saveGroupsInSettings(projectsInGlobalState);
-                await this.saveGroupsInGlobalState(null);
             }
+
+            await this.saveGroupsInGlobalState(null);
         } else {
             // Migrate from Settings To Global State
             toMigrate = projectsInGlobalState == null && projectsInSettings != null;
 
             if (toMigrate) {
                 await this.saveGroupsInGlobalState(projectsInSettings);
-                await this.saveGroupsInSettings(null);
             }
+
+            await this.saveGroupsInSettings(null);
         }
 
         return toMigrate;

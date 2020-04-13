@@ -56,7 +56,7 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(removeGroupCommand);
 
     vscode.workspace.onDidChangeConfiguration(event => {
-        if (event.affectsConfiguration("dashboard")) {
+        if (event.affectsConfiguration("dashboard.storeProjectsInSettings")) {
             checkDataMigration(true);
         }
     });
