@@ -11,3 +11,4 @@ tslint.json
 DemoProjects.json
 media/*.scss
 webpack.config.json
+*.gif
