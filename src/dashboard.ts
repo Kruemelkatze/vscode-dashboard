@@ -1,9 +1,9 @@
 'use strict';
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { Project, GroupOrder, Group, ProjectRemoteType, getRemoteType, DashboardInfos } from './models';
+import { Project, GroupOrder, Group, ProjectRemoteType, getRemoteType, DashboardInfos, ProjectOpenType, ReopenDashboardReason, ProjectPathType } from './models';
 import { getDashboardContent } from './webview/webviewContent';
-import { USE_PROJECT_COLOR, PREDEFINED_COLORS, StartupOptions, USER_CANCELED, FixedColorOptions, RelevantExtensions, SSH_REGEX, REMOTE_REGEX, SSH_REMOTE_PREFIX } from './constants';
+import { USE_PROJECT_COLOR, PREDEFINED_COLORS, StartupOptions, USER_CANCELED, FixedColorOptions, RelevantExtensions, SSH_REGEX, REMOTE_REGEX, SSH_REMOTE_PREFIX, REOPEN_KEY } from './constants';
 import { execSync } from 'child_process';
 import { lstatSync } from 'fs';
 
@@ -84,29 +84,34 @@ export function activate(context: vscode.ExtensionContext) {
 
         await checkDataMigration();
 
-        showDashboardOnOpenIfNeeded();
+        let reopenDashboardReason = context.globalState.get(REOPEN_KEY) as ReopenDashboardReason;
+        context.globalState.update(REOPEN_KEY, ReopenDashboardReason.None);
+        showDashboardOnOpenIfNeeded(reopenDashboardReason);
     }
 
-    function showDashboardOnOpenIfNeeded() {
-        var { openOnStartup } = dashboardInfos.config;
+    function showDashboardOnOpenIfNeeded(reopenReason: ReopenDashboardReason = ReopenDashboardReason.None) {
 
-        var open = false;
+        var open = reopenReason !== ReopenDashboardReason.None;
 
-        switch (openOnStartup) {
-            case StartupOptions.always:
-                open = true;
-                break;
-            case StartupOptions.never:
-                break;
-            case StartupOptions.emptyWorkSpace:
-            default:
-                let editors = vscode.window.visibleTextEditors;
-                // Includes Workaround for temporary code runner file
-                let noOpenEditorsOrWorkspaces = !vscode.workspace.name && (
-                    editors.length === 0 || editors.length === 1 && editors[0].document.languageId === "code-runner-output"
-                );
-                open = noOpenEditorsOrWorkspaces;
-                break;
+        if (!open) {
+            var { openOnStartup } = dashboardInfos.config;
+
+            switch (openOnStartup) {
+                case StartupOptions.always:
+                    open = true;
+                    break;
+                case StartupOptions.never:
+                    break;
+                case StartupOptions.emptyWorkSpace:
+                default:
+                    let editors = vscode.window.visibleTextEditors;
+                    // Includes Workaround for temporary code runner file
+                    let noOpenEditorsOrWorkspaces = !vscode.workspace.name && (
+                        editors.length === 0 || editors.length === 1 && editors[0].document.languageId === "code-runner-output"
+                    );
+                    open = noOpenEditorsOrWorkspaces;
+                    break;
+            }
         }
 
         if (open) {
@@ -147,14 +152,15 @@ export function activate(context: vscode.ExtensionContext) {
                 switch (e.type) {
                     case 'selected-project':
                         projectId = e.projectId as string;
-                        let newWindow = e.newWindow as boolean;
+                        let projectOpenType = e.projectOpenType as ProjectOpenType;
+
                         let project = projectService.getProject(projectId);
                         if (project == null) {
                             vscode.window.showWarningMessage("Selected Project not found.");
                             break;
                         }
 
-                        await openProject(project, newWindow);
+                        await openProject(project, projectOpenType);
                         break;
                     case 'add-project':
                         groupId = e.groupId as string;
@@ -193,6 +199,9 @@ export function activate(context: vscode.ExtensionContext) {
                         break;
                 }
             });
+            panel.onDidDispose(() => {
+                instance = null;
+            })
 
             instance = panel;
         }
@@ -290,7 +299,7 @@ export function activate(context: vscode.ExtensionContext) {
         //showDashboard(); // No need to repaint for that
     }
 
-    async function openProject(project: Project, openInNewWindow: boolean): Promise<void> {
+    async function openProject(project: Project, projectOpenType: ProjectOpenType): Promise<void> {
         // project is parsed from JSON at runtime, so its not an instance of Project
         let remoteType = getRemoteType(project);
         let projectPath = (project.path || '').trim();
@@ -299,7 +308,13 @@ export function activate(context: vscode.ExtensionContext) {
         switch (remoteType) {
             case ProjectRemoteType.None:
                 uri = vscode.Uri.file(projectPath);
-                await vscode.commands.executeCommand("vscode.openFolder", uri, openInNewWindow);
+
+                if (projectOpenType === ProjectOpenType.AddToWorkspace) {
+                    await addToWorkspace(project, uri);
+                } else {
+                    await vscode.commands.executeCommand("vscode.openFolder", uri, projectOpenType === ProjectOpenType.NewWindow);
+                }
+
                 break;
             case ProjectRemoteType.SSH:
                 let remotePathMatch = projectPath.replace(SSH_REMOTE_PREFIX, '').match(SSH_REGEX);
@@ -307,14 +322,61 @@ export function activate(context: vscode.ExtensionContext) {
 
                 if (hasRemoteFolder) {
                     uri = vscode.Uri.parse(projectPath);
-                    vscode.commands.executeCommand("vscode.openFolder", uri, openInNewWindow)
+                    vscode.commands.executeCommand("vscode.openFolder", uri, projectOpenType === ProjectOpenType.NewWindow)
                 } else {
                     vscode.commands.executeCommand("vscode.newWindow", {
                         remoteAuthority: projectPath.replace("vscode-remote://", ""),
-                        reuseWindow: !openInNewWindow,
+                        reuseWindow: projectOpenType === ProjectOpenType.NewWindow,
                     });
                 }
                 break;
+        }
+    }
+
+    async function addToWorkspace(project: Project, uri: vscode.Uri): Promise<void> {
+        let wsToAdd: { uri: vscode.Uri, name?: string }[];
+        let projectPathType = await fileService.getProjectPathType(uri.fsPath);
+
+        switch (projectPathType) {
+            case ProjectPathType.Folder:
+                wsToAdd = [{ uri, name: project.name }];
+                break;
+            case ProjectPathType.WorkspaceFile:
+                try {
+                    let folderPaths = await fileService.getFoldersFromWorkspaceFile(uri.fsPath);
+                    wsToAdd = folderPaths.map(f => ({ uri: vscode.Uri.file(f) }));
+                } catch (e) {
+                    console.error(e);
+                    vscode.window.showErrorMessage("Could not read the project's workspace file.");
+                    return;
+                }
+                break;
+            default:
+                vscode.window.showInformationMessage("A file project cannot be added to the workspace.");
+                return;
+        }
+
+        let workspaceFolders = new Set((vscode.workspace.workspaceFolders || []).map(w => path.normalize(w.uri.fsPath)));
+        wsToAdd = wsToAdd.filter(ws => {
+            return !workspaceFolders.has(path.normalize(ws.uri.fsPath));
+        })
+
+        if (!wsToAdd.length) {
+            return;
+        }
+
+        let isNewWorkSpace = !vscode.workspace.workspaceFile;
+        let couldOpen = vscode.workspace.updateWorkspaceFolders(
+            workspaceFolders.size,
+            null,
+            ...wsToAdd,
+        );
+
+        if (!couldOpen) {
+            vscode.window.showErrorMessage('Could not add project to workspace.');
+        } else if (isNewWorkSpace) {
+            context.globalState.update(REOPEN_KEY, ReopenDashboardReason.EditorReopenedAsWorkspace);
+            instance.dispose();
         }
     }
 
@@ -751,7 +813,7 @@ export function activate(context: vscode.ExtensionContext) {
         var projects = projectService.getGroups();
         const tempFilePath = getGroupsTempFilePath();
         try {
-            fileService.writeTextFile(tempFilePath, JSON.stringify(projects, null, 4));
+            await fileService.writeTextFile(tempFilePath, JSON.stringify(projects, null, 4));
         } catch (e) {
             vscode.window.showErrorMessage(`Can not write temporary project file under ${tempFilePath}
             ${e.message ? ': ' + e.message : '.'}`);
@@ -822,10 +884,10 @@ export function activate(context: vscode.ExtensionContext) {
                 subscriptions.forEach(s => s.dispose());
 
                 // Select and close our document editor
-                try{
+                try {
                     await vscode.window.showTextDocument(e.document);
                     await vscode.commands.executeCommand('workbench.action.closeActiveEditor')
-                } catch(e) {
+                } catch (e) {
                     vscode.window.showErrorMessage("Could not close the edited Projects File. Please close manually.")
                 }
 

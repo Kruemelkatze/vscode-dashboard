@@ -122,7 +122,7 @@ function getProjectDiv(project: Project, infos: DashboardInfos) {
 
     return `
 <div class="project-container">
-    <div class="project" data-id="${project.id}">
+    <div class="project" data-id="${project.id}" ${isRemote ? 'data-is-remote' : ''}>
         <div class="project-border" style="${borderStyle}"></div>
         <div class="project-actions-wrapper">
             <div class="project-actions">
@@ -175,6 +175,9 @@ function getProjectContextMenu() {
     </div>
     <div class="custom-context-menu-item" data-action="open-new-window">
         Open Project in new Window
+    </div>
+    <div class="custom-context-menu-item not-remote" data-action="open-add-to-workspace">
+        Add to Workspace
     </div>
 
     <div class="custom-context-menu-separator"></div>

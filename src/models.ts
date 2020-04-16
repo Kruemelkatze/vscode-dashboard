@@ -70,7 +70,24 @@ export interface DashboardInfos {
     config: vscode.WorkspaceConfiguration,
 }
 
+export enum ProjectPathType {
+    Folder,
+    WorkspaceFile,
+    File,
+}
+
+export enum ProjectOpenType {
+    Default = 0,
+    NewWindow = 1,
+    AddToWorkspace = 2,
+}
+
 export enum ProjectRemoteType {
     None,
     SSH,
+}
+
+export enum ReopenDashboardReason {
+    None = 0,
+    EditorReopenedAsWorkspace,
 }

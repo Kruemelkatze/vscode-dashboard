@@ -345,6 +345,11 @@ body .project {
             color: var(--vscode-menu-selectionForeground);
             background: var(--vscode-menu-selectionBackground);
         }
+
+        &.disabled {
+            pointer-events: none;
+            opacity: 50%;
+        }
     }
 
     .custom-context-menu-separator {

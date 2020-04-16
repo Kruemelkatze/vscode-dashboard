@@ -1,10 +1,16 @@
 function initProjects() {
 
-    function onProjectClicked(projectId, newWindow) {
+    const ProjectOpenType = {
+        Default: 0,
+        NewWindow: 1,
+        AddToWorkspace: 2,
+    };
+
+    function openProject(projectId, projectOpenType) {
         window.vscode.postMessage({
             type: 'selected-project',
             projectId,
-            newWindow,
+            projectOpenType,
         });
     }
 
@@ -33,7 +39,8 @@ function initProjects() {
             return;
 
         var newWindow = e.ctrlKey || e.metaKey;
-        onProjectClicked(dataId, newWindow);
+        openProject(dataId, newWindow ? ProjectOpenType.NewWindow : ProjectOpenType.Default);
+
     }
 
     function onInsideGroupClick(e, groupDiv) {
@@ -111,6 +118,15 @@ function initProjects() {
             contextMenuElement = document.getElementById("groupContextMenu");
         }
 
+        // disable elements if needed
+        contextMenuElement.querySelectorAll(":scope > *").forEach(e => e.classList.remove("disabled"));
+
+        if (projectDiv.hasAttribute("data-is-remote")) {
+            contextMenuElement.querySelectorAll(".not-remote").forEach(e => e.classList.add("disabled"));
+        }
+
+        // place and show contextmenu
+
         contextMenuElement.style.left = e.pageX + "px";
         contextMenuElement.style.top = e.pageY + "px";
         contextMenuElement.classList.add("visible");
@@ -124,10 +140,13 @@ function initProjects() {
 
         switch (action) {
             case 'open':
-                onProjectClicked(contextMenuProjectId, false);
+                openProject(contextMenuProjectId, ProjectOpenType.Default);
                 break;
             case 'open-new-window':
-                onProjectClicked(contextMenuProjectId, true);
+                openProject(contextMenuProjectId, ProjectOpenType.NewWindow);
+                break;
+            case 'open-add-to-workspace':
+                openProject(contextMenuProjectId, ProjectOpenType.AddToWorkspace);
                 break;
             default:
                 window.vscode.postMessage({
@@ -173,7 +192,7 @@ function initProjects() {
     }
 
     document.addEventListener('click', (e) => {
-        if (!e.target)
+        if (!e.target || e.target.closest(".disabled"))
             return;
 
         var contextMenuElement = e.target.closest("#projectContextMenu [data-action]");

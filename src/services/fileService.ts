@@ -1,31 +1,51 @@
 import BaseService from "./baseService";
 import * as fs from 'fs';
 import * as path from 'path';
+import { ProjectPathType } from "../models";
 
 export default class FileService extends BaseService {
 
-    removeFile(filePath: string) {
+    async removeFile(filePath: string): Promise<void> {
         filePath = path.normalize(filePath);
-        //Promise to keep all file modifications returning a Promise
-        return new Promise((resolve, reject) => {
-            fs.unlink(filePath, err => {
-                err ? reject(err) : resolve();
-            });
-        });
+        await fs.promises.unlink(filePath);
     }
 
-    writeTextFile(filePath: string, data: string) {
+    async writeTextFile(filePath: string, data: string): Promise<void> {
         this.writeFile(filePath, data, 'utf8');
     }
 
-    writeFile(filePath: string, data: any, encoding: string = undefined) {
+    async writeFile(filePath: string, data: any, encoding: string = undefined): Promise<void> {
         filePath = path.normalize(filePath);
-
         var dir = path.dirname(filePath);
-        if (!fs.existsSync(dir)) {
-            fs.mkdirSync(dir);
+
+        await new Promise((resolve, reject) => {
+            try {
+                if (!fs.existsSync(dir)) {
+                    fs.mkdirSync(dir);
+                }
+            } catch (e) {
+                reject(e);
+            }
+        });
+
+        await fs.promises.writeFile(filePath, data, encoding);
+    }
+
+    async getProjectPathType(p: string): Promise<ProjectPathType> {
+        let stats = await fs.promises.lstat(p);
+        if (stats.isDirectory()) {
+            return ProjectPathType.Folder;
         }
 
-        fs.writeFileSync(filePath, data, encoding);
+        let isVSCodeWorkspaceFile = p.toLowerCase().endsWith(".code-workspace");
+        return isVSCodeWorkspaceFile ? ProjectPathType.WorkspaceFile : ProjectPathType.File;
+    }
+
+    async getFoldersFromWorkspaceFile(p: string): Promise<string[]> {
+        let content = await fs.promises.readFile(p, "utf8");
+        let json = JSON.parse(content) as { folders: { path: string }[] };
+        let folder = path.dirname(p);
+        let folderPaths = json.folders.map(f => path.join(folder, f.path));
+        return folderPaths;
     }
 }
