@@ -8,6 +8,10 @@ All notable changes to the "Project Dashboard" extension will be documented in t
 
 -   "Add Project to Workspace" context menu action for folders and multi-root workspaces.
 
+### Changed
+
+-   When adding a file or folder project, the file system picker is set to the current workspace per default.
+
 ## [2.0.2] 2020-04-13
 
 ### Fixed

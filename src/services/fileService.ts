@@ -48,4 +48,9 @@ export default class FileService extends BaseService {
         let folderPaths = json.folders.map(f => path.join(folder, f.path));
         return folderPaths;
     }
+
+
+    isFile(p: string): boolean {
+        return !!path.extname(p);
+    }
 }
