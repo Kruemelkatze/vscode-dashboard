@@ -428,7 +428,7 @@ export function activate(context: vscode.ExtensionContext) {
         }
 
         try {
-            project.color = await queryProjectColor(project);
+            project.color = await queryProjectColor(true, project);
             await projectService.updateProject(projectId, project);
         } catch (error) {
             if (error.message !== USER_CANCELED) {
@@ -507,7 +507,7 @@ export function activate(context: vscode.ExtensionContext) {
             }
 
             // Color
-            var color = isEditing ? projectTemplate.color : await queryProjectColor(projectTemplate);
+            var color = isEditing ? projectTemplate.color : await queryProjectColor(isEditing, projectTemplate);
 
             //Test if Git Repo
             let isGitRepo = isFolderGitRepo(projectPath);
@@ -655,7 +655,7 @@ export function activate(context: vscode.ExtensionContext) {
     async function getSSHPath(defaultPath: string = null): Promise<string> {
         let remotePath = await vscode.window.showInputBox({
             placeHolder: 'user@target.xyz/home/optional-folder',
-            value: defaultPath || undefined,
+            value: SSH_REGEX.test(defaultPath) ? defaultPath : undefined,
             ignoreFocusOut: true,
             prompt: "SSH remote, target folder is optional",
             validateInput: (val: string) => SSH_REGEX.test(val) ? '' : 'A valid SSH Target must be proviced',
@@ -687,7 +687,9 @@ export function activate(context: vscode.ExtensionContext) {
         return colorText;
     }
 
-    async function queryProjectColor(projectTemplate: { color?: string } = null): Promise<string> {
+    async function queryProjectColor(isEditing: boolean, projectTemplate: { color?: string } = null): Promise<string> {
+        isEditing = isEditing && projectTemplate != null;
+
         var color: string = null;
         if (!USE_PROJECT_COLOR) {
             return null;
@@ -707,31 +709,30 @@ export function activate(context: vscode.ExtensionContext) {
         colorPicks.unshift({ id: FixedColorOptions.random, label: 'Random Color' });
         colorPicks.unshift({ id: FixedColorOptions.custom, label: '> Custom Color' });
         colorPicks.unshift({ id: FixedColorOptions.recent, label: '> Recent Colors' });
-        if (!projectTemplate || projectTemplate.color) {
+
+        if (!isEditing || projectTemplate.color) {
             colorPicks.push({ id: FixedColorOptions.none, label: 'None' });
-        }
+        } else if (isEditing && !projectTemplate.color) {
+            colorPicks.unshift({
+                id: FixedColorOptions.none,
+                label: `Current: None`,
+            });
+        } 
+        
+        if (isEditing && projectTemplate.color) {
+            // Get existing color name by value
+            let color = PREDEFINED_COLORS.find(c => c.value === projectTemplate.color);
+            let existingEntryIdx = !color ? -1 : colorPicks.findIndex(p => p.id === color.label);
 
-        if (projectTemplate) {
-            if (!projectTemplate.color) {
-                colorPicks.unshift({
-                    id: FixedColorOptions.none,
-                    label: `Current: None`,
-                });
-            } else {
-                // Get existing color name by value
-                let color = PREDEFINED_COLORS.find(c => c.value === projectTemplate.color);
-                let existingEntryIdx = !color ? -1 : colorPicks.findIndex(p => p.id === color.label);
-
-                // If color is already in quicklist, remove it
-                if (existingEntryIdx !== -1) {
-                    colorPicks.splice(existingEntryIdx, 1)[0];
-                }
-
-                colorPicks.unshift({
-                    id: projectTemplate.color,
-                    label: `Current: ${buildColorText(projectTemplate.color)}`,
-                });
+            // If color is already in quicklist, remove it
+            if (existingEntryIdx !== -1) {
+                colorPicks.splice(existingEntryIdx, 1)[0];
             }
+
+            colorPicks.unshift({
+                id: projectTemplate.color,
+                label: `Current: ${buildColorText(projectTemplate.color)}`,
+            });
         }
 
         do {
