@@ -1,7 +1,7 @@
 'use strict';
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { Project, GroupOrder, Group, ProjectRemoteType, getRemoteType, DashboardInfos, ProjectOpenType, ReopenDashboardReason, ProjectPathType } from './models';
+import { Project, GroupOrder, Group, ProjectRemoteType, getRemoteType, DashboardInfos, ProjectOpenType, ReopenDashboardReason, ProjectPathType, sanitizeProjectName } from './models';
 import { getDashboardContent } from './webview/webviewContent';
 import { USE_PROJECT_COLOR, PREDEFINED_COLORS, StartupOptions, USER_CANCELED, FixedColorOptions, RelevantExtensions, SSH_REGEX, REMOTE_REGEX, SSH_REMOTE_PREFIX, REOPEN_KEY } from './constants';
 import { execSync } from 'child_process';
@@ -339,7 +339,8 @@ export function activate(context: vscode.ExtensionContext) {
 
         switch (projectPathType) {
             case ProjectPathType.Folder:
-                wsToAdd = [{ uri, name: project.name }];
+                let name = sanitizeProjectName(project.name);
+                wsToAdd = [{ uri, name }];
                 break;
             case ProjectPathType.WorkspaceFile:
                 try {

@@ -46,6 +46,14 @@ export class Project {
     }
 }
 
+export function sanitizeProjectName(name: string) {
+    if (!name) {
+        return "";
+    }
+
+    return name.replace(/<[^>]+>/g, '').trim();
+}
+
 export function getRemoteType(project: Project): ProjectRemoteType {
     return Project.prototype.getRemoteType.call(project);
 }

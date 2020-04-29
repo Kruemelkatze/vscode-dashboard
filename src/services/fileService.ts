@@ -11,7 +11,7 @@ export default class FileService extends BaseService {
     }
 
     async writeTextFile(filePath: string, data: string): Promise<void> {
-        this.writeFile(filePath, data, 'utf8');
+        return this.writeFile(filePath, data, 'utf8');
     }
 
     async writeFile(filePath: string, data: any, encoding: string = undefined): Promise<void> {
@@ -23,6 +23,7 @@ export default class FileService extends BaseService {
                 if (!fs.existsSync(dir)) {
                     fs.mkdirSync(dir);
                 }
+                resolve();
             } catch (e) {
                 reject(e);
             }
