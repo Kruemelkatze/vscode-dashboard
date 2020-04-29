@@ -22,7 +22,7 @@ export function getDashboardContent(context: vscode.ExtensionContext, webviewPan
         <meta charset="UTF-8">
         <meta
             http-equiv="Content-Security-Policy"
-            content="default-src 'none'; script-src ${webviewPanel.webview.cspSource} 'unsafe-inline'; style-src ${webviewPanel.webview.cspSource} 'unsafe-inline';"
+            content="default-src 'none'; img-src * data:; script-src ${webviewPanel.webview.cspSource} 'unsafe-inline'; style-src ${webviewPanel.webview.cspSource} 'unsafe-inline';"
         />
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link rel="stylesheet" type="text/css" href="${stylesPath}">
