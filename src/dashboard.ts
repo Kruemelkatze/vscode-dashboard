@@ -602,7 +602,7 @@ export function activate(context: vscode.ExtensionContext) {
     async function queryProjectPath(defaultPath: string = null): Promise<string> {
         let projectTypePicks = [
             { id: 'dir', label: 'Folder Project' },
-            { id: 'file', label: 'File or Multi-Root Project' },
+            { id: 'file', label: 'Workspace or File Project' },
             { id: 'ssh', label: `SSH Target ${!dashboardInfos.relevantExtensionsInstalls.remoteSSH ? '(Remote Development extension is not installed)' : ''}` },
         ];
 
