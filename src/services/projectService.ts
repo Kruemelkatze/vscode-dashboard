@@ -250,7 +250,7 @@ export default class ProjectService extends BaseService {
     // ~~~~~~~~~~~~~~~~~~~~~~~~~ HELPERS ~~~~~~~~~~~~~~~~~~~~~~~~~
 
     private sanitizeGroups(groups: Group[]): Group[] {
-        groups = Array.isArray(groups) ? groups : [];
+        groups = Array.isArray(groups) ? groups.filter(g => !!g) : [];
 
         // Fill id, should only happen if user removes id manually. But better be safe than sorry.
         for (let g of groups) {
