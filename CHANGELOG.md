@@ -2,6 +2,17 @@
 
 All notable changes to the "Project Dashboard" extension will be documented in this file. It follows the [Keep a Changelog](http://keepachangelog.com/) recommendations.
 
+## [2.2.0] 2020-05-12
+
+### Changed
+
+-   Allow any characters in SSH remote string.
+-   Renamed _File or Multi-Root Project_ to _Workspace or File Project_.
+
+### Fixed
+
+-   Null safe group sanitizing.
+
 ## [2.1.2] 2020-04-29
 
 ### Changed
