@@ -318,7 +318,7 @@ export function activate(context: vscode.ExtensionContext) {
                 break;
             case ProjectRemoteType.SSH:
                 let remotePathMatch = projectPath.replace(SSH_REMOTE_PREFIX, '').match(SSH_REGEX);
-                let hasRemoteFolder = remotePathMatch.groups.folder != null;
+                let hasRemoteFolder = remotePathMatch && remotePathMatch.groups.folder != null;
 
                 if (hasRemoteFolder) {
                     uri = vscode.Uri.parse(projectPath);
@@ -718,8 +718,8 @@ export function activate(context: vscode.ExtensionContext) {
                 id: FixedColorOptions.none,
                 label: `Current: None`,
             });
-        } 
-        
+        }
+
         if (isEditing && projectTemplate.color) {
             // Get existing color name by value
             let color = PREDEFINED_COLORS.find(c => c.value === projectTemplate.color);
