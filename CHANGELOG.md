@@ -2,6 +2,13 @@
 
 All notable changes to the "Project Dashboard" extension will be documented in this file. It follows the [Keep a Changelog](http://keepachangelog.com/) recommendations.
 
+## [2.2.1] 2020-05-13
+
+### Fixed
+
+-   Opening remote SSH folder projects.
+-   Opening remote projects in new window.
+
 ## [2.2.0] 2020-05-12
 
 ### Changed
