@@ -304,6 +304,8 @@ export function activate(context: vscode.ExtensionContext) {
         let remoteType = getRemoteType(project);
         let projectPath = (project.path || '').trim();
 
+        var openInNewWindow = projectOpenType === ProjectOpenType.NewWindow;
+
         let uri: vscode.Uri;
         switch (remoteType) {
             case ProjectRemoteType.None:
@@ -312,7 +314,7 @@ export function activate(context: vscode.ExtensionContext) {
                 if (projectOpenType === ProjectOpenType.AddToWorkspace) {
                     await addToWorkspace(project, uri);
                 } else {
-                    await vscode.commands.executeCommand("vscode.openFolder", uri, projectOpenType === ProjectOpenType.NewWindow);
+                    await vscode.commands.executeCommand("vscode.openFolder", uri, openInNewWindow);
                 }
 
                 break;
@@ -322,11 +324,11 @@ export function activate(context: vscode.ExtensionContext) {
 
                 if (hasRemoteFolder) {
                     uri = vscode.Uri.parse(projectPath);
-                    vscode.commands.executeCommand("vscode.openFolder", uri, projectOpenType === ProjectOpenType.NewWindow)
+                    vscode.commands.executeCommand("vscode.openFolder", uri, openInNewWindow)
                 } else {
                     vscode.commands.executeCommand("vscode.newWindow", {
                         remoteAuthority: projectPath.replace("vscode-remote://", ""),
-                        reuseWindow: projectOpenType === ProjectOpenType.NewWindow,
+                        reuseWindow: !openInNewWindow,
                     });
                 }
                 break;
