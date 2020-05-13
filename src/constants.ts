@@ -22,7 +22,7 @@ export const ADD_NEW_PROJECT_TO_FRONT = false;
 
 export const SSH_REMOTE_PREFIX = "vscode-remote://ssh-remote+";
 export const REMOTE_REGEX = /^vscode-remote:\/\/[^\+]+\+/;
-export const SSH_REGEX = /^((?<user>[^@\/]+)(\@))?(?<hostname>[^@\/\.]+[^@\/]+)(?<folder>\/.*)*$/;
+export const SSH_REGEX = /^((?<user>[^@\/]+)(\@))?(?<hostname>[^@\/\. ]+[^@\/ ]*)(?<folder>\/.*)*$/;
 
 export const StartupOptions = Object.freeze({
     always: "always",
