@@ -5,7 +5,9 @@ import { Project, GroupOrder, Group, ProjectRemoteType, getRemoteType, Dashboard
 import { getDashboardContent } from './webview/webviewContent';
 import { USE_PROJECT_COLOR, PREDEFINED_COLORS, StartupOptions, USER_CANCELED, FixedColorOptions, RelevantExtensions, SSH_REGEX, REMOTE_REGEX, SSH_REMOTE_PREFIX, REOPEN_KEY } from './constants';
 import { execSync } from 'child_process';
-import { lstatSync } from 'fs';
+import { lstatSync, existsSync } from 'fs';
+import * as klaw from 'klaw';
+import * as through2 from 'through2';
 
 import ColorService from './services/colorService';
 import ProjectService from './services/projectService';
@@ -48,12 +50,17 @@ export function activate(context: vscode.ExtensionContext) {
         await removeGroupPerCommand();
     });
 
+    const refreshProjectFromRootPathCommand = vscode.commands.registerCommand('dashboard.refreshProjects', async () => {
+        await refreshProjects();
+    });
+
     context.subscriptions.push(openCommand);
     context.subscriptions.push(addProjectCommand);
     context.subscriptions.push(removeProjectCommand);
     context.subscriptions.push(editProjectsManuallyCommand);
     context.subscriptions.push(addGroupCommand);
     context.subscriptions.push(removeGroupCommand);
+    context.subscriptions.push(refreshProjectFromRootPathCommand);
 
     vscode.workspace.onDidChangeConfiguration(event => {
         if (event.affectsConfiguration("dashboard.storeProjectsInSettings")) {
@@ -955,11 +962,10 @@ export function activate(context: vscode.ExtensionContext) {
         showDashboard();
     }
 
+    // https://stackoverflow.com/a/56581777
     function isFolderGitRepo(fPath: string) {
         try {
-            fPath = lstatSync(fPath).isDirectory() ? fPath : path.dirname(fPath);
-            var test = execSync(`cd ${fPath} && git rev-parse --is-inside-work-tree`, { encoding: 'utf8' });
-            return !!test;
+            return existsSync(path.join(fPath, '.git', 'config'));
         } catch (e) {
             return false;
         }
@@ -993,6 +999,97 @@ export function activate(context: vscode.ExtensionContext) {
         } else {
             return null;
         }
+    }
+
+    function isFolderValidProject({ path }: klaw.Item): boolean {
+        if(path.includes('node_modules')){
+            return false;
+        }
+        if(isFolderGitRepo(path)) {
+            return true;
+        }
+        return false;
+    }
+
+    function refreshProjects() {
+        try {
+            var { projectsBaseDirectories, projectsDepthLimit } = dashboardInfos.config;
+
+            if(!projectsBaseDirectories || !projectsBaseDirectories?.length){
+                vscode.window.showErrorMessage("No projects base directory specified.");
+            }
+
+            const projects = new Map<string, string[]>();
+            
+            const options: klaw.Options = {
+                depthLimit: projectsDepthLimit,
+            };
+
+            const onlyDirFilter = through2.obj(function (item: klaw.Item, enc, next) {
+                if (item.stats.isDirectory() && isFolderValidProject(item)) {
+                    this.push(item);
+                }
+                next();
+            });
+
+            for (const rootFolder of projectsBaseDirectories) {
+                klaw(rootFolder, options)
+                    .pipe(onlyDirFilter)
+                    .on('data', (item: klaw.Item) => {
+                        const prev = projects.get(rootFolder) || [];
+                        projects.set(rootFolder, prev.concat(item.path));
+                    })
+                    .on('end', () => {
+                        addRefreshedProjects(projects);
+                    });
+            }
+        }catch(e){
+            console.error(e);
+            vscode.window.showErrorMessage("Could not refresh projects.");
+        }
+    }
+
+    async function addRefreshedProjects(foldersMap: Map<string, string[]>){
+        try {
+            let amountGroupsAdded = 0;
+            let amountProjectsAdded = 0;
+
+            for (const [rootFolder, folders] of foldersMap) {
+                const groups = projectService.getGroups();
+
+                const projects = folders.filter((folder) => {
+                    return !groups.some(g => g.projects.some(p => p.path === folder));
+                }).map((folder) => {
+                    amountProjectsAdded += 1;
+                    const projectName = path.basename(folder);
+
+                    const project = new Project(projectName, folder);
+                    project.color = colorService.getRandomColor();
+                    project.isGitRepo = true;
+
+                    return project;
+                });
+
+                const groupFound = groups.find(e => e.groupName === rootFolder);
+                if(groupFound){
+                    const group = projectService.getGroup(groupFound.id);
+                    if(group){
+                        group.projects = group.projects.concat(...projects);
+                        await projectService.updateGroup(groupFound.id, group);
+                    }
+                }else{
+                    amountGroupsAdded += 1;
+                    await projectService.addGroup(rootFolder, projects);
+                }
+            }
+
+            vscode.window.showInformationMessage(`Projects refreshed successfully, ${amountGroupsAdded} group(s) and ${amountProjectsAdded} project(s) added.`);
+        }catch(e){
+            console.error(e);
+            vscode.window.showErrorMessage("Could not update the groups's projects.");
+        }
+
+        showDashboard();
     }
 }
 

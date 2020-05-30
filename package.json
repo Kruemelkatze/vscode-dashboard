@@ -47,6 +47,10 @@
             {
                 "command": "dashboard.editProjects",
                 "title": "Project Dashboard: Edit Projects"
+            },
+            {
+                "command": "dashboard.refreshProjects",
+                "title": "Project Dashboard: Refresh Projects"
             }
         ],
         "keybindings": [
@@ -119,6 +123,16 @@
                 "dashboard.customProjectPathColor": {
                     "type": "string",
                     "default": null
+                },
+                "dashboard.projectsBaseDirectories": {
+                    "description": "Array of directories to look for projects (git initialized only).",
+                    "type": "array",
+                    "default": []
+                },
+                "dashboard.projectsDepthLimit": {
+                    "description": "The number of times to recursively look for projects before stopping.",
+                    "type": "number",
+                    "default": 2
                 }
             }
         }
@@ -131,15 +145,19 @@
         "lint": "tslint -p ./"
     },
     "devDependencies": {
+        "@types/klaw": "^3.0.1",
         "@types/mocha": "^7.0.2",
         "@types/node": "^12.12.32",
+        "@types/through2": "^2.0.36",
         "dragula": "^3.7.2",
         "fitty": "^2.3.0",
         "gulp": "^4.0.2",
         "gulp-clean-css": "^4.3.0",
         "gulp-sass": "^4.0.2",
+        "klaw": "^3.0.0",
         "lodash": "^4.17.15",
         "node-sass": "^4.13.1",
+        "through2": "^3.0.1",
         "ts-loader": "^6.2.2",
         "tslint": "^5.20.1",
         "typescript": "^3.8.3",
