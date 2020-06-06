@@ -5,7 +5,9 @@ import { Project, GroupOrder, Group, ProjectRemoteType, getRemoteType, Dashboard
 import { getDashboardContent } from './webview/webviewContent';
 import { USE_PROJECT_COLOR, PREDEFINED_COLORS, StartupOptions, USER_CANCELED, FixedColorOptions, RelevantExtensions, SSH_REGEX, REMOTE_REGEX, SSH_REMOTE_PREFIX, REOPEN_KEY } from './constants';
 import { execSync } from 'child_process';
-import { lstatSync } from 'fs';
+import { lstatSync, existsSync } from 'fs';
+import * as klaw from 'klaw';
+import * as through2 from 'through2';
 
 import ColorService from './services/colorService';
 import ProjectService from './services/projectService';
@@ -48,12 +50,22 @@ export function activate(context: vscode.ExtensionContext) {
         await removeGroupPerCommand();
     });
 
+    const addBaseDirectoryCommand = vscode.commands.registerCommand('dashboard.addBaseDirectory', async () => {
+        await addBaseDirectory();
+    });
+    
+    const refreshProjectsCommand = vscode.commands.registerCommand('dashboard.refreshProjects', async () => {
+        await refreshProjects();
+    });
+
     context.subscriptions.push(openCommand);
     context.subscriptions.push(addProjectCommand);
     context.subscriptions.push(removeProjectCommand);
     context.subscriptions.push(editProjectsManuallyCommand);
     context.subscriptions.push(addGroupCommand);
     context.subscriptions.push(removeGroupCommand);
+    context.subscriptions.push(addBaseDirectoryCommand);
+    context.subscriptions.push(refreshProjectsCommand);
 
     vscode.workspace.onDidChangeConfiguration(event => {
         if (event.affectsConfiguration("dashboard.storeProjectsInSettings")) {
@@ -955,11 +967,10 @@ export function activate(context: vscode.ExtensionContext) {
         showDashboard();
     }
 
+    // https://stackoverflow.com/a/56581777
     function isFolderGitRepo(fPath: string) {
         try {
-            fPath = lstatSync(fPath).isDirectory() ? fPath : path.dirname(fPath);
-            var test = execSync(`cd ${fPath} && git rev-parse --is-inside-work-tree`, { encoding: 'utf8' });
-            return !!test;
+            return existsSync(path.join(fPath, '.git', 'config'));
         } catch (e) {
             return false;
         }
@@ -993,6 +1004,117 @@ export function activate(context: vscode.ExtensionContext) {
         } else {
             return null;
         }
+    }
+
+    async function addBaseDirectory() {
+        try {
+            const basePath = await getPathFromPicker(true);
+            await projectService.addBaseDirectory(basePath);
+            vscode.window.showInformationMessage("Base directory added! Use the refresh command to find new projects.");
+        }catch(e){
+            console.error(e);
+            vscode.window.showErrorMessage("Could not add this directory.");
+        }
+    }
+
+    function isFolderValidProject(item: klaw.Item): boolean {
+        if(item.path.includes('node_modules')){
+            return false;
+        }
+        if(isFolderGitRepo(item.path)) {
+            return true;
+        }
+        return false;
+    }
+
+    function isWorkspaceFile(item: klaw.Item): boolean {
+        const ext = path.extname(item.path);
+        return ext === '.code-workspace';
+    }
+
+    function refreshProjects() {
+        try {
+            const baseDirectories = projectService.getBaseDirectories();
+            var { projectsDepthLimit } = dashboardInfos.config;
+
+            if(!baseDirectories || !baseDirectories?.length){
+                vscode.window.showErrorMessage("No base directory specified.");
+                return;
+            }
+
+            const projects = new Map<string, string[]>();
+            
+            const options: klaw.Options = {
+                depthLimit: projectsDepthLimit,
+            };
+
+            const projectsFilter = through2.obj(function (item: klaw.Item, enc, next) {
+                if (item.stats.isDirectory() && isFolderValidProject(item)) {
+                    this.push(item);
+                } else if(item.stats.isFile() && isWorkspaceFile(item)) {
+                    this.push(item);
+                }
+                next();
+            });
+
+            for (const baseDir of baseDirectories) {
+                klaw(baseDir, options)
+                    .pipe(projectsFilter)
+                    .on('data', (item: klaw.Item) => {
+                        const prev = projects.get(baseDir) || [];
+                        projects.set(baseDir, prev.concat(item.path));
+                    })
+                    .on('end', () => {
+                        addRefreshedProjects(projects);
+                    });
+            }
+        }catch(e){
+            console.error(e);
+            vscode.window.showErrorMessage("Could not refresh projects.");
+        }
+    }
+
+    async function addRefreshedProjects(baseDirectoriesMap: Map<string, string[]>){
+        try {
+            let amountGroupsAdded = 0;
+            let amountProjectsAdded = 0;
+
+            for (const [baseDir, folders] of baseDirectoriesMap) {
+                const groups = projectService.getGroups();
+
+                const projects = folders.filter((folder) => {
+                    return !groups.some(g => g.projects.some(p => p.path === folder));
+                }).map((folder) => {
+                    amountProjectsAdded += 1;
+                    const projectName = path.basename(folder, '.code-workspace');
+
+                    const project = new Project(projectName, folder);
+                    project.color = colorService.getRandomColor();
+                    project.isGitRepo = isFolderGitRepo(folder);
+
+                    return project;
+                });
+
+                const groupFound = groups.find(e => e.groupName === baseDir);
+                if(groupFound){
+                    const group = projectService.getGroup(groupFound.id);
+                    if(group){
+                        group.projects = group.projects.concat(...projects);
+                        await projectService.updateGroup(groupFound.id, group);
+                    }
+                }else{
+                    amountGroupsAdded += 1;
+                    await projectService.addGroup(baseDir, projects);
+                }
+            }
+
+            vscode.window.showInformationMessage(`Projects refreshed successfully, ${amountGroupsAdded} group(s) and ${amountProjectsAdded} project(s) added.`);
+        }catch(e){
+            console.error(e);
+            vscode.window.showErrorMessage("Could not update the groups's projects.");
+        }
+
+        showDashboard();
     }
 }
 
