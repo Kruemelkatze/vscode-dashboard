@@ -11,6 +11,7 @@ export const PREDEFINED_COLORS = [
 export const PROJECTS_KEY = 'projects';
 export const RECENT_COLORS_KEY = 'recentColors';
 export const REOPEN_KEY = 'reopenDashboardReason';
+export const BASE_DIRECTORIES_KEY = 'baseDirectories';
 
 export const FITTY_OPTIONS = {
     maxSize: '40',

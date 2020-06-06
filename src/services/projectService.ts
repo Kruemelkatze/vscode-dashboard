@@ -3,7 +3,7 @@
 import * as vscode from 'vscode';
 
 import { Project, Group } from "../models";
-import { ADD_NEW_PROJECT_TO_FRONT, PROJECTS_KEY } from "../constants";
+import { ADD_NEW_PROJECT_TO_FRONT, PROJECTS_KEY, BASE_DIRECTORIES_KEY } from "../constants";
 import BaseService from './baseService';
 import ColorService from './colorService';
 
@@ -64,6 +64,14 @@ export default class ProjectService extends BaseService {
         return [null, null];
     }
 
+    getBaseDirectories(): string[] {
+        var baseDirectories = this.useSettingsStorage() ?
+            this.getBaseDirectoriesFromSettings() :
+            this.getBaseDirectoriesFromGlobalState();
+
+        return baseDirectories;
+    }
+
     // ~~~~~~~~~~~~~~~~~~~~~~~~~ ADD ~~~~~~~~~~~~~~~~~~~~~~~~~
     async addGroup(groupName: string, projects: Project[] = null): Promise<Group> {
         var groups = this.getGroups();
@@ -113,6 +121,20 @@ export default class ProjectService extends BaseService {
 
         await this.saveGroups(groups);
         return groups;
+    }
+
+    addBaseDirectory(baseDirectory: string) {
+        var baseDirectories = this.getBaseDirectories();
+        if (baseDirectories == null) {
+            baseDirectories = [];
+        }
+
+        if (baseDirectories.some(e => e.toLowerCase() === baseDirectory.toLowerCase())) {
+            return;
+        }
+
+        baseDirectories.push(baseDirectory);
+        return this.saveBaseDirectories(baseDirectories);
     }
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~ UPDATE ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -187,6 +209,12 @@ export default class ProjectService extends BaseService {
             this.saveGroupsInSettings(groups) :
             this.saveGroupsInGlobalState(groups);
     }
+    
+    saveBaseDirectories(baseDirectories: string[]): Thenable<void> {
+        return this.useSettingsStorage() ?
+            this.saveBaseDirectoriesInSettings(baseDirectories) :
+            this.saveBaseDirectoriesInGlobalState(baseDirectories);
+    }
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~ STORAGE ~~~~~~~~~~~~~~~~~~~~~~~~~
     private getProjectsFromGlobalState(unsafe: boolean = false): Group[] {
@@ -217,12 +245,43 @@ export default class ProjectService extends BaseService {
         return this.configurationSection.update("projectData", groups, vscode.ConfigurationTarget.Global);
     }
 
+    private getBaseDirectoriesFromGlobalState(unsafe: boolean = false): string[] {
+        var baseDirectories = this.context.globalState.get(BASE_DIRECTORIES_KEY) as string[];
+
+        if (baseDirectories == null && !unsafe) {
+            baseDirectories = [];
+        }
+
+        return baseDirectories;
+    }
+
+    private getBaseDirectoriesFromSettings(unsafe: boolean = false): string[] {
+        var baseDirectories = this.configurationSection.get('baseDirectories') as string[];
+
+        if (baseDirectories == null && !unsafe) {
+            baseDirectories = [];
+        }
+
+        return baseDirectories;
+    }
+
+    private saveBaseDirectoriesInGlobalState(baseDirectories: string[]): Thenable<void> {
+        return this.context.globalState.update(BASE_DIRECTORIES_KEY, baseDirectories);
+    }
+
+    private saveBaseDirectoriesInSettings(baseDirectories: string[]): Thenable<void> {
+        return this.configurationSection.update("baseDirectories", baseDirectories, vscode.ConfigurationTarget.Global);
+    }
+
     // ~~~~~~~~~~~~~~~~~~~~~~~~~ MODEL MIGRATION ~~~~~~~~~~~~~~~~~~~~~~~~~
     async migrateDataIfNeeded() {
         var toMigrate = false;
 
         var projectsInSettings = this.getProjectsFromSettings(true);
         var projectsInGlobalState = this.getProjectsFromGlobalState(true);
+
+        var baseDirectoriesInSettings = this.getBaseDirectoriesFromSettings(true);
+        var baseDirectoriesInGlobalState = this.getBaseDirectoriesFromGlobalState(true);
 
         if (this.useSettingsStorage()) {
             // Migrate from Global State to Settings
@@ -233,6 +292,14 @@ export default class ProjectService extends BaseService {
             }
 
             await this.saveGroupsInGlobalState(null);
+
+            toMigrate = baseDirectoriesInSettings == null && baseDirectoriesInGlobalState != null;
+
+            if (toMigrate) {
+                await this.saveBaseDirectoriesInSettings(baseDirectoriesInGlobalState);
+            }
+
+            await this.saveBaseDirectoriesInGlobalState(null);
         } else {
             // Migrate from Settings To Global State
             toMigrate = projectsInGlobalState == null && projectsInSettings != null;
@@ -242,6 +309,14 @@ export default class ProjectService extends BaseService {
             }
 
             await this.saveGroupsInSettings(null);
+
+            toMigrate = baseDirectoriesInGlobalState == null && baseDirectoriesInSettings != null;
+
+            if (toMigrate) {
+                await this.saveBaseDirectoriesInGlobalState(baseDirectoriesInSettings);
+            }
+
+            await this.saveBaseDirectoriesInSettings(null);
         }
 
         return toMigrate;
