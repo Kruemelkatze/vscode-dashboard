@@ -50,7 +50,11 @@ export function activate(context: vscode.ExtensionContext) {
         await removeGroupPerCommand();
     });
 
-    const refreshProjectFromRootPathCommand = vscode.commands.registerCommand('dashboard.refreshProjects', async () => {
+    const addBaseDirectoryCommand = vscode.commands.registerCommand('dashboard.addBaseDirectory', async () => {
+        await addBaseDirectory();
+    });
+    
+    const refreshProjectsCommand = vscode.commands.registerCommand('dashboard.refreshProjects', async () => {
         await refreshProjects();
     });
 
@@ -60,7 +64,8 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(editProjectsManuallyCommand);
     context.subscriptions.push(addGroupCommand);
     context.subscriptions.push(removeGroupCommand);
-    context.subscriptions.push(refreshProjectFromRootPathCommand);
+    context.subscriptions.push(addBaseDirectoryCommand);
+    context.subscriptions.push(refreshProjectsCommand);
 
     vscode.workspace.onDidChangeConfiguration(event => {
         if (event.affectsConfiguration("dashboard.storeProjectsInSettings")) {
@@ -1001,22 +1006,40 @@ export function activate(context: vscode.ExtensionContext) {
         }
     }
 
-    function isFolderValidProject({ path }: klaw.Item): boolean {
-        if(path.includes('node_modules')){
+    async function addBaseDirectory() {
+        try {
+            const basePath = await getPathFromPicker(true);
+            await projectService.addBaseDirectory(basePath);
+            vscode.window.showInformationMessage("Base directory added! Use the refresh command to find new projects.");
+        }catch(e){
+            console.error(e);
+            vscode.window.showErrorMessage("Could not add this directory.");
+        }
+    }
+
+    function isFolderValidProject(item: klaw.Item): boolean {
+        if(item.path.includes('node_modules')){
             return false;
         }
-        if(isFolderGitRepo(path)) {
+        if(isFolderGitRepo(item.path)) {
             return true;
         }
         return false;
     }
 
+    function isWorkspaceFile(item: klaw.Item): boolean {
+        const ext = path.extname(item.path);
+        return ext === '.code-workspace';
+    }
+
     function refreshProjects() {
         try {
-            var { projectsBaseDirectories, projectsDepthLimit } = dashboardInfos.config;
+            const baseDirectories = projectService.getBaseDirectories();
+            var { projectsDepthLimit } = dashboardInfos.config;
 
-            if(!projectsBaseDirectories || !projectsBaseDirectories?.length){
-                vscode.window.showErrorMessage("No projects base directory specified.");
+            if(!baseDirectories || !baseDirectories?.length){
+                vscode.window.showErrorMessage("No base directory specified.");
+                return;
             }
 
             const projects = new Map<string, string[]>();
@@ -1025,19 +1048,21 @@ export function activate(context: vscode.ExtensionContext) {
                 depthLimit: projectsDepthLimit,
             };
 
-            const onlyDirFilter = through2.obj(function (item: klaw.Item, enc, next) {
+            const projectsFilter = through2.obj(function (item: klaw.Item, enc, next) {
                 if (item.stats.isDirectory() && isFolderValidProject(item)) {
+                    this.push(item);
+                } else if(item.stats.isFile() && isWorkspaceFile(item)) {
                     this.push(item);
                 }
                 next();
             });
 
-            for (const rootFolder of projectsBaseDirectories) {
-                klaw(rootFolder, options)
-                    .pipe(onlyDirFilter)
+            for (const baseDir of baseDirectories) {
+                klaw(baseDir, options)
+                    .pipe(projectsFilter)
                     .on('data', (item: klaw.Item) => {
-                        const prev = projects.get(rootFolder) || [];
-                        projects.set(rootFolder, prev.concat(item.path));
+                        const prev = projects.get(baseDir) || [];
+                        projects.set(baseDir, prev.concat(item.path));
                     })
                     .on('end', () => {
                         addRefreshedProjects(projects);
@@ -1049,28 +1074,28 @@ export function activate(context: vscode.ExtensionContext) {
         }
     }
 
-    async function addRefreshedProjects(foldersMap: Map<string, string[]>){
+    async function addRefreshedProjects(baseDirectoriesMap: Map<string, string[]>){
         try {
             let amountGroupsAdded = 0;
             let amountProjectsAdded = 0;
 
-            for (const [rootFolder, folders] of foldersMap) {
+            for (const [baseDir, folders] of baseDirectoriesMap) {
                 const groups = projectService.getGroups();
 
                 const projects = folders.filter((folder) => {
                     return !groups.some(g => g.projects.some(p => p.path === folder));
                 }).map((folder) => {
                     amountProjectsAdded += 1;
-                    const projectName = path.basename(folder);
+                    const projectName = path.basename(folder, '.code-workspace');
 
                     const project = new Project(projectName, folder);
                     project.color = colorService.getRandomColor();
-                    project.isGitRepo = true;
+                    project.isGitRepo = isFolderGitRepo(folder);
 
                     return project;
                 });
 
-                const groupFound = groups.find(e => e.groupName === rootFolder);
+                const groupFound = groups.find(e => e.groupName === baseDir);
                 if(groupFound){
                     const group = projectService.getGroup(groupFound.id);
                     if(group){
@@ -1079,7 +1104,7 @@ export function activate(context: vscode.ExtensionContext) {
                     }
                 }else{
                     amountGroupsAdded += 1;
-                    await projectService.addGroup(rootFolder, projects);
+                    await projectService.addGroup(baseDir, projects);
                 }
             }
 
