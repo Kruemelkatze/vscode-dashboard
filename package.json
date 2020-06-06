@@ -49,6 +49,10 @@
                 "title": "Project Dashboard: Edit Projects"
             },
             {
+                "command": "dashboard.addBaseDirectory",
+                "title": "Project Dashboard: Add Base Directory"
+            },
+            {
                 "command": "dashboard.refreshProjects",
                 "title": "Project Dashboard: Refresh Projects"
             }
@@ -65,17 +69,17 @@
             "title": "Project Dashboard",
             "properties": {
                 "dashboard.projectData": {
-                    "type": "array",
+                    "type": ["array", null],
                     "markdownDescription": "Stores the dashboard data if the ```dashboard.storeProjectsInSettings``` option is set to ```true```. The raw data can be edited by using the command ```Dashboard: Edit Projects```.",
                     "default": null
                 },
                 "dashboard.customCss": {
-                    "type": "string",
+                    "type": ["string", null],
                     "markdownDescription": "Custom CSS rules to be injected into the dashboard can be placed here. Note that this will not be sanitized!",
                     "default": null
                 },
                 "dashboard.recentColors": {
-                    "type": "array",
+                    "type": ["array", null],
                     "markdownDescription": "Stores the recently used colors if the ```dashboard.storeProjectsInSettings``` option is set to ```true```.",
                     "default": null
                 },
@@ -113,23 +117,23 @@
                     "default": true
                 },
                 "dashboard.customProjectCardBackground": {
-                    "type": "string",
+                    "type": ["string", null],
                     "default": null
                 },
                 "dashboard.customProjectNameColor": {
-                    "type": "string",
+                    "type": ["string", null],
                     "default": null
                 },
                 "dashboard.customProjectPathColor": {
-                    "type": "string",
+                    "type": ["string", null],
                     "default": null
                 },
-                "dashboard.projectsBaseDirectories": {
+                "dashboard.baseDirectories": {
                     "description": "Array of directories to look for projects (git initialized only).",
-                    "type": "array",
+                    "type": ["array", null],
                     "default": []
                 },
-                "dashboard.projectsDepthLimit": {
+                "dashboard.depthLimit": {
                     "description": "The number of times to recursively look for projects before stopping.",
                     "type": "number",
                     "default": 2
