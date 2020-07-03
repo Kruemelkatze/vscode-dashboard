@@ -2,7 +2,7 @@
     "name": "vscode-dashboard",
     "displayName": "Project Dashboard",
     "description": "Organize your workspaces in a speed-dial manner.",
-    "version": "2.2.1",
+    "version": "2.2.2",
     "publisher": "kruemelkatze",
     "icon": "media/extension_icon.png",
     "engines": {
@@ -61,7 +61,10 @@
             "title": "Project Dashboard",
             "properties": {
                 "dashboard.projectData": {
-                    "type": "array",
+                    "type": [
+                        "array",
+                        "null"
+                    ],
                     "markdownDescription": "Stores the dashboard data if the ```dashboard.storeProjectsInSettings``` option is set to ```true```. The raw data can be edited by using the command ```Dashboard: Edit Projects```.",
                     "default": null
                 },

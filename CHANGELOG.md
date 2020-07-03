@@ -2,6 +2,12 @@
 
 All notable changes to the "Project Dashboard" extension will be documented in this file. It follows the [Keep a Changelog](http://keepachangelog.com/) recommendations.
 
+## [2.2.2] 2020-07-03
+
+### Fixed
+
+-   Editing dashboard.projectData in settings does not wrongly format null value any more.
+
 ## [2.2.1] 2020-05-13
 
 ### Fixed
