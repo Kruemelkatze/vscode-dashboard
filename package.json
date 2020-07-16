@@ -141,7 +141,7 @@
         "gulp": "^4.0.2",
         "gulp-clean-css": "^4.3.0",
         "gulp-sass": "^4.0.2",
-        "lodash": "^4.17.15",
+        "lodash": "^4.17.19",
         "node-sass": "^4.13.1",
         "ts-loader": "^6.2.2",
         "tslint": "^5.20.1",
