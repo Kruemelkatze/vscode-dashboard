@@ -11,10 +11,10 @@ export default class FileService extends BaseService {
     }
 
     async writeTextFile(filePath: string, data: string): Promise<void> {
-        return this.writeFile(filePath, data, 'utf8');
+        return this.writeFile(filePath, data);
     }
 
-    async writeFile(filePath: string, data: any, encoding: string = undefined): Promise<void> {
+    async writeFile(filePath: string, data: any): Promise<void> {
         filePath = path.normalize(filePath);
         var dir = path.dirname(filePath);
 
@@ -29,7 +29,7 @@ export default class FileService extends BaseService {
             }
         });
 
-        await fs.promises.writeFile(filePath, data, encoding);
+        await fs.promises.writeFile(filePath, data, "utf8");
     }
 
     async getProjectPathType(p: string): Promise<ProjectPathType> {
