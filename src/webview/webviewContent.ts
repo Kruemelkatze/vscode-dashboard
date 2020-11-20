@@ -5,13 +5,13 @@ import { Project, Group, getRemoteType, ProjectRemoteType, DashboardInfos } from
 import { FITTY_OPTIONS, REMOTE_REGEX } from '../constants';
 import * as Icons from './webviewIcons';
 
-export function getDashboardContent(context: vscode.ExtensionContext, webviewPanel: vscode.WebviewPanel, groups: Group[], infos: DashboardInfos): string {
-    var stylesPath = getMediaResource(context, webviewPanel, 'styles.css');
-    var fittyPath = getMediaResource(context, webviewPanel, 'fitty.min.js');
-    var dragulaPath = getMediaResource(context, webviewPanel, 'dragula.min.js');
+export function getDashboardContent(context: vscode.ExtensionContext, webview: vscode.Webview, groups: Group[], infos: DashboardInfos): string {
+    var stylesPath = getMediaResource(context, webview, 'styles.css');
+    var fittyPath = getMediaResource(context, webview, 'fitty.min.js');
+    var dragulaPath = getMediaResource(context, webview, 'dragula.min.js');
 
-    var projectScriptsPath = getMediaResource(context, webviewPanel, 'webviewProjectScripts.js');
-    var dndScriptsPath = getMediaResource(context, webviewPanel, 'webviewDnDScripts.js');
+    var projectScriptsPath = getMediaResource(context, webview, 'webviewProjectScripts.js');
+    var dndScriptsPath = getMediaResource(context, webview, 'webviewDnDScripts.js');
 
     var customCss = infos.config.get('customCss') || "";
 
@@ -22,7 +22,7 @@ export function getDashboardContent(context: vscode.ExtensionContext, webviewPan
         <meta charset="UTF-8">
         <meta
             http-equiv="Content-Security-Policy"
-            content="default-src 'none'; img-src * data:; script-src ${webviewPanel.webview.cspSource} 'unsafe-inline'; style-src ${webviewPanel.webview.cspSource} 'unsafe-inline';"
+            content="default-src 'none'; img-src * data:; script-src ${webview.cspSource} 'unsafe-inline'; style-src ${webview.cspSource} 'unsafe-inline';"
         />
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link rel="stylesheet" type="text/css" href="${stylesPath}">
@@ -226,9 +226,9 @@ function getCustomStyle(config: vscode.WorkspaceConfiguration) {
 </style>`;
 }
 
-function getMediaResource(context: vscode.ExtensionContext, webviewPanel: vscode.WebviewPanel, name: string) {
+function getMediaResource(context: vscode.ExtensionContext, webview: vscode.Webview, name: string) {
     let resource = vscode.Uri.file(path.join(context.extensionPath, 'media', name));
-    resource = webviewPanel.webview.asWebviewUri(resource);
+    resource = webview.asWebviewUri(resource);
 
     return resource;
 }

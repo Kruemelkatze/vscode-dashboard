@@ -12,10 +12,43 @@ import ProjectService from './services/projectService';
 import FileService from './services/fileService';
 
 export function activate(context: vscode.ExtensionContext) {
+
+    class SidebarDummyDashboardViewProvider implements vscode.WebviewViewProvider {
+
+        public static readonly viewType = "projectDashboard.dashboard";
+
+        private _view?: vscode.WebviewView;
+
+        constructor(
+            private readonly _extensionUri: vscode.Uri,
+        ) { }
+
+        resolveWebviewView(webviewView: vscode.WebviewView, webviewContext: vscode.WebviewViewResolveContext<unknown>, token: vscode.CancellationToken): void | Thenable<void> {
+            this._view = webviewView;
+
+            // The only job of this "view" is to close itself and open the main project dashboard webview
+            webviewView.webview.html = "<html></html>";
+            this.switchToMainDashboard();
+            webviewView.onDidChangeVisibility(this.switchToMainDashboard);
+        }
+
+        switchToMainDashboard = () => {
+            if (this._view?.visible) {
+                vscode.commands.executeCommand("workbench.action.toggleSidebarVisibility");
+                showDashboard();
+            }
+        }
+    }
+
     var instance: vscode.WebviewPanel = null;
     const colorService = new ColorService(context);
     const projectService = new ProjectService(context, colorService);
     const fileService = new FileService(context);
+
+    const provider = new SidebarDummyDashboardViewProvider(context.extensionUri);
+
+    context.subscriptions.push(
+        vscode.window.registerWebviewViewProvider(SidebarDummyDashboardViewProvider.viewType, provider));
 
     const dashboardInfos: DashboardInfos = {
         relevantExtensionsInstalls: {
@@ -124,7 +157,7 @@ export function activate(context: vscode.ExtensionContext) {
         var projects = projectService.getGroups();
 
         if (instance) {
-            instance.webview.html = getDashboardContent(context, instance, projects, dashboardInfos);
+            instance.webview.html = getDashboardContent(context, instance.webview, projects, dashboardInfos);
             instance.reveal(columnToShowIn);
         } else {
             var panel = vscode.window.createWebviewPanel(
@@ -140,7 +173,7 @@ export function activate(context: vscode.ExtensionContext) {
             );
             panel.iconPath = vscode.Uri.file(path.join(context.extensionPath, 'media', 'icon.svg'));
 
-            panel.webview.html = getDashboardContent(context, panel, projects, dashboardInfos);
+            panel.webview.html = getDashboardContent(context, panel.webview, projects, dashboardInfos);
 
             // Reset when the current panel is closed
             panel.onDidDispose(() => {
@@ -995,6 +1028,9 @@ export function activate(context: vscode.ExtensionContext) {
         }
     }
 }
+
+
+
 
 // this method is called when your extension is deactivated
 export function deactivate() {

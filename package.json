@@ -2,11 +2,11 @@
     "name": "vscode-dashboard",
     "displayName": "Project Dashboard",
     "description": "Organize your workspaces in a speed-dial manner.",
-    "version": "2.2.2",
+    "version": "2.3.0-preview",
     "publisher": "kruemelkatze",
     "icon": "media/extension_icon.png",
     "engines": {
-        "vscode": "^1.40.0"
+        "vscode": "^1.51.0"
     },
     "extensionKind": [
         "ui"
@@ -124,8 +124,29 @@
                     "default": null
                 }
             }
-                }
         },
+        "views": {
+            "project-dashboard": [
+                {
+                    "type": "webview",
+                    "id": "projectDashboard.dashboard",
+                    "name": "Project Dashboard",
+                    "icon": "media/icon.svg",
+                    "visibility": "visible",
+                    "contextualTitle": "Project Dashboard"
+                }
+            ]
+        },
+        "viewsContainers": {
+            "activitybar": [
+                {
+                    "id": "project-dashboard",
+                    "title": "Project Dashboard",
+                    "icon": "media/icon.svg"
+                }
+            ]
+        }
+    },
     "scripts": {
         "vscode:prepublish": "webpack --mode production",
         "webpack": "webpack --mode development",
