@@ -138,7 +138,7 @@ export function activate(context: vscode.ExtensionContext) {
                     ],
                 },
             );
-            panel.iconPath = vscode.Uri.file("");
+            panel.iconPath = vscode.Uri.file(path.join(context.extensionPath, 'media', 'icon.svg'));
 
             panel.webview.html = getDashboardContent(context, panel, projects, dashboardInfos);
 
