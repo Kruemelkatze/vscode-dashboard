@@ -2,6 +2,16 @@
 
 All notable changes to the "Project Dashboard" extension will be documented in this file. It follows the [Keep a Changelog](http://keepachangelog.com/) recommendations.
 
+## [2.3.0] 2020-11-22
+
+### Added
+
+-   Sidebar icon for opening the project dashboard.
+
+### Changed
+
+-   The dashboard now has a dedicated icon.
+
 ## [2.2.2] 2020-07-03
 
 ### Fixed
