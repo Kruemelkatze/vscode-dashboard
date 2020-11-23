@@ -2,7 +2,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { Project, GroupOrder, Group, ProjectRemoteType, getRemoteType, DashboardInfos, ProjectOpenType, ReopenDashboardReason, ProjectPathType, sanitizeProjectName } from './models';
-import { getDashboardContent } from './webview/webviewContent';
+import { getSidebarContent, getDashboardContent } from './webview/webviewContent';
 import { USE_PROJECT_COLOR, PREDEFINED_COLORS, StartupOptions, USER_CANCELED, FixedColorOptions, RelevantExtensions, SSH_REGEX, REMOTE_REGEX, SSH_REMOTE_PREFIX, REOPEN_KEY } from './constants';
 import { execSync } from 'child_process';
 import { lstatSync } from 'fs';
@@ -27,14 +27,14 @@ export function activate(context: vscode.ExtensionContext) {
             this._view = webviewView;
 
             // The only job of this "view" is to close itself and open the main project dashboard webview
-            webviewView.webview.html = "<html></html>";
+            webviewView.webview.html = getSidebarContent();
             this.switchToMainDashboard();
             webviewView.onDidChangeVisibility(this.switchToMainDashboard);
         }
 
         switchToMainDashboard = () => {
             if (this._view?.visible) {
-                vscode.commands.executeCommand("workbench.action.toggleSidebarVisibility");
+                vscode.commands.executeCommand("workbench.view.explorer");
                 showDashboard();
             }
         }

@@ -5,6 +5,28 @@ import { Project, Group, getRemoteType, ProjectRemoteType, DashboardInfos } from
 import { FITTY_OPTIONS, REMOTE_REGEX } from '../constants';
 import * as Icons from './webviewIcons';
 
+export function getSidebarContent() {
+    return `
+<!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+    </head>
+    <body>
+        <p>If you are reading this, you have placed the Project Dashboard sidebar view into another sidebar container. 
+        This view is not intended to be visible. Instead, it is simply a shortcut for opening the main Project Dashboard.</p>
+
+        <p>If you moved the sidebar view unintentionally and want to restore the original (intended) state, 
+        please drag and drop this panel onto the sidebar.</p>
+
+        <p>If you encounter any problems or think this behaviour is misleading, 
+        <a href="https://github.com/Kruemelkatze/vscode-dashboard/issues">please let me know.</a></p>
+
+    </body>
+    </html>
+`;
+}
+
 export function getDashboardContent(context: vscode.ExtensionContext, webview: vscode.Webview, groups: Group[], infos: DashboardInfos): string {
     var stylesPath = getMediaResource(context, webview, 'styles.css');
     var fittyPath = getMediaResource(context, webview, 'fitty.min.js');
