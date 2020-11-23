@@ -2,6 +2,12 @@
 
 All notable changes to the "Project Dashboard" extension will be documented in this file. It follows the [Keep a Changelog](http://keepachangelog.com/) recommendations.
 
+## [2.3.1] 2020-11-23
+
+### Changed
+
+-   Upon clicking the sidebar icon, the sidebar view switches to the explorer instead of closing itself. This fixes an unrecoverable state when the dashboard view is placed under another sidebar view container.
+
 ## [2.3.0] 2020-11-23
 
 ### Added
