@@ -4,8 +4,8 @@ export const PREDEFINED_COLORS = [
     { label: 'Brown', value: 'var(--vscode-gitDecoration-modifiedResourceForeground)' },
     { label: 'Red', value: 'var(--vscode-gitDecoration-deletedResourceForeground)' },
     { label: 'Grey', value: 'var(--vscode-gitDecoration-ignoredResourceForeground)' },
-    { label: 'Dark Blue', value: 'var(--vscode-gitDecoration-conflictingResourceForeground)' },
-    { label: 'Light Blue', value: 'var(--vscode-gitDecoration-submoduleResourceForeground)' },
+    { label: 'Dark Blue', value: '#6c6cc4' }, // Color was changed in https://github.com/microsoft/vscode/commit/2fda718ad7136a145668dad783b7ee41c58b6737
+    { label: 'Light Blue', value: 'var(--vscode-terminal-submoduleResourceForeground)' },
 ];
 
 export const PROJECTS_KEY = 'projects';
