@@ -163,7 +163,7 @@
         "gulp": "^4.0.2",
         "gulp-clean-css": "^4.3.0",
         "gulp-sass": "^4.1.0",
-        "lodash": "^4.17.20",
+        "lodash": "^4.17.21",
         "node-sass": "^5.0.0",
         "ts-loader": "^6.2.2",
         "tslint": "^6.1.3",
