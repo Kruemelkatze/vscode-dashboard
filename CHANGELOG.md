@@ -2,6 +2,12 @@
 
 All notable changes to the "Project Dashboard" extension will be documented in this file. It follows the [Keep a Changelog](http://keepachangelog.com/) recommendations.
 
+## [2.3.2] 2021-07-16
+
+### Changed
+
+-   Set `extensionKind` to `["ui", "workspace"]`, following [https://github.com/Kruemelkatze/vscode-dashboard/issues/65](https://github.com/Kruemelkatze/vscode-dashboard/issues/65).
+
 ## [2.3.1] 2020-11-23
 
 ### Changed

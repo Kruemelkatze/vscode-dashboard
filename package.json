@@ -2,14 +2,15 @@
     "name": "vscode-dashboard",
     "displayName": "Project Dashboard",
     "description": "Organize your workspaces in a speed-dial manner.",
-    "version": "2.3.1",
+    "version": "2.3.2",
     "publisher": "kruemelkatze",
     "icon": "media/extension_icon.png",
     "engines": {
         "vscode": "^1.51.0"
     },
     "extensionKind": [
-        "ui"
+        "ui",
+        "workspace"
     ],
     "categories": [
         "Other"
