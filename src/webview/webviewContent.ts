@@ -196,10 +196,10 @@ function getProjectContextMenu() {
         Open Project
     </div>
     <div class="custom-context-menu-item" data-action="open-new-window">
-        Open Project in new Window
+        Open Project In New Window
     </div>
     <div class="custom-context-menu-item not-remote" data-action="open-add-to-workspace">
-        Add to Workspace
+        Add To Workspace
     </div>
 
     <div class="custom-context-menu-separator"></div>

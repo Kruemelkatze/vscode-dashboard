@@ -2,6 +2,16 @@
 
 All notable changes to the "Project Dashboard" extension will be documented in this file. It follows the [Keep a Changelog](http://keepachangelog.com/) recommendations.
 
+## [2.4.0] 2021-08-11
+
+### Added
+
+-   Clicking a project with the middle mouse button opens it in a new tab.
+
+### Fixed
+
+-   Fixed grammar. :)
+
 ## [2.3.2] 2021-07-16
 
 ### Changed
