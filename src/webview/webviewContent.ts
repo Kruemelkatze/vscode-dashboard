@@ -90,7 +90,7 @@ export function getDashboardContent(
         }
             </div>
 
-            ${getTempGroupSection(groups.length)}
+            ${infos.config.showAddGroupButtonTile ? getTempGroupSection(groups.length) : ''}
         </div>
 
         ${getProjectContextMenu()}

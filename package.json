@@ -107,9 +107,14 @@
                         "never"
                     ]
                 },
+                "dashboard.showAddGroupButtonTile": {
+                    "type": "boolean",
+                    "markdownDescription": "If set to ```false```, the '+ New Group' tile is hidden. Groups can be added by using the Command Palette (default ```F1```) with 'dashboard: Add Group' action. The dashboard needs to be refreshed for the changes to take effect.",
+                    "default": true
+                },
                 "dashboard.showAddProjectButtonTile": {
                     "type": "boolean",
-                    "markdownDescription": "If set to ```false```, the dedicated '+' tile is hidden inside groups. Projects can be added by using the actions when hovering the group name.",
+                    "markdownDescription": "If set to ```false```, the dedicated '+' tile is hidden inside groups. Projects can be added by using the actions when hovering the group name. The dashboard needs to be refreshed for the changes to take effect.",
                     "default": true
                 },
                 "dashboard.customProjectCardBackground": {
