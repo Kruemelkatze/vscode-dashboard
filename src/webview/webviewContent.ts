@@ -97,7 +97,7 @@ export function getDashboardContent(context: vscode.ExtensionContext, webview: v
 function getGroupSection(group: Group, totalGroupCount: number, infos: DashboardInfos) {
     // Apply changes to HTML here also to getTempGroupSection
 
-    var showAddButton = infos.config.showAddProjectButtonTile;
+    var showAddProjectButton = infos.config.showAddProjectButtonTile;
 
     return `
 <div class="group ${group.collapsed ? 'collapsed' : ''} ${group.projects.length === 0 ? 'no-projects' : ''}" data-group-id="${group.id}">
@@ -115,7 +115,7 @@ function getGroupSection(group: Group, totalGroupCount: number, infos: Dashboard
     <div class="group-list">
         <div class="drop-signal"></div>
         ${group.projects.map(p => getProjectDiv(p, infos)).join('\n')}
-        ${showAddButton ? getAddProjectDiv(group.id) : ""}
+        ${showAddProjectButton ? getAddProjectDiv(group.id) : ""}
     </div>       
 </div>`;
 }
