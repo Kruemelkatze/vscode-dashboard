@@ -1,12 +1,18 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 
-import { Project, Group, getRemoteType, ProjectRemoteType, DashboardInfos } from "../models";
+import {
+  Project,
+  Group,
+  getRemoteType,
+  ProjectRemoteType,
+  DashboardInfos,
+} from '../models';
 import { FITTY_OPTIONS, REMOTE_REGEX } from '../constants';
 import * as Icons from './webviewIcons';
 
 export function getSidebarContent() {
-    return `
+  return `
 <!DOCTYPE html>
     <html lang="en">
     <head>
@@ -27,24 +33,39 @@ export function getSidebarContent() {
 `;
 }
 
-export function getDashboardContent(context: vscode.ExtensionContext, webview: vscode.Webview, groups: Group[], infos: DashboardInfos): string {
-    var stylesPath = getMediaResource(context, webview, 'styles.css');
-    var fittyPath = getMediaResource(context, webview, 'fitty.min.js');
-    var dragulaPath = getMediaResource(context, webview, 'dragula.min.js');
+export function getDashboardContent(
+  context: vscode.ExtensionContext,
+  webview: vscode.Webview,
+  groups: Group[],
+  infos: DashboardInfos
+): string {
+  var stylesPath = getMediaResource(context, webview, 'styles.css');
+  var fittyPath = getMediaResource(context, webview, 'fitty.min.js');
+  var dragulaPath = getMediaResource(context, webview, 'dragula.min.js');
 
-    var projectScriptsPath = getMediaResource(context, webview, 'webviewProjectScripts.js');
-    var dndScriptsPath = getMediaResource(context, webview, 'webviewDnDScripts.js');
+  var projectScriptsPath = getMediaResource(
+    context,
+    webview,
+    'webviewProjectScripts.js'
+  );
+  var dndScriptsPath = getMediaResource(
+    context,
+    webview,
+    'webviewDnDScripts.js'
+  );
 
-    var customCss = infos.config.get('customCss') || "";
+  var customCss = infos.config.get('customCss') || '';
 
-    return `
+  return `
 <!DOCTYPE html>
     <html lang="en">
     <head>
         <meta charset="UTF-8">
         <meta
             http-equiv="Content-Security-Policy"
-            content="default-src 'none'; img-src * data:; script-src ${webview.cspSource} 'unsafe-inline'; style-src ${webview.cspSource} 'unsafe-inline';"
+            content="default-src 'none'; img-src * data:; script-src ${
+              webview.cspSource
+            } 'unsafe-inline'; style-src ${webview.cspSource} 'unsafe-inline';"
         />
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link rel="stylesheet" type="text/css" href="${stylesPath}">
@@ -57,11 +78,15 @@ export function getDashboardContent(context: vscode.ExtensionContext, webview: v
     </head>
     <body class="preload ${!groups.length ? 'dashboard-empty' : ''}">
         <div class="">
-            <div class="groups-wrapper ${!infos.config.displayProjectPath ? 'hide-project-path' : ''}">
-        ${groups.length ?
-            groups.map(group => getGroupSection(group, groups.length, infos)).join('\n')
-            :
-            getNoProjectsDiv()
+            <div class="groups-wrapper ${
+              !infos.config.displayProjectPath ? 'hide-project-path' : ''
+            }">
+        ${
+          groups.length
+            ? groups
+                .map((group) => getGroupSection(group, groups.length, infos))
+                .join('\n')
+            : getNoProjectsDiv()
         }
             </div>
 
@@ -94,34 +119,44 @@ export function getDashboardContent(context: vscode.ExtensionContext, webview: v
 </html>`;
 }
 
-function getGroupSection(group: Group, totalGroupCount: number, infos: DashboardInfos) {
-    // Apply changes to HTML here also to getTempGroupSection
+function getGroupSection(
+  group: Group,
+  totalGroupCount: number,
+  infos: DashboardInfos
+) {
+  // Apply changes to HTML here also to getTempGroupSection
 
-    var showAddButton = infos.config.showAddProjectButtonTile;
+  var showAddProjectButton = infos.config.showAddProjectButtonTile;
 
-    return `
-<div class="group ${group.collapsed ? 'collapsed' : ''} ${group.projects.length === 0 ? 'no-projects' : ''}" data-group-id="${group.id}">
+  return `
+<div class="group ${group.collapsed ? 'collapsed' : ''} ${
+    group.projects.length === 0 ? 'no-projects' : ''
+  }" data-group-id="${group.id}">
     <div class="group-title">
         <span class="group-title-text" data-action="collapse" data-drag-group>
-            <span class="collapse-icon" title="Open/Collapse Group">${Icons.collapse}</span>
-            ${group.groupName || "Unnamed Group"}
+            <span class="collapse-icon" title="Open/Collapse Group">${
+              Icons.collapse
+            }</span>
+            ${group.groupName || 'Unnamed Group'}
         </span>
         <div class="group-actions right">
             <span data-action="add" title="Add Project">${Icons.add}</span>
             <span data-action="edit" title="Edit Group">${Icons.edit}</span>
-            <span data-action="remove" title="Remove Group">${Icons.remove}</span>
+            <span data-action="remove" title="Remove Group">${
+              Icons.remove
+            }</span>
         </div>
     </div>
     <div class="group-list">
         <div class="drop-signal"></div>
-        ${group.projects.map(p => getProjectDiv(p, infos)).join('\n')}
-        ${showAddButton ? getAddProjectDiv(group.id) : ""}
+        ${group.projects.map((p) => getProjectDiv(p, infos)).join('\n')}
+        ${showAddProjectButton ? getAddProjectDiv(group.id) : ''}
     </div>       
 </div>`;
 }
 
 function getTempGroupSection(totalGroupCount: number) {
-    return `
+  return `
 <div class="group" id="tempGroup">
     <div class="group-title" data-action="add-group">
         <span>${Icons.add} New Group</span>
@@ -135,22 +170,30 @@ function getTempGroupSection(totalGroupCount: number) {
 }
 
 function getProjectDiv(project: Project, infos: DashboardInfos) {
-    var borderStyle = `background: ${project.color};`
-    var remoteType = getRemoteType(project);
-    var trimmedPath = (project.path || '').replace(REMOTE_REGEX, '');
+  var borderStyle = `background: ${project.color};`;
+  var remoteType = getRemoteType(project);
+  var trimmedPath = (project.path || '').replace(REMOTE_REGEX, '');
 
-    var isRemote = remoteType !== ProjectRemoteType.None;
-    var remoteExError = isRemote && !infos.relevantExtensionsInstalls.remoteSSH;
+  var isRemote = remoteType !== ProjectRemoteType.None;
+  var remoteExError = isRemote && !infos.relevantExtensionsInstalls.remoteSSH;
 
-    return `
+  return `
 <div class="project-container">
-    <div class="project" data-id="${project.id}" ${isRemote ? 'data-is-remote' : ''}>
+    <div class="project" data-id="${project.id}" ${
+    isRemote ? 'data-is-remote' : ''
+  }>
         <div class="project-border" style="${borderStyle}"></div>
         <div class="project-actions-wrapper">
             <div class="project-actions">
-                <span data-action="color" title="Edit Color">${Icons.palette}</span>
-                <span data-action="edit" title="Edit Project">${Icons.edit}</span>
-                <span data-action="remove" title="Remove Project">${Icons.remove}</span>
+                <span data-action="color" title="Edit Color">${
+                  Icons.palette
+                }</span>
+                <span data-action="edit" title="Edit Project">${
+                  Icons.edit
+                }</span>
+                <span data-action="remove" title="Remove Project">${
+                  Icons.remove
+                }</span>
             </div>
         </div>
         <div class="fitty-container">
@@ -159,38 +202,52 @@ function getProjectDiv(project: Project, infos: DashboardInfos) {
             </h2>
         </div>
         <p class="project-path-info">
-            ${isRemote ? `<span class="remote-icon ${remoteExError ? 'error-icon' : ''}" title="${remoteExError ? 'Remote Development extension is not installed' : 'Remote Project'}">${Icons.remote}</span>` : ''}
-            ${project.isGitRepo ? `<span class="git-icon" title="Git Repository">${Icons.gitSvg}</span>` : ''}
+            ${
+              isRemote
+                ? `<span class="remote-icon ${
+                    remoteExError ? 'error-icon' : ''
+                  }" title="${
+                    remoteExError
+                      ? 'Remote Development extension is not installed'
+                      : 'Remote Project'
+                  }">${Icons.remote}</span>`
+                : ''
+            }
+            ${
+              project.isGitRepo
+                ? `<span class="git-icon" title="Git Repository">${Icons.gitSvg}</span>`
+                : ''
+            }
             <span class="project-path" title="${trimmedPath}">${trimmedPath}</span>
         </p>
     </div>
-</div>`
+</div>`;
 }
 
 function getNoProjectsDiv() {
-    return `
+  return `
 <div class="project-container">
     <div class="project no-projects" data-action="add-project">
         No projects have been added yet.
         <br/>
         Click here to add one.
     </div>
-</div>`
+</div>`;
 }
 
 function getAddProjectDiv(groupId: string) {
-    return `
+  return `
 <span class="project-container slim last" data-nodrag>
     <div class="project add-project" data-action="add-project" data-group-id="${groupId}">
         <h2 class="add-project-header">
             +
         </h2>
     </div>
-</span>`
+</span>`;
 }
 
 function getProjectContextMenu() {
-    return `
+  return `
 <div id="projectContextMenu" class="custom-context-menu">
     <div class="custom-context-menu-item" data-action="open">
         Open Project
@@ -218,7 +275,7 @@ function getProjectContextMenu() {
 }
 
 function getGroupContextMenu() {
-    return `
+  return `
 <div id="groupContextMenu" class="custom-context-menu">   
     <div class="custom-context-menu-item" data-action="add">
         Add Project
@@ -234,23 +291,50 @@ function getGroupContextMenu() {
 }
 
 function getCustomStyle(config: vscode.WorkspaceConfiguration) {
-    var { customProjectCardBackground, customProjectNameColor, customProjectPathColor, projectTileWidth } = config;
+  var {
+    customProjectCardBackground,
+    customProjectNameColor,
+    customProjectPathColor,
+    projectTileWidth,
+  } = config;
 
-    // Nested Template Strings, hooray! \o/
-    return `
+  // Nested Template Strings, hooray! \o/
+  return `
 <style>
     :root {
-        ${customProjectCardBackground && customProjectCardBackground.trim() ? `--dashboard-project-card-bg: ${customProjectCardBackground};` : ''}
-        ${customProjectNameColor && customProjectNameColor.trim() ? `--dashboard-foreground: ${customProjectNameColor};` : ''}
-        ${customProjectPathColor && customProjectPathColor.trim() ? `--dashboard-path: ${customProjectPathColor};` : ''}
-        ${projectTileWidth && !isNaN(+projectTileWidth) ? `--column-width: ${projectTileWidth}px;` : ''}
+        ${
+          customProjectCardBackground && customProjectCardBackground.trim()
+            ? `--dashboard-project-card-bg: ${customProjectCardBackground};`
+            : ''
+        }
+        ${
+          customProjectNameColor && customProjectNameColor.trim()
+            ? `--dashboard-foreground: ${customProjectNameColor};`
+            : ''
+        }
+        ${
+          customProjectPathColor && customProjectPathColor.trim()
+            ? `--dashboard-path: ${customProjectPathColor};`
+            : ''
+        }
+        ${
+          projectTileWidth && !isNaN(+projectTileWidth)
+            ? `--column-width: ${projectTileWidth}px;`
+            : ''
+        }
     }
 </style>`;
 }
 
-function getMediaResource(context: vscode.ExtensionContext, webview: vscode.Webview, name: string) {
-    let resource = vscode.Uri.file(path.join(context.extensionPath, 'media', name));
-    resource = webview.asWebviewUri(resource);
+function getMediaResource(
+  context: vscode.ExtensionContext,
+  webview: vscode.Webview,
+  name: string
+) {
+  let resource = vscode.Uri.file(
+    path.join(context.extensionPath, 'media', name)
+  );
+  resource = webview.asWebviewUri(resource);
 
-    return resource;
+  return resource;
 }
