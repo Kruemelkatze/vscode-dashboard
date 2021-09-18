@@ -36,6 +36,7 @@ export function getDashboardContent(context: vscode.ExtensionContext, webview: v
     var dndScriptsPath = getMediaResource(context, webview, 'webviewDnDScripts.js');
 
     var customCss = infos.config.get('customCss') || "";
+    var showAddGroupButton = infos.config.showAddGroupButtonTile;
 
     return `
 <!DOCTYPE html>
@@ -65,7 +66,7 @@ export function getDashboardContent(context: vscode.ExtensionContext, webview: v
         }
             </div>
 
-            ${getTempGroupSection(groups.length)}
+            ${showAddGroupButton ? getTempGroupSection(groups.length) : ''}
         </div>
 
         ${getProjectContextMenu()}
