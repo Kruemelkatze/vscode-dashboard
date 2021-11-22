@@ -31,15 +31,14 @@ function initProjects() {
     }
 
     function onInsideProjectClick(e, projectDiv) {
-        projectDiv = projectDiv || e.target.closest(".project");
-        var dataId = projectDiv && projectDiv.getAttribute("data-id");
+        var dataId = projectDiv.getAttribute("data-id");
         if (dataId == null)
             return;
 
         if (onTriggerProjectAction(e.target, dataId))
             return;
 
-        var newWindow = e.ctrlKey || e.metaKey || e.button === 1;
+        var newWindow = e.ctrlKey || e.metaKey;
         openProject(dataId, newWindow ? ProjectOpenType.NewWindow : ProjectOpenType.Default);
 
     }
@@ -235,12 +234,6 @@ function initProjects() {
         .forEach(element =>
             element.addEventListener("click", onAddProjectClicked)
         );
-
-    document
-        .querySelectorAll('.project')
-        .forEach(element => {
-            element.addEventListener("mousedown", (e) => e.button === 1 ? onInsideProjectClick(e) : undefined);
-        });
 
     document.addEventListener('contextmenu', (e) => {
         if (!e.target)

@@ -1,9 +1,13 @@
-// Sass configuration
-var gulp = require('gulp');
-var sass = require('gulp-sass');
-var cleanCSS = require('gulp-clean-css');
+const gulp = require('gulp');
 
-function sassTask() {
+const gulpSass = require('gulp-sass');
+const nodeSass = require('node-sass');
+const cleanCSS = require('gulp-clean-css');
+
+const sass = gulpSass(nodeSass);
+
+// Sass configuration
+function buildStyles() {
     return gulp.src('media/*.scss')
         .pipe(sass())
         .pipe(cleanCSS())
@@ -23,13 +27,18 @@ function copyWebviewAssets() {
     ]).pipe(gulp.dest('media'));
 }
 
-function watchSass() {
-    return gulp.watch('media/*.scss', sassTask);
+function watchStyles() {
+    return gulp.watch('media/*.scss', buildStyles);
 }
 
-function watchJs() {
+function watchWebviewAssets() {
     return gulp.watch('src/webview/*.js', copyWebviewAssets);
 }
 
-var build = gulp.parallel(copyNodeAssets, copyWebviewAssets, sassTask, watchSass, watchJs);
-gulp.task('default', build);
+exports.buildStyles = buildStyles;
+exports.watchStyles = watchStyles;
+exports.copyWebviewAssets = copyWebviewAssets;
+exports.watchWebviewAssets = watchWebviewAssets;
+exports.copyNodeAssets = copyNodeAssets;
+
+exports.default = gulp.parallel(buildStyles, watchStyles, copyWebviewAssets, watchWebviewAssets, copyNodeAssets);
