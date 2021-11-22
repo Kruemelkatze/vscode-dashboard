@@ -53,6 +53,11 @@ export function getDashboardContent(
     webview,
     'webviewDnDScripts.js'
   );
+  var filterScriptsPath = getMediaResource(
+    context,
+    webview,
+    'webviewFilterScripts.js'
+  );
 
   var customCss = infos.config.get('customCss') || '';
 
@@ -77,6 +82,9 @@ export function getDashboardContent(
         ${getCustomStyle(infos.config)}
     </head>
     <body class="preload ${!groups.length ? 'dashboard-empty' : ''}">
+        <div class="filter-wrapper">
+            <input type="search" id="filter" aria-label="Filter Projects">
+        </div>
         <div class="">
             <div class="groups-wrapper ${
               !infos.config.displayProjectPath ? 'hide-project-path' : ''
@@ -101,6 +109,7 @@ export function getDashboardContent(
     <script src="${dragulaPath}"></script>
     <script src="${projectScriptsPath}"></script>
     <script src="${dndScriptsPath}"></script>
+    <script src="${filterScriptsPath}"></script>
 
     <script>
         (function() {
@@ -111,6 +120,7 @@ export function getDashboardContent(
             window.onload = () => {
                 initProjects();
                 initDnD();
+                initFiltering();
             }
         })();
     </script>
@@ -173,13 +183,14 @@ function getProjectDiv(project: Project, infos: DashboardInfos) {
   var borderStyle = `background: ${project.color};`;
   var remoteType = getRemoteType(project);
   var trimmedPath = (project.path || '').replace(REMOTE_REGEX, '');
+  var lowerName = (project.name || '').toLowerCase();
 
   var isRemote = remoteType !== ProjectRemoteType.None;
   var remoteExError = isRemote && !infos.relevantExtensionsInstalls.remoteSSH;
 
   return `
 <div class="project-container">
-    <div class="project" data-id="${project.id}" ${
+    <div class="project" data-id="${project.id}" data-name="${lowerName}"${
     isRemote ? 'data-is-remote' : ''
   }>
         <div class="project-border" style="${borderStyle}"></div>
