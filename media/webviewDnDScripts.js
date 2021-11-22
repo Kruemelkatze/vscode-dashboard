@@ -25,13 +25,11 @@ function initDnD() {
     function onReordered() {
         // Build reordering object
         let groupElements = [...document.querySelectorAll(`${groupsContainerSelector} > [data-group-id]`)];
-        // If showAddGroupButtonTile setting is true & a project was dropped on the Create New Group element...
-        if (infos.config.showAddGroupButtonTile) {
-            let tempGroupElement = document.querySelector('#tempGroup');
-            if (tempGroupElement && tempGroupElement.querySelector("[data-id]")) {
-                // ... Handle it as a new group
-                groupElements.push(tempGroupElement);
-            }
+        // If a project was dropped on the Create New Group element...
+        let tempGroupElement = document.querySelector('#tempGroup');
+        if (tempGroupElement && tempGroupElement.querySelector("[data-id]")) {
+            // ... Handle it as a new group
+            groupElements.push(tempGroupElement);
         }
 
         let groupOrders = [];
