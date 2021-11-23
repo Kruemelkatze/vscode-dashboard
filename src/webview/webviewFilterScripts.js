@@ -24,15 +24,23 @@ function initFiltering() {
         }
     }
 
+    // Restore previous state (VSCode drops webview contents if the webview is not visible)
     let storedFilter = sessionStorage.getItem(storageKey);
     if (storedFilter) {
         requestAnimationFrame(() => {
             filterInput.value = storedFilter;
             toggleFiltering(true);
+
+            // Do not animate slide-in if state is restored
             document.body.classList.add(noInitialTransitionClass);
         });
     }
 
+    // Workaround for focusing the webview's body after opening/switching. Otherwise, ctrl+f does not work.
+    filterInput.focus();
+    filterInput.blur();
+
+    // Functions
     function toggleFiltering(val) {
         document.body.classList.remove(noInitialTransitionClass);
 
