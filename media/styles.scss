@@ -433,6 +433,7 @@ body .project {
     padding: $defaultPadding 0 $defaultPadding / 2 0;
 
     .search-icon {
+        margin-left: $defaultPadding * (-2);
         margin-right: -28px;
         z-index: 5;
         padding-top: 5px;
