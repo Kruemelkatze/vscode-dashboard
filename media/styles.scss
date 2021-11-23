@@ -2,6 +2,7 @@
 
 // GLOBALS
 $defaultColumnWidth: 350;
+$filter-offset: 62px;
 
 :root {
     --dashboard-project-card-bg: var(--vscode-tab-inactiveBackground);
@@ -49,8 +50,11 @@ body {
 
     // See https://stackoverflow.com/questions/14389566/stop-css-transition-from-firing-on-page-load
     // Suggested fixes with css preload or <script> </script> do not work, as vscode injects javascript directly under <head>
-    &.preload * {
-        transition: none !important;
+    &.preload {
+        &,
+        * {
+            transition: none !important;
+        }
     }
 
     &.dashboard-empty {
@@ -61,10 +65,6 @@ body {
 }
 
 // RULES
-.filtered {
-    display: none !important;
-}
-
 .group {
     margin-top: $defaultPadding * 0.5;
     overflow: hidden;
@@ -343,7 +343,7 @@ body .project {
 
     .custom-context-menu-item {
         padding: 5px 26px;
-        
+
         &:hover {
             color: var(--vscode-menu-selectionForeground);
             background: var(--vscode-menu-selectionBackground);
@@ -360,7 +360,6 @@ body .project {
         opacity: 50%;
         margin: 3px 10px;
     }
-
 }
 
 // CUSTOM CONFIGURATION
@@ -419,4 +418,72 @@ body .project {
 
 .last {
     order: 1000;
+}
+
+// FILTERING
+.filter-wrapper {
+    transition: top $defaultTransition;
+    top: -$filter-offset;
+    position: absolute;
+    width: 100%;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: $defaultPadding 0 $defaultPadding / 2 0;
+
+    .search-icon {
+        margin-right: -28px;
+        z-index: 5;
+        padding-top: 5px;
+
+        svg {
+            width: 14px;
+            fill: var(--dashboard-path);
+            opacity: 0.6;
+        }
+    }
+
+    input {
+        background: var(--dashboard-project-card-bg);
+        color: var(--dashboard-foreground);
+        width: calc(var(--column-width) - #{$defaultPadding});
+        outline-color: transparent;
+
+        padding: 4px 8px 4px 34px;
+
+        text-align: center;
+        font-family: var(--vscode-font-family);
+        font-size: 1.2em;
+        border: 1pt solid transparent;
+        border-radius: 20px;
+
+        &:focus {
+            border-color: var(--dashboard-path);
+        }
+    }
+}
+
+body {
+    transition: padding-top $defaultTransition;
+    padding-top: 0;
+
+    &.no-initial-transition {
+        transition: none;
+
+        .filter-wrapper {
+            transition: none;
+        }
+    }
+
+    &.filtering-active {
+        padding-top: $filter-offset;
+        .filter-wrapper {
+            top: 0;
+        }
+
+        .filtered {
+            display: none !important;
+        }
+    }
 }
