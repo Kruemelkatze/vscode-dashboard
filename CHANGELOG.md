@@ -2,12 +2,18 @@
 
 All notable changes to the "Project Dashboard" extension will be documented in this file. It follows the [Keep a Changelog](http://keepachangelog.com/) recommendations.
 
+## [2.5.0] 2021-11-24
+
+### Added
+
+- Added a filtering option by using CTRL + F.
+- Added an option controlling '+ New Group' visibility in the dashboard
+
 ## [2.4.0] 2021-08-11
 
 ### Added
 
 - Clicking a project with the middle mouse button opens it in a new tab.
-- Added an option controlling '+ New Group' visibility in the dashboard
 
 ### Fixed
 

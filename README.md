@@ -2,7 +2,7 @@
 
 **VSCode Project Dashboard** is a Visual Studio Code extension that lets you organize your projects in a speed-dial like manner. Pin your frequently visited **folders**, **files**, and **SSH remotes** onto a dashboard to access them quickly.
 
-![demo-screenshot](screenshot.png)
+![demo-screenshot](screenshot5.png)
 
 <img width="200" alt="Screenshot 2" src="screenshot2.png">    <img width="200" alt="Screenshot 3" src="screenshot3.png">    <img width="200" alt="Screenshot 4" src="screenshot4.png">
 
@@ -13,7 +13,7 @@ The dashboard is a dedicated UI that can be opened using a command or **_ctrl + 
 Projects are separated into groups and can be assigned a color to find them quickly. Managing the groups and projects is done **directly on the dashboard**.
 
 ## Good to know
-
+-   You can filter using **ctrl + f**.
 -   You can **edit** and **reorder** projects and groups directly on the dashboard.
 -   **Emojis** may (or may not, depending on your preference) be good icons for projects. You can add them by pressing WIN + . (under Windows) while naming the project.
 -   You can use **gradients** as project color, via CSS Gradient functions like linear-gradient and radial-gradient.
