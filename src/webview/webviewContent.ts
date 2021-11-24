@@ -82,7 +82,7 @@ export function getDashboardContent(
     </head>
     <body class="preload ${!groups.length ? 'dashboard-empty' : ''}">
         <div class="filter-wrapper">
-        <span class="search-icon"/>${Icons.search}</span><input type="search" id="filter" aria-label="Filter Projects">
+            <span class="search-icon"/>${Icons.search}</span><input type="search" id="filter" aria-label="Filter Projects">
         </div>
         <div class="">
             <div class="groups-wrapper ${!infos.config.displayProjectPath ? 'hide-project-path' : ''
@@ -117,7 +117,7 @@ export function getDashboardContent(
             window.onload = () => {
                 initProjects();
                 initDnD();
-                initFiltering();
+                initFiltering(${infos.config.searchIsActiveByDefault});
             }
         })();
     </script>

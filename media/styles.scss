@@ -2,7 +2,7 @@
 
 // GLOBALS
 $defaultColumnWidth: 350;
-$filter-offset: 62px;
+$filter-offset: 52px;
 
 :root {
     --dashboard-project-card-bg: var(--vscode-tab-inactiveBackground);
@@ -430,7 +430,8 @@ body .project {
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: $defaultPadding 0 $defaultPadding / 2 0;
+    
+    padding-top: $defaultPadding;
 
     .search-icon {
         margin-left: $defaultPadding * (-2);
@@ -458,10 +459,6 @@ body .project {
         font-size: 1.2em;
         border: 1pt solid transparent;
         border-radius: 20px;
-
-        &:focus {
-            //border-color: var(--dashboard-path);
-        }
     }
 }
 
