@@ -13,16 +13,16 @@ function initFiltering(activeByDefault) {
     filterInput.onreset = onChangeFilter;
     filterInput.onblur = onChangeFilter;
 
-    window.onkeydown = function (e) {
+    window.addEventListener("keydown", function (e) {
         // ctrl + f
-        if (e.keyCode == 70 && e.ctrlKey) {
+        if (e.key === "f" && e.ctrlKey) {
             filterInput.value = '';
             toggleFiltering();
-        } else if (filteringActive && e.keyCode == 27) {
+        } else if (filteringActive && e.key === "Escape") {
             filterInput.value = '';
             toggleFiltering(false);
         }
-    }
+    });
 
     // Restore previous state (VSCode drops webview contents if the webview is not visible)
     let storedFilter = sessionStorage.getItem(storageKey) || '';

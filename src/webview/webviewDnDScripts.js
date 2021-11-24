@@ -29,6 +29,13 @@ function initDnD() {
         }
     });
 
+    window.addEventListener("keydown", function (e) {
+        if (e.key === "Escape") {
+            projectDrake.cancel(true);
+            groupsDrake.cancel(true);
+        }
+    });
+
     function onReordered() {
         // Build reordering object
         let groupElements = [...document.querySelectorAll(`${groupsContainerSelector} > [data-group-id]`)];
