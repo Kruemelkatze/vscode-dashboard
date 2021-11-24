@@ -6,8 +6,13 @@ All notable changes to the "Project Dashboard" extension will be documented in t
 
 ### Added
 
-- Added a filtering option by using CTRL + F.
-- Added an option controlling '+ New Group' visibility in the dashboard
+- Added a filtering option, toggled by CTRL + F.
+- Added an option controlling '+ New Group' visibility in the dashboard.
+
+### Added
+
+- Webview now scrolls when project or group is dragged to window bounds.
+- Dragging can be canceled by pressing ESC.
 
 ## [2.4.0] 2021-08-11
 
