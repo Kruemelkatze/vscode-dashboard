@@ -22,6 +22,13 @@ function initDnD() {
     });
     groupsDrake.on('drop', onReordered);
 
+    const scroll = autoScroll(window, {
+        margin: 20,
+        autoScroll: function () {
+            return this.down && (projectDrake.dragging || groupsDrake.dragging);
+        }
+    });
+
     function onReordered() {
         // Build reordering object
         let groupElements = [...document.querySelectorAll(`${groupsContainerSelector} > [data-group-id]`)];

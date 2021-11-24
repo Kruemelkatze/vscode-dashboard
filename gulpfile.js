@@ -18,6 +18,7 @@ function copyNodeAssets() {
     return gulp.src([
         'node_modules/fitty/dist/fitty.min.js',
         'node_modules/dragula/dist/dragula.min.js',
+        'node_modules/dom-autoscroller/dist/dom-autoscroller.min.js',
     ]).pipe(gulp.dest('media'));
 }
 

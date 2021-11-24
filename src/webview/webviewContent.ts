@@ -42,6 +42,7 @@ export function getDashboardContent(
     var stylesPath = getMediaResource(context, webview, 'styles.css');
     var fittyPath = getMediaResource(context, webview, 'fitty.min.js');
     var dragulaPath = getMediaResource(context, webview, 'dragula.min.js');
+    var autoScrollerPath = getMediaResource(context, webview, 'dom-autoscroller.min.js');
 
     var projectScriptsPath = getMediaResource(
         context,
@@ -104,6 +105,7 @@ export function getDashboardContent(
 
     <script src="${fittyPath}"></script>
     <script src="${dragulaPath}"></script>
+    <script src="${autoScrollerPath}"></script>
     <script src="${projectScriptsPath}"></script>
     <script src="${dndScriptsPath}"></script>
     <script src="${filterScriptsPath}"></script>
