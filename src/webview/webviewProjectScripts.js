@@ -31,14 +31,15 @@ function initProjects() {
     }
 
     function onInsideProjectClick(e, projectDiv) {
-        var dataId = projectDiv.getAttribute("data-id");
+        projectDiv = projectDiv || e.target.closest(".project");
+        var dataId = projectDiv && projectDiv.getAttribute("data-id");
         if (dataId == null)
             return;
 
         if (onTriggerProjectAction(e.target, dataId))
             return;
 
-        var newWindow = e.ctrlKey || e.metaKey;
+        var newWindow = e.ctrlKey || e.metaKey || e.button === 1;
         openProject(dataId, newWindow ? ProjectOpenType.NewWindow : ProjectOpenType.Default);
 
     }
@@ -191,7 +192,7 @@ function initProjects() {
         );
     }
 
-    document.addEventListener('click', (e) => {
+    function onMouseEvent(e) {
         if (!e.target || e.target.closest(".disabled"))
             return;
 
@@ -226,6 +227,19 @@ function initProjects() {
         if (groupDiv) {
             onInsideGroupClick(e, groupDiv);
             return;
+        }
+    }
+
+    // Middle mouse button requires mousedown, as it does not fire click event when scroll option is available.
+    document.addEventListener('click', (e) => {
+        if (e.button !== 1) {
+            onMouseEvent(e);
+        }
+    });
+
+    document.addEventListener('mousedown', (e) => {
+        if (e.button === 1) {
+            onMouseEvent(e);
         }
     });
 

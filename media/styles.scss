@@ -425,7 +425,7 @@ body .project {
     transition: top $defaultTransition;
     top: -$filter-offset;
     position: absolute;
-    width: 100%;
+    width: calc(100% - #{2 * $defaultPadding});
 
     display: flex;
     align-items: center;
