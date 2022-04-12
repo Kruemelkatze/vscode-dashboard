@@ -8,7 +8,7 @@ import {
     ProjectRemoteType,
     DashboardInfos,
 } from '../models';
-import { FITTY_OPTIONS, REMOTE_REGEX } from '../constants';
+import { FITTY_OPTIONS, INBUILT_COLOR_DEFAULTS, REMOTE_REGEX } from '../constants';
 import * as Icons from './webviewIcons';
 
 export function getSidebarContent() {
@@ -74,6 +74,7 @@ export function getDashboardContent(
         />
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link rel="stylesheet" type="text/css" href="${stylesPath}">
+        <style>${colorDefaults()}
         <style>
             /* Custom CSS from configuration */
             ${customCss}
@@ -287,6 +288,14 @@ function getGroupContextMenu() {
     </div>
 </div>
 `;
+}
+
+function colorDefaults() {
+    var colors = INBUILT_COLOR_DEFAULTS
+        .map(color => `${color.name}: ${color.defaultValue};`)
+        .join('\n');
+
+    return `html { \n${colors}\n}`;
 }
 
 function getCustomStyle(config: vscode.WorkspaceConfiguration) {

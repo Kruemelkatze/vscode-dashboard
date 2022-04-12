@@ -8,6 +8,15 @@ export const PREDEFINED_COLORS = [
     { label: 'Light Blue', value: 'var(--vscode-terminal-submoduleResourceForeground)' },
 ];
 
+export const INBUILT_COLOR_DEFAULTS = [
+    { name: '--vscode-gitDecoration-untrackedResourceForeground', defaultValue: '#73c991' },
+    { name: '--vscode-gitDecoration-modifiedResourceForeground', defaultValue: '#e2c08d' },
+    { name: '--vscode-gitDecoration-deletedResourceForeground', defaultValue: '#c74e39' },
+    { name: '--vscode-gitDecoration-ignoredResourceForeground', defaultValue: '#8c8c8c' },
+    { name: '--vscode-gitDecoration-submoduleResourceForeground', defaultValue: '#8db9e2' },
+    { name: '--vscode-terminal-submoduleResourceForeground', defaultValue: '#8db9e2' },
+];
+
 export const PROJECTS_KEY = 'projects';
 export const RECENT_COLORS_KEY = 'recentColors';
 export const REOPEN_KEY = 'reopenDashboardReason';
