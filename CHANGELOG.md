@@ -2,6 +2,16 @@
 
 All notable changes to the "Project Dashboard" extension will be documented in this file. It follows the [Keep a Changelog](http://keepachangelog.com/) recommendations.
 
+## [2.5.2] 2022-04-12
+
+### Added
+
+-   Fallbacks for inbuilt colors if they are not set or changed. This happens in restricted mode or due to changes in vscode.
+
+### Fixed
+
+-   Extension is now configured to not require workspace trust.
+
 ## [2.5.1] 2022-01-07
 
 ### Fixed
