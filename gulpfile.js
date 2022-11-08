@@ -1,15 +1,19 @@
 const gulp = require('gulp');
+const mode = require('gulp-mode')({
+    modes: ["production", "development"],
+    default: "development"
+});
 
 const gulpSass = require('gulp-sass');
-const nodeSass = require('node-sass');
+const sass = require('sass');
 const cleanCSS = require('gulp-clean-css');
 
-const sass = gulpSass(nodeSass);
+const sassTask = gulpSass(sass);
 
 // Sass configuration
 function buildStyles() {
     return gulp.src('media/*.scss')
-        .pipe(sass())
+        .pipe(sassTask())
         .pipe(cleanCSS())
         .pipe(gulp.dest(f => f.base));
 };
@@ -42,4 +46,6 @@ exports.copyWebviewAssets = copyWebviewAssets;
 exports.watchWebviewAssets = watchWebviewAssets;
 exports.copyNodeAssets = copyNodeAssets;
 
-exports.default = gulp.parallel(buildStyles, watchStyles, copyWebviewAssets, watchWebviewAssets, copyNodeAssets);
+exports.default = mode.development()
+    ? gulp.parallel(buildStyles, watchStyles, copyWebviewAssets, watchWebviewAssets, copyNodeAssets)
+    : gulp.parallel(buildStyles, copyWebviewAssets, copyNodeAssets);

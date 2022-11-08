@@ -1,3 +1,4 @@
+@use "sass:math";
 @import "../node_modules/dragula/dist/dragula.min.css";
 
 // GLOBALS
@@ -14,8 +15,8 @@ $filter-offset: 52px;
 
 $useAddProjectOpacity: true;
 
-$projectListMinHeight: calc(var(--column-width) * #{163 / $defaultColumnWidth});
-$projectCardMinHeight: calc(var(--column-width) * #{96 / $defaultColumnWidth});
+$projectListMinHeight: calc(var(--column-width) * #{math.div(163, $defaultColumnWidth)});
+$projectCardMinHeight: calc(var(--column-width) * #{math.div(96, $defaultColumnWidth)});
 
 $borderTopSize: 7px;
 $defaultPadding: 20px;
@@ -98,13 +99,13 @@ body {
     }
 
     &:first-child {
-        margin-top: $defaultPadding / 2;
+        margin-top: math.div($defaultPadding, 2);
     }
 
     .group-title {
         min-width: calc(var(--column-width) - 19px);
         display: inline-block;
-        font-size: $projectHeaderSize / 2;
+        font-size: math.div($projectHeaderSize, 2);
         font-weight: 200;
         margin-left: 0px;
 
@@ -165,7 +166,7 @@ body {
         align-items: flex-start;
         position: relative;
 
-        padding-top: $defaultPadding / 2;
+        padding-top: math.div($defaultPadding, 2);
         //min-height: $projectListMinHeight;
     }
 
@@ -179,7 +180,7 @@ body {
         margin-bottom: $defaultPadding;
 
         position: absolute;
-        top: $defaultPadding / 2;
+        top: math.div($defaultPadding, 2);
         height: calc(100% - #{1.5 * $defaultPadding});
 
         &:not(:only-of-type) {
