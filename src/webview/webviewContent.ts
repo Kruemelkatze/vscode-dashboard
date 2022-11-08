@@ -74,7 +74,7 @@ export function getDashboardContent(
         />
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link rel="stylesheet" type="text/css" href="${stylesPath}">
-        <style>${colorDefaults()}
+        <style>${colorDefaults()}</style>
         <style>
             /* Custom CSS from configuration */
             ${customCss}
