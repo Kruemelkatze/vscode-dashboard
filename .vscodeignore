@@ -12,3 +12,4 @@ DemoProjects.json
 media/*.scss
 webpack.config.json
 *.gif
+node_modules/**
