@@ -1,10 +1,25 @@
 'use strict';
 import * as vscode from 'vscode';
 import * as ntc from './ntc';
-import { uniqBy, find } from 'lodash';
 
 import { RECENT_COLORS_KEY, PREDEFINED_COLORS } from "../constants";
 import BaseService from './baseService';
+
+// WARNING: This is not a drop in replacement solution and
+// it might not work for some edge cases. Test your code! 
+// This is a simplified implementation
+// of https://youmightnotneed.com/lodash#unionBy
+// which would work with only one array
+const uniqBy = (arr, iteratee) => {
+    if (typeof iteratee === 'string') {
+        const prop = iteratee
+        iteratee = item => item[prop]
+    }
+
+    return arr.filter(
+        (x, i, self) => i === self.findIndex(y => iteratee(x) === iteratee(y))
+    )
+}
 
 export default class ColorService extends BaseService {
 
@@ -40,7 +55,7 @@ export default class ColorService extends BaseService {
     getColorName(colorCode: string): string {
         try {
             if (colorCode) {
-                var predefColor = find(PREDEFINED_COLORS, c => c.value === colorCode);
+                var predefColor = PREDEFINED_COLORS.find(c => c.value === colorCode);
                 if (predefColor) {
                     return predefColor.label;
                 }
