@@ -337,6 +337,16 @@ export function activate(context: vscode.ExtensionContext) {
         let remoteType = getRemoteType(project);
         let projectPath = (project.path || '').trim();
 
+        if (!path.isAbsolute(projectPath)) {
+            let rootPath = vscode.workspace.workspaceFile?.path || vscode.workspace.workspaceFolders[0]?.uri.path;
+            if (rootPath) {
+                projectPath = path.join(rootPath, projectPath);
+            } else {
+                vscode.window.showWarningMessage("Tried to open a project with a relative path, but no workspace is open.");
+                return;
+            }
+        }
+
         var openInNewWindow = projectOpenType === ProjectOpenType.NewWindow;
 
         let uri: vscode.Uri;
@@ -638,6 +648,7 @@ export function activate(context: vscode.ExtensionContext) {
         let projectTypePicks = [
             { id: 'dir', label: 'Folder Project' },
             { id: 'file', label: 'Workspace or File Project' },
+            { id: 'manual', label: `Enter manually` },
             { id: 'ssh', label: `SSH Target ${!dashboardInfos.relevantExtensionsInstalls.remoteSSH ? '(Remote Development extension is not installed)' : ''}` },
         ];
 
@@ -658,6 +669,8 @@ export function activate(context: vscode.ExtensionContext) {
                 return await getPathFromPicker(true, defaultPath);
             case 'file':
                 return await getPathFromPicker(false, defaultPath);
+            case 'manual':
+                return await getManualPath(defaultPath);
             case 'ssh':
                 return await getSSHPath(defaultPath);
             default:
@@ -686,6 +699,21 @@ export function activate(context: vscode.ExtensionContext) {
         }
 
         return selectedProjectUris[0].fsPath.trim();
+    }
+
+    async function getManualPath(defaultPath: string = null): Promise<string> {
+        let manualPath = await vscode.window.showInputBox({
+            placeHolder: './',
+            value: defaultPath || undefined,
+            ignoreFocusOut: true,
+            prompt: "Enter absolute or relative path to the project.\nProjects with relative paths can only be opened if a workspace is already open.",
+        });
+
+        if (!manualPath) {
+            throw new Error(USER_CANCELED);
+        }
+
+        return manualPath.trim();
     }
 
     async function getSSHPath(defaultPath: string = null): Promise<string> {
