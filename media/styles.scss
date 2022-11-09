@@ -261,10 +261,16 @@ body .project {
     .project-path {
         color: var(--dashboard-path);
 
+        direction: rtl;
         overflow: hidden;
         white-space: nowrap;
         text-overflow: ellipsis;
-        direction: rtl;
+
+        .path-text {
+            text-overflow: ellipsis;
+            direction: ltr;
+            unicode-bidi: bidi-override;
+        }
     }
 
     .project-icon {
@@ -431,7 +437,7 @@ body .project {
     display: flex;
     align-items: center;
     justify-content: center;
-    
+
     padding-top: $defaultPadding;
 
     .search-icon {

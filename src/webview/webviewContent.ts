@@ -218,7 +218,11 @@ function getProjectDiv(project: Project, infos: DashboardInfos) {
             ? `<span class="git-icon" title="Git Repository">${Icons.gitSvg}</span>`
             : ''
         }
-            <span class="project-path" title="${trimmedPath}">${trimmedPath}</span>
+            <span class="project-path" title="${trimmedPath}">
+                <span class="path-text">
+                    ${trimmedPath}
+                </span>
+            </span>
         </p>
     </div>
 </div>`;
