@@ -80,6 +80,9 @@ export function activate(context: vscode.ExtensionContext) {
     const removeGroupCommand = vscode.commands.registerCommand('dashboard.removeGroup', async () => {
         await removeGroupPerCommand();
     });
+    const addProjectsFromFolderCommand = vscode.commands.registerCommand('dashboard.addProjectsFromFolder', async () => {
+        await addProjectsFromFolder();
+    });
 
     context.subscriptions.push(openCommand);
     context.subscriptions.push(addProjectCommand);
@@ -87,6 +90,7 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(editProjectsManuallyCommand);
     context.subscriptions.push(addGroupCommand);
     context.subscriptions.push(removeGroupCommand);
+    context.subscriptions.push(addProjectsFromFolderCommand);
 
     vscode.workspace.onDidChangeConfiguration(event => {
         if (event.affectsConfiguration("dashboard.storeProjectsInSettings")) {
@@ -303,6 +307,44 @@ export function activate(context: vscode.ExtensionContext) {
     async function removeGroupPerCommand() {
         var [groupId, newlyCreated] = await queryGroup();
         removeGroup(groupId);
+    }
+
+    async function addProjectsFromFolder() {
+        try {
+            let currentlyOpenPath = getWorkspacePath();
+            let folderPath = await vscode.window.showOpenDialog({
+                defaultUri: currentlyOpenPath ? vscode.Uri.file(currentlyOpenPath) : undefined,
+                canSelectFiles: false,
+                canSelectFolders: true,
+                canSelectMany: false,
+                openLabel: 'Select Folder containing Projects',
+            });
+
+            if (!folderPath || folderPath.length === 0)
+                return;
+
+            let foldersInPath = await fileService.getFolders(folderPath[0].fsPath);
+            let folderName = path.basename(folderPath[0].fsPath);
+
+            let group = await projectService.addGroup(folderName);
+            for (const folder of foldersInPath) {
+                let name = path.basename(folder);
+                let project = new Project(name, folder);
+                project.color = colorService.getRandomColor();
+                project.isGitRepo = isFolderGitRepo(folder);
+                await projectService.addProject(project, group.id);
+            }
+
+        } catch (error) {
+            if (error.message !== USER_CANCELED) {
+                vscode.window.showErrorMessage(`An error occured while adding the projects.`);
+                throw error; // Rethrow error to make vscode log it
+            }
+
+            return;
+        }
+
+        showDashboard();
     }
 
     async function removeGroup(groupId: string) {

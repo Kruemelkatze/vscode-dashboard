@@ -53,6 +53,10 @@
             {
                 "command": "dashboard.editProjects",
                 "title": "Project Dashboard: Edit Projects"
+            },
+            {
+                "command": "dashboard.addProjectsFromFolder",
+                "title": "Project Dashboard: Add Projects from Folder"
             }
         ],
         "keybindings": [

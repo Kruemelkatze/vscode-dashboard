@@ -18,7 +18,7 @@ export default class FileService extends BaseService {
         filePath = path.normalize(filePath);
         var dir = path.dirname(filePath);
 
-        await new Promise((resolve, reject) => {
+        await new Promise<void>((resolve, reject) => {
             try {
                 if (!fs.existsSync(dir)) {
                     fs.mkdirSync(dir);
@@ -50,6 +50,13 @@ export default class FileService extends BaseService {
         return folderPaths;
     }
 
+    async getFolders(p: string): Promise<string[]> {
+        let files = await fs.promises.readdir(p);
+        let filePaths = files.map(f => path.join(p, f));
+        let stats = await Promise.all(filePaths.map(f => fs.promises.lstat(f)));
+        let folders = filePaths.filter((f, i) => stats[i].isDirectory());
+        return folders;
+    }
 
     isFile(p: string): boolean {
         return !!path.extname(p);
