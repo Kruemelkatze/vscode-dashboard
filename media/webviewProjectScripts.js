@@ -30,6 +30,15 @@ function initProjects() {
         });
     }
 
+    function onImportFromOtherStorageClicked(e) {
+        if (!e.target)
+            return;
+
+        window.vscode.postMessage({
+            type: 'import-from-other-storage',
+        });
+    }
+
     function onInsideProjectClick(e, projectDiv) {
         projectDiv = projectDiv || e.target.closest(".project");
         var dataId = projectDiv && projectDiv.getAttribute("data-id");
@@ -247,6 +256,12 @@ function initProjects() {
         .querySelectorAll('[data-action="add-project"]')
         .forEach(element =>
             element.addEventListener("click", onAddProjectClicked)
+        );
+
+    document
+        .querySelectorAll('[data-action="import-from-other-storage"]')
+        .forEach(element =>
+            element.addEventListener("click", onImportFromOtherStorageClicked)
         );
 
     document.addEventListener('contextmenu', (e) => {

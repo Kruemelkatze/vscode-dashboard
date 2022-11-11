@@ -93,8 +93,9 @@ export function getDashboardContent(
             ? groups
                 .map((group) => getGroupSection(group, groups.length, infos))
                 .join('\n')
-            : getNoProjectsDiv()
+            : (infos.otherStorageHasData ? getImportDiv() : getNoProjectsDiv())
         }
+        
             </div>
 
             ${infos.config.showAddGroupButtonTile ? getTempGroupSection(groups.length) : ''}
@@ -231,10 +232,22 @@ function getProjectDiv(project: Project, infos: DashboardInfos) {
 function getNoProjectsDiv() {
     return `
 <div class="project-container">
-    <div class="project no-projects" data-action="add-project">
+    <div class="project no-projects" data-action="add-project" data-nodrag>
         No projects have been added yet.
         <br/>
         Click here to add one.
+    </div>
+</div>`;
+}
+
+function getImportDiv() {
+    return `
+<div class="project-container">
+    <div class="project no-projects import-data" data-action="import-from-other-storage" data-nodrag>
+        Your dashboard is empty, but there are projects in your other storage. 
+        <br/>
+        This can happen if the storage option has been changed on a different device that is synced via Settings Sync.
+        <p>Click here to import.</p>
     </div>
 </div>`;
 }

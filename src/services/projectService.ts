@@ -3,7 +3,7 @@
 import * as vscode from 'vscode';
 
 import { Project, Group } from "../models";
-import { ADD_NEW_PROJECT_TO_FRONT, PROJECTS_KEY } from "../constants";
+import { ADD_NEW_PROJECT_TO_FRONT, PROJECTS_KEY, StorageOption } from "../constants";
 import BaseService from './baseService';
 import ColorService from './colorService';
 
@@ -18,9 +18,7 @@ export default class ProjectService extends BaseService {
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~ GET ~~~~~~~~~~~~~~~~~~~~~~~~~
     getGroups(noSanitize = false): Group[] {
-        var groups = this.useSettingsStorage() ?
-            this.getProjectsFromSettings() :
-            this.getProjectsFromGlobalState();
+        var groups = this.getProjectsFromStorage();
 
         if (!noSanitize) {
             groups = this.sanitizeGroups(groups);
@@ -183,12 +181,27 @@ export default class ProjectService extends BaseService {
     saveGroups(groups: Group[]): Thenable<void> {
         groups = this.sanitizeGroups(groups);
 
-        return this.useSettingsStorage() ?
-            this.saveGroupsInSettings(groups) :
-            this.saveGroupsInGlobalState(groups);
+        return this.saveGroupsInStorage(groups);
     }
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~ STORAGE ~~~~~~~~~~~~~~~~~~~~~~~~~
+    private getCurrentStorageOption(): StorageOption {
+        return this.useSettingsStorage() ? StorageOption.Settings : StorageOption.GlobalState;
+    }
+
+    private getProjectsFromStorage(storage: StorageOption = null, unsafe: boolean = false): Group[] {
+        storage = storage || this.getCurrentStorageOption();
+
+        switch (storage) {
+            case StorageOption.Settings:
+                return this.getProjectsFromSettings(unsafe);
+            case StorageOption.GlobalState:
+                return this.getProjectsFromGlobalState(unsafe);
+            default:
+                return [];
+        }
+    }
+
     private getProjectsFromGlobalState(unsafe: boolean = false): Group[] {
         var groups = this.context.globalState.get(PROJECTS_KEY) as Group[];
 
@@ -209,6 +222,19 @@ export default class ProjectService extends BaseService {
         return groups;
     }
 
+    private saveGroupsInStorage(groups: Group[], storage: StorageOption = null): Thenable<void> {
+        storage = storage || this.getCurrentStorageOption();
+
+        switch (storage) {
+            case StorageOption.Settings:
+                return this.saveGroupsInSettings(groups);
+            case StorageOption.GlobalState:
+                return this.saveGroupsInGlobalState(groups);
+            default:
+                return Promise.resolve();
+        }
+    }
+
     private saveGroupsInGlobalState(groups: Group[]): Thenable<void> {
         return this.context.globalState.update(PROJECTS_KEY, groups);
     }
@@ -217,10 +243,39 @@ export default class ProjectService extends BaseService {
         return this.configurationSection.update("projectData", groups, vscode.ConfigurationTarget.Global);
     }
 
+    private getStorageOptionsWithData(): StorageOption[] {
+        var storageOptions: StorageOption[] = [];
+
+        if (this.getProjectsFromSettings()?.length) {
+            storageOptions.push(StorageOption.Settings);
+        }
+
+        if (this.getProjectsFromGlobalState()?.length) {
+            storageOptions.push(StorageOption.GlobalState);
+        }
+
+        return storageOptions;
+    }
+
+    otherStorageHasData(currentStorage: StorageOption = null): boolean {
+        currentStorage = currentStorage || this.getCurrentStorageOption();
+        return this.getStorageOptionsWithData().some(s => s !== currentStorage);
+    }
+
     // ~~~~~~~~~~~~~~~~~~~~~~~~~ MODEL MIGRATION ~~~~~~~~~~~~~~~~~~~~~~~~~
+    async copyProjectsFromFilledStorageOptionToEmptyStorageOption(): Promise<void> {
+        if (this.getProjectsFromStorage().length) {
+            return;
+        }
+
+        var storageOptionToCopyFrom = this.getStorageOptionsWithData().find(s => s !== this.getCurrentStorageOption());
+
+        var projects = this.getProjectsFromStorage(storageOptionToCopyFrom, true);
+        await this.saveGroupsInStorage(projects);
+    }
+
     async migrateDataIfNeeded() {
         var toMigrate = false;
-
         var projectsInSettings = this.getProjectsFromSettings(true);
         var projectsInGlobalState = this.getProjectsFromGlobalState(true);
 
@@ -232,7 +287,7 @@ export default class ProjectService extends BaseService {
                 await this.saveGroupsInSettings(projectsInGlobalState);
             }
 
-            await this.saveGroupsInGlobalState(null);
+            //await this.saveGroupsInGlobalState(null);
         } else {
             // Migrate from Settings To Global State
             toMigrate = projectsInGlobalState == null && projectsInSettings != null;
@@ -241,8 +296,9 @@ export default class ProjectService extends BaseService {
                 await this.saveGroupsInGlobalState(projectsInSettings);
             }
 
-            await this.saveGroupsInSettings(null);
+            //await this.saveGroupsInSettings(null);
         }
+
 
         return toMigrate;
     }

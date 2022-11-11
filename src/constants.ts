@@ -21,6 +21,11 @@ export const PROJECTS_KEY = 'projects';
 export const RECENT_COLORS_KEY = 'recentColors';
 export const REOPEN_KEY = 'reopenDashboardReason';
 
+export enum StorageOption {
+    GlobalState,
+    Settings,
+}
+
 export const FITTY_OPTIONS = {
     maxSize: '40',
     // minSize: '20', // Apparently, fitty has a problem with our setup and will overflow text if minSize is set...

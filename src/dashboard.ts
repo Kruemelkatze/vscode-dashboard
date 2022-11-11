@@ -55,6 +55,7 @@ export function activate(context: vscode.ExtensionContext) {
             remoteSSH: false,
         },
         get config() { return vscode.workspace.getConfiguration('dashboard') },
+        get otherStorageHasData() { return projectService.otherStorageHasData() },
     };
 
     const openCommand = vscode.commands.registerCommand('dashboard.open', () => {
@@ -202,6 +203,10 @@ export function activate(context: vscode.ExtensionContext) {
                     case 'add-project':
                         groupId = e.groupId as string;
                         await addProject(groupId);
+                        break;
+                    case 'import-from-other-storage':
+                        await projectService.copyProjectsFromFilledStorageOptionToEmptyStorageOption();
+                        await showDashboard();
                         break;
                     case 'reordered-projects':
                         let groupOrders = e.groupOrders as GroupOrder[];

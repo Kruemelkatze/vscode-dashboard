@@ -312,6 +312,10 @@ body .project {
         text-align: center;
     }
 
+    &.import-data {
+        width: calc(2 * var(--column-width));
+    }
+
     .project-actions-wrapper {
         position: absolute;
         right: 0;

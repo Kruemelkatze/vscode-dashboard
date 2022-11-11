@@ -1,7 +1,7 @@
 'use strict';
 
 import * as vscode from 'vscode';
-import { SSH_REMOTE_PREFIX } from "./constants";
+import { SSH_REMOTE_PREFIX, StorageOption } from "./constants";
 
 export class Group {
     id: string;
@@ -78,6 +78,7 @@ export interface GroupOrder {
 export interface DashboardInfos {
     relevantExtensionsInstalls: { remoteSSH },
     config: vscode.WorkspaceConfiguration,
+    otherStorageHasData: boolean,
 }
 
 export enum ProjectPathType {
