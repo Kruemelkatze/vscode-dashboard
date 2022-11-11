@@ -379,7 +379,7 @@ export function activate(context: vscode.ExtensionContext) {
         let remoteType = getRemoteType(project);
         let projectPath = (project.path || '').trim();
 
-        if (!path.isAbsolute(projectPath)) {
+        if (!path.isAbsolute(projectPath) && !projectPath.includes("://")) {
             let rootPath = vscode.workspace.workspaceFile?.path || vscode.workspace.workspaceFolders[0]?.uri.path;
             if (rootPath) {
                 projectPath = path.join(rootPath, projectPath);
@@ -416,6 +416,16 @@ export function activate(context: vscode.ExtensionContext) {
                         reuseWindow: !openInNewWindow,
                     });
                 }
+                break;
+            case ProjectRemoteType.WSL:
+                var { prependVscodeUrlToWslRemotes } = dashboardInfos.config;
+                if (prependVscodeUrlToWslRemotes && projectPath.match(/^\\+wsl\$/i)) {
+                    projectPath = `vscode-remote://wsl+${projectPath.replace(/^\\+wsl\$/i, '')}`;
+                }
+
+                uri = vscode.Uri.file(projectPath);
+
+                await vscode.commands.executeCommand("vscode.openFolder", uri, openInNewWindow);
                 break;
         }
     }

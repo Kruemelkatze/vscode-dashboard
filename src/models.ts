@@ -36,6 +36,8 @@ export class Project {
     getRemoteType(): ProjectRemoteType {
         if (this.path && this.path.startsWith(SSH_REMOTE_PREFIX)) {
             return ProjectRemoteType.SSH;
+        } else if (this.path && (this.path.match(/\\+wsl\$/) || this.path.startsWith("vscode-remote://wsl+"))) {
+            return ProjectRemoteType.WSL;
         }
 
         return ProjectRemoteType.None;
@@ -93,6 +95,7 @@ export enum ProjectOpenType {
 export enum ProjectRemoteType {
     None,
     SSH,
+    WSL,
 }
 
 export enum ReopenDashboardReason {

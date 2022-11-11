@@ -101,6 +101,10 @@
                     "type": "boolean",
                     "default": true
                 },
+                "dashboard.prependVscodeUrlToWslRemotes": {
+                    "type": "boolean",
+                    "default": false
+                },
                 "dashboard.projectTileWidth": {
                     "description": "In px, default: 350",
                     "type": "number",
