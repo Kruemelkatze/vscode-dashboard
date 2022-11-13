@@ -2,6 +2,24 @@
 
 All notable changes to the "Project Dashboard" extension will be documented in this file. It follows the [Keep a Changelog](http://keepachangelog.com/) recommendations.
 
+## [2.6.0] 2022-11-15
+
+### Added
+
+-   Support for relative paths. This only works if a workspace is already open.
+-   Command to add all subfolders of a selected folder as projects.
+-   Option to restore data from other storage if switched from global state to settings or vice-versa. This should act as a fallback for a rare case where project data is reset after receiving synced settings data.
+
+### Changed
+
+-   Set activation event back to `\*` from `onStartupFinished`. This should fix the dashboard starting after a long delay.
+-   Adding remote WSL folders is now supported via theeir `\\wsl$` uri.
+
+### Fixed
+
+-   Fixed custom css styling. Thanks to [BergkampHUN](https://github.com/BergkampHUN).
+-   Fixed left ellipsis solution in project path display for some edge cases.
+
 ## [2.5.2] 2022-04-12
 
 ### Added
