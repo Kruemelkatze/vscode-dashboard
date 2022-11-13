@@ -1,7 +1,7 @@
 'use strict';
 
 import * as vscode from 'vscode';
-import { SSH_REMOTE_PREFIX, StorageOption } from "./constants";
+import { SSH_REMOTE_PREFIX, StorageOption, WSL_DEFAULT_REGEX } from "./constants";
 
 export class Group {
     id: string;
@@ -36,7 +36,7 @@ export class Project {
     getRemoteType(): ProjectRemoteType {
         if (this.path && this.path.startsWith(SSH_REMOTE_PREFIX)) {
             return ProjectRemoteType.SSH;
-        } else if (this.path && (this.path.match(/\\+wsl\$/) || this.path.startsWith("vscode-remote://wsl+"))) {
+        } else if (this.path && (this.path.match(WSL_DEFAULT_REGEX) || this.path.startsWith("vscode-remote://wsl+"))) {
             return ProjectRemoteType.WSL;
         }
 

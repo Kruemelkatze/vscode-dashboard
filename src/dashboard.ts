@@ -3,7 +3,7 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import { Project, GroupOrder, Group, ProjectRemoteType, getRemoteType, DashboardInfos, ProjectOpenType, ReopenDashboardReason, ProjectPathType, sanitizeProjectName } from './models';
 import { getSidebarContent, getDashboardContent } from './webview/webviewContent';
-import { USE_PROJECT_COLOR, PREDEFINED_COLORS, StartupOptions, USER_CANCELED, FixedColorOptions, RelevantExtensions, SSH_REGEX, REMOTE_REGEX, SSH_REMOTE_PREFIX, REOPEN_KEY } from './constants';
+import { USE_PROJECT_COLOR, PREDEFINED_COLORS, StartupOptions, USER_CANCELED, FixedColorOptions, RelevantExtensions, SSH_REGEX, REMOTE_REGEX, SSH_REMOTE_PREFIX, REOPEN_KEY, WSL_DEFAULT_REGEX } from './constants';
 import { execSync } from 'child_process';
 import { lstatSync } from 'fs';
 
@@ -424,11 +424,11 @@ export function activate(context: vscode.ExtensionContext) {
                 break;
             case ProjectRemoteType.WSL:
                 var { prependVscodeUrlToWslRemotes } = dashboardInfos.config;
-                if (prependVscodeUrlToWslRemotes && projectPath.match(/^\\+wsl\$/i)) {
-                    projectPath = `vscode-remote://wsl+${projectPath.replace(/^\\+wsl\$/i, '')}`;
+                if (prependVscodeUrlToWslRemotes && projectPath.match(WSL_DEFAULT_REGEX)) {
+                    projectPath = `vscode-remote://wsl+${projectPath.replace(WSL_DEFAULT_REGEX, '')}`;
                 }
 
-                uri = vscode.Uri.file(projectPath);
+                uri = vscode.Uri.parse(projectPath);
 
                 await vscode.commands.executeCommand("vscode.openFolder", uri, openInNewWindow);
                 break;
