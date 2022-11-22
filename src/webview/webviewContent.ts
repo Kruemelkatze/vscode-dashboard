@@ -84,7 +84,7 @@ export function getDashboardContent(
     </head>
     <body class="preload ${!groups.length ? 'dashboard-empty' : ''}">
         <div class="filter-wrapper">
-            <span class="search-icon"/>${Icons.search}</span><input type="search" id="filter" aria-label="Filter Projects">
+            <span class="search-icon"/>${Icons.search}</span><input type="search" id="filter" aria-label="Filter Projects"><span id="clear" class="clear-search-icon"/>${Icons.remove}</span>
         </div>
         <div class="">
             <div class="groups-wrapper ${!infos.config.displayProjectPath ? 'hide-project-path' : ''

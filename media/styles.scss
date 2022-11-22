@@ -68,6 +68,7 @@ body {
 // RULES
 .group {
     margin-top: $defaultPadding * 0.5;
+    margin-right: -$defaultPadding;
     overflow: hidden;
 
     &.collapsed {
@@ -457,19 +458,42 @@ body .project {
         }
     }
 
+    .clear-search-icon {
+        @extend .search-icon;
+        margin-left: -26px;
+        visibility: hidden;
+        cursor: pointer;
+    }
+
+    &:hover,
+    &:active,
+    &:focus {
+        &.has-filter-value .clear-search-icon {
+            visibility: visible;
+        }
+    }
+
     input {
         background: var(--dashboard-project-card-bg);
         color: var(--dashboard-foreground);
         width: calc(var(--column-width) - #{$defaultPadding});
         outline-color: transparent;
 
-        padding: 4px 8px 4px 34px;
+        padding: 4px 34px;
 
         text-align: center;
         font-family: var(--vscode-font-family);
         font-size: 1.2em;
         border: 1pt solid transparent;
         border-radius: 20px;
+    }
+
+    /* clears the 'X' from Chrome */
+    input[type="search"]::-webkit-search-decoration,
+    input[type="search"]::-webkit-search-cancel-button,
+    input[type="search"]::-webkit-search-results-button,
+    input[type="search"]::-webkit-search-results-decoration {
+        display: none;
     }
 }
 

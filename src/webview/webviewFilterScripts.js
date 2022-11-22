@@ -3,6 +3,7 @@ function initFiltering(activeByDefault) {
     const filteredClass = 'filtered';
     const storageKey = 'filterValue';
     const noInitialTransitionClass = 'no-initial-transition';
+    const hasFilterValueClass = 'has-filter-value';
 
     var filteringActive = false;
     var prevFilterValue = null;
@@ -12,6 +13,11 @@ function initFiltering(activeByDefault) {
     filterInput.onkeyup = onChangeFilter;
     filterInput.onreset = onChangeFilter;
     filterInput.onblur = onChangeFilter;
+
+    const clearSearchElement = document.getElementById('clear');
+    clearSearchElement.onclick = clearFilter;
+
+    const filterWrapper = filterInput.parentElement;
 
     window.addEventListener("keydown", function (e) {
         // ctrl + f
@@ -66,6 +72,12 @@ function initFiltering(activeByDefault) {
 
         prevFilterValue = filterValue;
 
+        if (filterValue) {
+            filterWrapper.classList.add(hasFilterValueClass);
+        } else {
+            filterWrapper.classList.remove(hasFilterValueClass);
+        }
+
         sessionStorage.setItem(storageKey, filterValue);
 
         var matchFunc;
@@ -102,6 +114,12 @@ function initFiltering(activeByDefault) {
                 g.classList.remove(filteredClass);
             }
         }
+    }
+
+    function clearFilter() {
+        filterInput.value = '';
+        filterInput.focus();
+        onChangeFilter();
     }
 
     function globToRegexSimple(globLike) {
