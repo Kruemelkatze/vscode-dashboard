@@ -2,7 +2,7 @@
 
 All notable changes to the "Project Dashboard" extension will be documented in this file. It follows the [Keep a Changelog](http://keepachangelog.com/) recommendations.
 
-## [2.6.0] 2022-11-15
+## [2.6.0] 2022-11-22
 
 ### Added
 
