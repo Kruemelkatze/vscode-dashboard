@@ -95,7 +95,8 @@ function initFiltering(activeByDefault) {
         let projects = [...document.querySelectorAll('.project[data-id]')];
         for (let p of projects) {
             let name = p.getAttribute('data-name') || '';
-            let matches = matchFunc(name);
+            let path = p.getAttribute('data-path') || '';
+            let matches = matchFunc(name) || matchFunc(path);
 
             if (matches) {
                 p.parentNode.classList.remove(filteredClass);
